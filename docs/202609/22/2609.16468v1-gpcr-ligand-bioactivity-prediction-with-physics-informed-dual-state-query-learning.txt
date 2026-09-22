@@ -1,0 +1,296 @@
+Title: GPCR Ligand Bioactivity Prediction with Physics-Informed Dual-State Query Learning
+
+URL Source: https://arxiv.org/pdf/2609.16468v1
+
+Published Time: Wed, 16 Sep 2026 00:27:35 GMT
+
+Number of Pages: 16
+
+Markdown Content:
+# GPCR Ligand Bioactivity Prediction with Physics-Informed Dual-State Query Learning 
+
+Shuo Zhang 1, Huifeng Zhang 1, Rongqi Hong 1, and Jian K. Liu 1,* 
+
+> 1
+
+University of Birmingham 
+
+> *
+
+Correspondence: j.liu.22@bham.ac.uk 
+
+Abstract: Predicting the bioactivity profiles of small molecules against G protein-coupled receptors (GPCRs) is a challenge in drug discovery. Although deep learning has accelerated the prediction of binding affinities, existing approaches often struggle to distinguish between functional efficacies because they neglect dynamic conformational equilibria. Furthermore, structure-based methods are frequently limited by the scarcity of high-resolution active-state crystal structures and the indistinguishability of conformational states in static representations. To bridge the gap between black-box prediction and biophysical reality, we propose Dual-State Query (DSQ), a physics-informed multimodal architecture that explicitly embeds the Monod-Wyman-Changeux (MWC) model of allostery within a neural network. Unlike conventional models that rely on explicit 3D structures, DSQ utilizes learnable orthogonal queries to extract disentangled representations of active and inactive receptor states. These latent representations are governed by a novel neural MWC gating module, which mathematically derives the probability of receptor activation from thermodynamic competition between ligand-state affinities and the receptor’s intrinsic conformational energy barrier. A contrastive ranking objective is also introduced to enforce differential affinity constraints, ensuring physical consistency. Extensive experiments demonstrate that DSQ outperforms other baselines, particularly for the agonist subset. Additional homology-stratified, temperature-sensitivity, perturbation, clustering, and efficiency analyses show that DSQ provides useful thermodynamic inductive bias, while also exposing a clear limitation on low-homology receptors. The code is available at https://github.com/jiankliu/DSQ. 
+
+Keywords: binding affinity prediction; learnable query; GPCR 
+
+1. Introduction 
+
+G protein-coupled receptors (GPCRs) represent the largest superfamily of membrane proteins in the human genome and serve as primary targets for a substantial portion of FDA-approved drugs [1, 2]. The therapeutic potential of a GPCR ligand is determined not only by its bind-ing affinity but fundamentally by its functional effect: whether it activates (agonist) or inhibits (antagonist) the receptor. This pharmacological property is governed by the receptor’s ability to transition between different active and inactive conformational states [3]. Consequently, ac-curate GPCR profiling requires a dual prediction capability: quantifying binding strength while simultaneously characterizing the functional state induced by the ligand. Despite its importance, integrating structural mechanisms into data-driven prediction re-mains a significant challenge. Traditional structure-based drug design (SBDD) relies on high-resolution crystal structures to model interactions [4]. However, active-state GPCR structures are scarce due to their inherent instability [5]. Even when structures are available, the high geometric similarity between active and inactive states, particularly in the transmembrane re-gion, often confounds standard geometric deep learning models. Structure-based prediction is also limited when reliable binding pockets or active-state conformations are unavailable. While recent hierarchical architectures have attempted to capture distinct energetic signals at flexible structural boundaries or domain interfaces [6], they still heavily rely on explicit 3D conforma-tions. Consequently, these models remain constrained when applied to GPCRs, where active-state crystals are scarce and dynamic conformational equilibria cannot be fully resolved by static 
+
+APBC2026 1arXiv:2609.16468v1 [q-bio.QM] 15 Sep 2026 geometric graphs. In contrast, ligand-based quantitative structure-activity relationship (QSAR) models typically neglect the receptor’s structural context [7]. Generalization to receptor-disjoint or orphan GPCRs therefore remains a distinct challenge that requires dedicated evaluation. In this work, we propose Dual-State Query (DSQ), a physics-informed multimodal architec-ture that explicitly embeds the Monod-Wyman-Changeux (MWC) model of allostery [8] into a deep learning framework. Unlike conventional models that represent proteins as static embed-dings, DSQ introduces a latent state probing mechanism. We utilize learnable orthogonal state queries to extract disentangled structural representations of active and inactive states from a pre-trained protein language model (ESM-2 [9]), circumventing the need for explicit 3D structures. These representations are governed by a novel neural MWC gating module, which mathemati-cally derives the probability of receptor activation from the thermodynamic competition between ligand-state affinities and the receptor’s intrinsic energy barrier. By enforcing differential affinity constraints through a contrastive ranking objective, DSQ ensures that predictions are thermo-dynamically consistent. Our contributions are summarized as follows: • Physics-Informed Architecture: We propose DSQ, a novel framework that embeds the MWC allosteric model into a neural network. By simulating the receptor’s conformational ensemble via learnable state queries, we address the limitations of static structural repre-sentations. • Joint Affinity-Efficacy Prediction: DSQ uses efficacy labels during training but, at infer-ence, predicts activation probability and bioactivity jointly without requiring an externally supplied agonist/antagonist class token. • Comprehensive Evaluation: We validate DSQ on a large-scale human GPCR benchmark cu-rated from GLASS and GPCRdb. Beyond standard test-set performance, we add homology-stratified evaluation, temperature sensitivity, perturbation-based motif validation, quanti-tative clustering metrics, and computational profiling. These analyses support the benefit of the MWC inductive bias while identifying low-homology generalization as an unresolved limitation. 
+
+2. Problem Definition 
+
+Formally, let P denote the space of protein amino acid sequences and L denote the space of ligand molecular graphs. Given a pair (p, l ) ∈ P × L , the task of GPCR bioactivity profiling is to simultaneously predict the binding affinity ˆy ∈ R and the functional efficacy class ˆc ∈ 0, 1 (where 1 denotes agonist and 0 denotes antagonist). We denote the DSQ model by Φθ : P×L → R×[0 , 1] ,where θ denotes all trainable model parameters. Unlike standard affinity prediction tasks, which target ˆy in isolation, we formulate this as a physics-constrained learning problem governed by the MWC model. We assume the receptor exists in a thermodynamic equilibrium between an active state ( R∗) and an inactive state ( R). The observed efficacy ˆc is modeled as the outcome of the activation probability P (R∗|p, l ), a latent variable derived from the ligand’s differential affinity toward these two states. Thus, we optimize θ so that ˆy minimizes the regression objective while the latent P (R∗|p, l ) is consistent with the functional label. 
+
+3. Materials and Methods 
+
+3.1. Overview 
+
+Dual-State Query (DSQ) simulates the conformational selection of GPCRs in a latent space. As illustrated in Figure 1, the architecture comprises three main components: A. Latent state probing, which uses learnable queries to extract disentangled active and inactive state representa-tions; B. Interaction learning, which models ligand binding to each state; and C. a Neural MWC module, which enforces thermodynamic consistency between affinities and activation probability.  
+
+> APBC2026
+
+2Figure 1. Model Architecture: A. Latent state probing; B. Interaction learning; C. Neural MWC module. The parameters of State and Inter Cross-Attention layers are shared between two state-specific query branches. 
+
+3.2. Input Representation 
+
+We use general-purpose pretrained encoders rather than GPCR-specific foundation models. For protein p, ESM-2 (esm2_t33_650M_UR50D) provides residue-level embeddings H(0)  
+
+> P
+
+∈
+
+RN ×1280 . For ligand l, MoLFormer-c3-1.1B [10] provides token-level embeddings H(0)  
+
+> L
+
+∈ RM ×dl .ESM-2 provides general protein sequence representations, whereas MolFormer provides general chemical representations. ESM-2 features are precomputed and MolFormer parameters are frozen during DSQ training. Learned projections map both modalities to the common hidden dimension 
+
+d: ˜HP = H(0)  
+
+> P
+
+WP , ˜HL = H(0)  
+
+> L
+
+WL. (1) 
+
+3.3. Latent State Probing via Learnable Queries 
+
+We introduce a latent probe mechanism to approximate receptor conformational views in the embedding space. The operation is implemented as cross-attention pooling; the contribution is not a new attention primitive, but the use of two state-specific probe sets whose outputs are coupled to an MWC-inspired thermodynamic gate. We initialize two sets of learnable query vectors: Qact ∈ RK×d for the active state and Qinact ∈ RK×d for the inactive state. Here, K
+
+represents the number of latent structural probes and d denotes the hidden dimension. These queries interact with the protein embeddings through multi-head cross-attention: 
+
+Zs = MHA( Qs, ˜HP , ˜HP ), s ∈ { act, inact }, (2) where Zs represents the latent structural view of state s.
+
+3.4. Interaction Learning and Intrinsic Affinity 
+
+Ligand features HL are fused with the state-specific protein representations ( Zact , Zinact ) via a second cross-attention layer, where HL is query and Zs is key/value. The resulting interaction embeddings are pooled and projected by state-specific MLPs to predict the intrinsic affinities 
+
+ˆyact and ˆyinact :
+
+ˆyact = MLP act (Interaction (HL, Z act )) (3) 
+
+ˆyinact = MLP inact (Interaction (HL, Z inact )) (4)  
+
+> APBC2026
+
+3Here, ˆyact and ˆyinact are latent state-specific affinity estimates constrained by the physics-informed gate described below. The two prediction heads have identical architectures but in-dependent parameters. Each head uses linear layers with dimensions d → d → d/ 2 → 1, with batch normalization, GELU activation, and dropout of 0.1 after the first hidden layer. 
+
+3.5. Neural MWC Gating Mechanism 
+
+The DSQ architecture integrates the MWC biophysical model into a differentiable neural layer. The MWC model posits that receptor activation is driven by the thermodynamic stability of the ligand-receptor complex in the active state relative to the inactive state. 3.5.1. Theoretical Derivation Let Gact and Ginact be the Gibbs free energies of the ligand-bound receptor in the active and inactive states, respectively. Following the Boltzmann distribution, the probability of the receptor being in the active state R∗ is given by: 
+
+P (R∗) = e−βG act 
+
+e−βG act + e−βG inact = σ(β(Ginact − Gact )) (5) where β = 1 /k B T , kB is the Boltzmann constant, T is the absolute temperature, and σ(·) is the sigmoid function. The binding affinity y (e.g., pK i) is linearly proportional to the negative binding free energy: 
+
+y ∝ − ∆Gbind = kB T ln Ka (6) where Ka represents the association constant. According to the MWC model, the total free energy difference can be decomposed into the intrinsic conformational energy barrier of the receptor ( Ebarrier ) and the change in free energy due to ligand interaction ( ∆Gbind ). We can thus rewrite the energy difference as: 
+
+Ginact − Gact ∝ (yact − yinact ) − Ebarrier (7) where yact −yinact represents the ligand’s preferential stabilization of the active state, and Ebarrier 
+
+represents the basal energetic cost for the receptor to transition to the active state in the absence of a ligand [11]. 3.5.2. Neural Implementation We model Ebarrier (p) using a projection head on the pooled protein embedding. The activa-tion probability is then computed as follows: 
+
+P (R∗|p, l ) = σ
+
+ (ˆ yact − ˆyinact ) − Ebarrier (p)
+
+τ
+
+
+
+(8) where τ is a learnable temperature parameter initialized to 1.0. It calibrates the scale of latent affinity differences before the sigmoid gate. This mechanism enforces physical logic: to predict agonism ( P (R∗) → 1), the model must learn that the ligand preferentially stabilizes the active state relative to the inactive state ( ˆyact ≫ ˆyinact ) and overcomes the learned conformational offset 
+
+Ebarrier (p). In contrast, antagonists are modeled as ligands that either preferentially stabilize the inactive state or fail to stabilize the active state sufficiently. The final predicted bioactivity is the weighted expectation of the state affinities: 
+
+ˆyf inal = P (R∗|p, l ) · ˆyact + (1 − P (R∗|p, l )) · ˆyinact (9) 
+
+3.6. Physics-Informed Optimization 
+
+To ensure that the learned representation adheres to the thermodynamic constraints posited by the MWC model, we optimize a composite objective function consisting of four terms:  
+
+> APBC2026
+
+4Table 1. Dataset Statistics Split Antagonist Agonist Total Samples Unique Proteins Train 200,258 60,558 260,816 222 Val 49,674 15,531 65,205 218 Test 5,095 6,369 11,464 203 1. Regression Loss Lreg : Standard mean squared error between ˆyf inal and experimental ground truth. 2. MWC Gate Supervision Lgate : Supervises the latent activation probability P (R∗|p, l ) using binary cross-entropy against the functional labels (1 for agonists, 0 for antagonists), forcing the latent state distribution to align with pharmacological efficacy. 3. Orthogonality Constraint Lortho : Enforces distinct structural views for active and inactive states by minimizing their cosine similarity: 
+
+Lortho = E
+
+ |Zact · Zinact |∥Zact ∥2 · ∥ Zinact ∥2
+
+
+
+(10) 4. Contrastive Ranking Loss Lrank : Enforces differential affinity consistent with efficacy la-bels using a margin ranking loss ( ˆyact > ˆyinact for agonists ( ylabel = 1 ); ˆyinact > ˆyact for antagonists): 
+
+Lrank = max (0 , −r · (ˆ yact − ˆyinact ) + m) (11) where r = 2 · ylabel − 1 converts the binary label to -1,1, and m is a margin hyperparameter. The total loss is a weighted sum: 
+
+Ltotal = λ1Lreg + λ2Lgate + λ3Lortho + λ4Lrank , (12) where λ1 = 1 .0 and λ2 = λ3 = λ4 = 0 .5. The ranking margin is m = 1 .0.This optimization scheme guides the model to learn a physics-based manifold where bioac-tivity predictions emerge from the interplay of distinct conformational states. 
+
+3.7. Dataset Construction and Setup 
+
+Following the dataset curation protocol of AiGPro [12], we constructed the benchmark from GLASS [13, 14] and GPCRdb [15]. We retained IC 50 and Ki records as antagonist bioactivities and EC 50 records as agonist bioactivities. All bioactivity values ( IC 50 , EC 50 , K i) were standard-ized to the negative logarithmic scale with nM unit ( pX = 9 − log 10 X) to facilitate regression stability. We adopted the independent test set released by AiGPro, containing 11,464 interaction pairs across 203 receptors. Test interaction pairs were removed before model training, and the re-maining data were randomly divided into training (80%) and validation (20%) sets. Table 1 summarizes the statistics of the final data. The resulting training set comprises 260,816 samples covering 222 unique GPCRs, with a notable class imbalance reflecting real-world drug discovery scenarios (approximately 3.3:1 antagonist-to-agonist ratio). 
+
+Implementation Details: The model was implemented in PyTorch and optimized with Adam using a learning rate of 5 × 10 −4. ESM-2 and MolFormer were frozen, leaving 3.96M trainable parameters in DSQ. Training ran for up to 100 epochs on a single 40GB NVIDIA A100 GPU with early stopping patience of 5. The observed training cost was approximately 474 seconds per epoch on the A100. Inference throughput was approximately 470 samples/s on the NVIDIA RTX 4090.  
+
+> APBC2026
+
+5Table 2. Performance comparison on GPCR bioactivity profiling dataset. Metrics are reported for the overall test set and stratified by pharmacological classification (Agonist vs. Antagonist). Model Type RMSE ↓ MAE ↓ R2↑ PCC ↑ SCC ↑ C-Index ↑
+
+DeepDTAGen Overall 1.078 0.860 0.438 0.700 0.671 0.783 Agonist 1.078 0.894 -0.084 0.589 0.431 0.656 Antagonist 1.078 0.817 0.417 0.650 0.655 0.737 DrugBAN Overall 1.071 0.816 0.446 0.670 0.609 0.748 Agonist 0.983 0.782 0.099 0.552 0.341 0.621 Antagonist 1.171 0.858 0.312 0.641 0.650 0.741 GraphDTA Overall 1.150 0.909 0.361 0.628 0.594 0.726 Agonist 1.173 0.975 -0.282 0.511 0.445 0.659 Antagonist 1.120 0.827 0.370 0.649 0.662 0.741 DSQ Overall 0.999 0.746 0.517 0.728 0.718 0.820 
+
+Agonist 0.886 0.668 0.269 0.643 0.477 0.671 Antagonist 1.125 0.845 0.364 0.620 0.624 0.723 
+
+4. Results 
+
+We evaluated DSQ against DeepDTAGen [16], DrugBAN [17], and GraphDTA [18]. All re-ported baselines were retrained on the same train/validation/test interaction split and evaluated using the same bioactivity targets and metrics. Each baseline retained its native architecture and input representation. As shown in Table 2, DSQ achieves the best overall result for every reported metric among the evaluated models. Relative to the strongest baseline for each metric, DSQ reduces RMSE from 1.071 to 0.999 (6.7%) and MAE from 0.816 to 0.746 (8.6%), while improving R2 from 0.446 to 0.517 (15.9%), PCC from 0.700 to 0.728 (4.0%), SCC from 0.671 to 0.718 (7.0%), and C-Index from 0.783 to 0.820 (4.7%). The improvement is concentrated in the overall and agonist results. DSQ does not uniformly outperform the baselines on the antagonist subset; DeepDTAGen and GraphDTA achieve better results on several antagonist-specific metrics. We therefore interpret the principal benefit of DSQ as improved modeling of the more difficult agonist subset rather than a universal improvement in antagonist affinity prediction. One challenge in GPCR profiling is the data imbalance between agonists (active) and antag-onists (inactive), with agonists typically being the minority class and exhibiting more restricted conformational compatibility. This is evidenced by the baseline performance on the agonist sub-set: DeepDTAGen and GraphDTA yield negative R2 values (-0.084 and -0.282, respectively), indicating that their predictions for agonists are worse than a simple mean baseline. DrugBAN shows marginal correlation ( R2=0.099). In contrast, DSQ achieves an R2 of 0.269 on the agonist subset. This result suggests that explicitly modeling active and inactive latent states helps DSQ recover the agonist-specific signal that is weakened when the task is treated as a single scalar regression problem. 
+
+4.1. Homology-Stratified Evaluation 
+
+To examine whether performance is driven by receptor homology, we stratified the indepen-dent test set by the maximum sequence identity between each test receptor and the training receptors. Table 3 reports high-homology ( ≥80%) and low-homology ( <60%) subsets. DSQ performs best on the high-homology overall and agonist subsets, improving high-homology overall R2 over DeepDTAGen and GraphDTA. However, the low-homology results show a clear generalization boundary: all models degrade to near-zero or negative R2. These results indi-cate that the current sequence-based formulation remains limited when test receptors cross large evolutionary distances from the training receptors.  
+
+> APBC2026
+
+6Table 3. Homology-stratified performance. High: test receptors with maximum sequence identity ≥80% to training receptors. Low: test receptors with maximum sequence identity 
+
+<60%. Model Subset RMSE ↓ R2↑ C-Index ↑
+
+DSQ High Overall 0.910 0.584 0.777 High Agonist 0.838 0.263 0.671 High Antagonist 1.010 0.492 0.768 Low Overall 1.472 -0.081 0.578 Low Agonist 1.573 -0.095 0.555 Low Antagonist 1.442 -0.093 0.578 DeepDTAGen High Overall 1.023 0.474 0.754 High Agonist 1.062 -0.184 0.651 High Antagonist 0.962 0.539 0.781 Low Overall 1.388 0.039 0.604 Low Agonist 1.376 0.162 0.637 Low Antagonist 1.392 -0.018 0.588 GraphDTA High Overall 1.079 0.415 0.742 High Agonist 1.153 -0.395 0.664 High Antagonist 0.955 0.546 0.799 Low Overall 1.553 -0.203 0.535 Low Agonist 1.536 -0.044 0.561 Low Antagonist 1.558 -0.276 0.527 
+
+4.2. Ablation Study 
+
+To validate the necessity of the physics-informed constraints proposed in Section 3, we con-ducted an ablation study (Table 4). 
+
+Effect of the MWC Gating Mechanism : Replacing the MWC gating mechanism with a standard MLP ("simple gate") results in a performance drop across all metrics (RMSE increases from 0.999 to 1.051) and a notable decrease in gate accuracy (0.840 to 0.747). Because this variant preserves a comparable gating role but removes the MWC parameterization, the drop suggests that the gain is not explained solely by adding model capacity. Instead, the thermo-dynamic relationship between differential affinity and activation probability contributes to the improvement. 
+
+Effect of Learnable Temperature : In the full DSQ model, τ decreased from 1.0 to 0.2627, indicating that the model learned to sharpen the activation gate during training. Freezing τ at 1.0 reduces overall R2 from 0.517 to 0.427 and gate accuracy from 0.840 to 0.812. The effect is larger on agonists, where R2 drops from 0.269 to 0.142 and SCC drops from 0.477 to 0.386. These results indicate that learned temperature calibration improves activation-state discrimination, especially for the minority agonist subset. 
+
+Effect of Contrastive Ranking : Removing the ranking loss ("w/o rank") impacts the model’s ability to distinguish preferential binding to the active state, with the active R2 dropping to near zero (0.015). Although the overall regression performance remains moderate, the gate accuracy drops to 0.745. This confirms that explicit enforcement of ˆyact > ˆyinact of agonists is required to align latent affinity estimates with thermodynamic constraints. 
+
+Effect of Orthogonality Constraint : Removing the orthogonality constraint ("w/o or-tho") leads to a degradation in RMSE to 1.141 and gate accuracy to 0.672. This suggests that the query vectors likely suffer from mode collapse, learning identical features rather than disentangled conformational states. 
+
+Necessity of the Gating Mechanism : The "w/o gate" variant represents a standard  
+
+> APBC2026
+
+7Table 4. Ablation study of DSQ components. simple gate: replaces the MWC gate net with MLP module; τ =1.0: freezes the temperature parameter; w/o gate: treats the task as pure regression without state disentanglement; w/o rank: removes contrastive ranking loss; w/o ortho: removes orthogonality constraint. Gate Acc: accuracy of classifying agonist vs. antagonist.                                                                                                                                  
+
+> Model Type RMSE MAE R2PCC SCC C-Index Gate Acc DSQ Overall 0.999 0.746 0.517 0.728 0.718 0.820 0.840 Agonist 0.886 0.668 0.269 0.643 0.477 0.671 Antagonist 1.125 0.845 0.364 0.620 0.624 0.723
+> τ=1.0 Overall 1.089 0.810 0.427 0.674 0.676 0.805 0.812 Agonist 0.960 0.728 0.142 0.584 0.386 0.640 Antagonist 1.231 0.912 0.239 0.539 0.571 0.703 simple gate Overall 1.051 0.780 0.466 0.698 0.690 0.806 0.747 Agonist 0.928 0.694 0.198 0.620 0.446 0.664 Antagonist 1.187 0.888 0.292 0.582 0.593 0.713 w/o rank Overall 1.114 0.857 0.400 0.659 0.637 0.782 0.745 Agonist 1.028 0.811 0.015 0.569 0.315 0.613 Antagonist 1.213 0.914 0.261 0.544 0.561 0.700 w/o ortho Overall 1.141 0.895 0.371 0.627 0.605 0.780 0.672 Agonist 1.019 0.804 0.031 0.525 0.243 0.588 Antagonist 1.277 1.008 0.182 0.461 0.441 0.654 w/o gate Overall 1.159 0.867 0.351 0.622 0.601 0.750 0.532 Agonist 1.079 0.821 -0.086 0.541 0.394 0.645 Antagonist 1.251 0.925 0.215 0.558 0.568 0.706
+
+regression model using the same backbone. It shows the lowest performance and near-random classification accuracy (0.532). Under this benchmark, the explicit gating formulation provides a stronger inductive bias than the corresponding scalar-regression ablation. 
+
+4.3. Verification of the Neural MWC Mechanism 
+
+We investigated whether DSQ adhered to the physical principles of the MWC model, specif-ically regarding differential affinity and conformational energy barriers. 
+
+Differential Affinity Analysis . We computed the differential affinity ∆ˆ y = ˆ yact − ˆyinact for all ligand-receptor pairs in the test set. As shown in Figure 2, the distribution of ∆ˆ y for agonists is shifted to the right compared to antagonists. Quantitatively, the model exhibits a high degree of thermodynamic consistency: 74.91% of the agonists were predicted to have a higher affinity for the active state, and 90.17% of the antagonists were predicted to have a higher affinity for the inactive state. 
+
+Conformational Energy Analysis . We further analysed the learned conformational energy barrier Ebarrier , which quantifies the intrinsic energetic cost for a receptor to transition to the active state in the absence of a ligand. Predicted Ebarrier values (mean -0.0481, std 0.1881) could be interpreted as latent offsets. The nonzero variance indicates that DSQ assigns receptor-dependent activation offsets instead of using a single global threshold. Thus, the model calibrates activation probability according to protein sequence context. 
+
+4.4. Interpretability of Learned Queries: Rediscovering Biological Switches 
+
+We use the latent probe attention maps as hypothesis-generating signals and further test selected motifs through perturbation. We computed differential attention ( ∆A = |Aactive −
+
+Ainactive |) to identify residues where the model attends differently for active versus inactive state predictions. 
+
+Class A Activation Determinants . We first examined the human thromboxane A2 re- 
+
+> APBC2026
+
+8Figure 2. Distribution of predicted differential affinity. ceptor (UniProt: P21731) as a representative Class A GPCR. The mean differential attention map reveals statistically significant peaks ( z-score > 4) at several key regulatory sites (Figure 3). High ∆A is observed at position 2x50, a highly conserved residue known to form the sodium ion binding pocket, an allosteric site for stabilizing the inactive state in Class A GPCRs [19, 20]. Furthermore, significant attention is directed towards 7x53 (NPxxY motif), a microswitch essen-tial for G-protein coupling and receptor activation [21, 22]. We also observed high attention in ECL3, a region involved in ligand entry and selectivity [1]. Analysing each query channel reveals that different heads specialize in different structural motifs (Figure 4), suggesting that the model learns a distributed representation of the activation landscape. Expanding this analysis to the entire Class A in test set via multiple sequence alignment confirms the generality of these findings (Figure S1). Significant differential attention patterns are consistently observed at 2x50 and 7x53. The model also attends to the N-terminus and ECL2, regions important for ligand recognition and initial binding events [23]. 
+
+Class B1 Activation Determinants . For Class B1 GPCRs (Figure S2), significant dif-ferential attention is observed at 2x50, part of the conserved HETx motif, which stabilizes the inactive state and is disrupted upon activation [24]. We also find high attentions at 7x53 and 7x54 in the NPxxY motif. Furthermore, the model identifies 8x51 in Helix 8, a region known to interact with G-proteins and regulate surface expression [25]. 
+
+Perturbation Validation . To test whether these highlighted motifs affect model output, we performed in silico feature knockout on the human thromboxane A2 receptor by zeroing the embeddings of the sodium pocket residue 2x50 and the NPxxY motif positions 7x49-7x53. For agonists ( N = 46 ), the mean predicted activation probability P (R∗) decreased from 0.5147 to 0.4294. For antagonists ( N = 1204 ), P (R∗) remained low, changing from 0.0496 to 0.0393. This perturbation result supports the relevance of these motifs for agonist activation predictions. 
+
+4.5. Interpretability of Latent Space 
+
+To validate that DSQ disentangles receptor conformational states rather than simply mem-orizing protein identities, we visualized the evolution of latent structural embeddings during training. Figure 5 shows t-SNE projections of the pooled active ( Zact ) and inactive ( Zinactive )representations at epochs 0, 20, and 40 (convergence). 
+
+Emergence of State Disentanglement . At initialization (Epoch 0, Fig. 5(a)), the embed-dings for active and inactive states overlap greatly. By Epoch 20 (Fig. 5(b)), separation begins  
+
+> APBC2026
+
+9GG S H T R ICL1 LFE W H A V D PGECL1 PFSRPAVAICL2 VGRYTVQ Y P G S W C F LTLGAECL2 E A A QICL3 NPP A M S P A GQLECL3 MWPNGSSLGPCFRPTNITLEERRLIAN-term LQPQLTQRSGLQC-term SPW FAAS FCV VGLA SNL LALS VLA GARQS S FL T F LC G LV L T DF L GL L V TG T IV V S QH A A CRL CRFM GVV MIFF GLS PLLL GAA MASE RYL GITRS QR R AW A T VG L VW A A AL A LG L L PL L G ESG DVAF GLL FSML GGL SVGL SFL LNTV SVA TLCH VYH GQQ R PR D S EV E MM A Q LL G IM V V AS V CW L P LL V FI A Q TV L R SRT TEKE LLI YLRV ATWNQI LDP WVYI LFRRALQPRPRVLRRRLSTSLSFigure 3. Weighted snake-plot of human thromboxane A2 receptor to emerge, and by Epoch 40 (Fig. 5(c)) the two latent state views form clearer global clusters. This trend is supported quantitatively in Table 5: the Silhouette Score increases from 0.0022 to 0.6086, while the Davies-Bouldin Index decreases from 58.8622 to 0.61441. 
+
+Preservation of Phylogenetic Constraints . We further analysed the distribution of GPCR families in test set (Class A, B1, C, F, T) within the latent space. As shown in Fig. 5(a), strong clustering by receptor class is evident even at Epoch 0. This structure is inherited from the pre-trained ESM-2 backbone, which implicitly encodes evolutionary homology. Importantly, this phylogenetic structure is maintained but restructured in Epoch 40. The model preserves protein family features while learning state-specific representations conditional on the protein family. 
+
+Table 5. Quantitative latent-space disentanglement during training. Higher Silhouette Score and lower Davies-Bouldin Index indicate better separation. Epoch Silhouette Score ↑ Davies-Bouldin Index ↓
+
+0 0.0022 58.8622 20 0.5954 0.6585 40 0.6086 0.6141 
+
+APBC2026 10 Figure 4. Per-channel attention weights of learnable queries on human thromboxane A2
+
+receptor 
+
+Figure 5. Evolution of latent space disentanglement during training. t-SNE projections of the latent structure views at (a) Epoch 0, (b) Epoch 20, and (c) Epoch 40. Points are colored by latent state representation type (Blue: Active, Purple: Inactive) and shaped by GPCR family (Triangle: Class A, Circle: Class B1, Square: Class C, Diamond: Class F, Plus: Class T). 
+
+5. Conclusion & Discussions 
+
+In this work, we introduced Dual-State Query (DSQ), a physics-informed deep learning frame-work for computational GPCR bioactivity profiling. Unlike traditional black-box models, DSQ explicitly simulates the thermodynamic equilibrium between active and inactive receptor confor-mations by integrating the Monod-Wyman-Changeux (MWC) model with learnable state queries. This architecture allows for simultaneous prediction of binding affinity and functional efficacy while adhering to biophysical constraints. Experiments demonstrate that DSQ improves overall accuracy and ranking performance over the evaluated baselines, with the clearest gains on ago-nist prediction. Ablation, temperature-sensitivity, perturbation, and clustering analyses support the role of the MWC-inspired inductive bias in shaping the latent activation gate. Homology-stratified evaluation shows that performance remains limited for receptors with low sequence identity to the training set, indicating that protein-language representations alone do not resolve cold-target generalization. Future work may combine the state-aware mechanism with stronger GPCR-specific encoders and structural or conformational information. Recent deep learning approaches [26, 18, 16, 27] use large-scale bioactivity data to predict drug–target interactions. GPCR-specific approaches address additional functional information.  
+
+> APBC2026
+
+11 AiGPro [12] performs large-scale GPCR profiling by conditioning bioactivity prediction on an explicit agonist/antagonist class token. Huang et al. [28] developed a multitask framework specif-ically for low-data GPCRs and evaluated it on an independent set of 16 receptors. These ap-proaches address complementary settings. DSQ uses efficacy labels during training but does not require an externally supplied activity-type token at inference; instead, it infers activation proba-bility and bioactivity jointly. Because these studies use different input conditions and evaluation protocols, their published metrics are not directly comparable to the DSQ results. Future work may combine these different settings into a unified framework. While DSQ offers a physically grounded framework for GPCR profiling, several limitations must be acknowledged. First, the current MWC implementation uses a two-state active/inactive abstraction. This suits the available large-scale labels but cannot explicitly model biased sig-naling, pathway-specific efficacy, or multiple active conformations. A nature extension is to use 
+
+K > 2 state-specific query branches when sufficiently large multi-assay efficacy datasets become available. Second, the present study does not include a receptor-disjoint cold-target test, class-specific predictive evaluation, or an orphan/non-orphan comparison. These evaluations, together with GPCR-specific baselines under a common protocol, are priorities for an extended journal study. Third, DSQ relies on frozen ESM-2 and MolFormer encoders, which may limit adaptation to novel receptor families or chemical scaffolds. Finally, despite improved agonist performance, agonist-antagonist imbalance remains a dataset-level limitation. 
+
+6. GenAI Disclosure 
+
+We used GenAI to polish the writing and fix grammar errors. We carefully reviewed the GenAI outputs to ensure correctness. All scientific methods and experimental results are our own work.      
+
+> Supplementary Materials: Author Contributions: Conceptualization, Shuo Zhang; methodology, Shuo Zhang; software, Shuo Zhang; validation, Shuo Zhang; formal analysis, Shuo Zhang; investigation, Shuo Zhang; resources, Shuo Zhang; visualization, Shuo Zhang; data curation, Shuo Zhang, Huifeng Zhang, Rongqi Hong; writing— original draft preparation, Shuo Zhang, Huifeng Zhang, Rongqi Hong, Jian K. Liu; writing—review and editing, Shuo Zhang, Huifeng Zhang, Rongqi Hong, Jian K. Liu; supervision, Jian K. Liu.; project administration, Jian K. Liu.
+> Funding: This work was partially supported by BlueBEAR and Baskerville, funded by the EPSRC and UKRI through the World Class Labs scheme (EP/T022221/1) and the Digital Research Infrastruc-ture programme (EP/W032244/1) and operated by Advanced Research Computing at the University of Birmingham.
+> Data Availability Statement: The dataset, trained model weights, and code are available at https: //github.com/jiankliu/DSQ .
+> Conflicts of Interest: The authors declare no conflict of interest. The funders had no role in the design of the study; in the collection, analyses, or interpretation of data; in the writing of the manuscript; or in the decision to publish the results.
+
+References 
+
+[1] Mingyang Zhang, Ting Chen, Xun Lu, Xiaobing Lan, Ziqiang Chen, and Shaoyong Lu. G protein-coupled receptors (GPCRs): advances in structures, mechanisms and drug discovery. 
+
+Signal Transduction and Targeted Therapy , 9(1), April 2024. [2] Paolo Conflitti, Edward Lyman, Mark S. P. Sansom, Peter W. Hildebrand, Hugo Gutiérrez-de Terán, Paolo Carloni, T. Bertie Ansell, Shuguang Yuan, Patrick Barth, Anne S. Robinson, Christopher G. Tate, David Gloriam, Stephan Grzesiek, Matthew T. Eddy, Scott Prosser,  
+
+> APBC2026
+
+12 and Vittorio Limongelli. Functional dynamics of G protein-coupled receptors reveal new routes for drug discovery. Nature Reviews Drug Discovery , 24(4):251–275, January 2025. [3] Brian K. Kobilka and Xavier Deupi. Conformational complexity of G-protein-coupled re-ceptors. Trends in Pharmacological Sciences , 28(8):397–406, August 2007. [4] Miles Congreve, Chris de Graaf, Nigel A. Swain, and Christopher G. Tate. Impact of GPCR Structures on Drug Discovery. Cell , 181(1):81–91, April 2020. [5] Byron Carpenter and Christopher G. Tate. Engineering a minimal G protein to facilitate crystallisation of G protein-coupled receptors in their active conformation. Protein Engi-neering Design and Selection , September 2016. [6] Shuo Zhang and Jian K. Liu. Domain-Aware Geometric Multimodal Learning for Multi-Domain Protein-Ligand Affinity Prediction. In 2026 14th International Conference on Bioin-formatics and Computational Biology (ICBCB) , 2026. Accepted for publication. Also avail-able as arXiv preprint arXiv:2601.17102. [7] Morgan Thomas, Robert T. Smith, Noel M. O’Boyle, Chris de Graaf, and Andreas Bender. Comparison of structure- and ligand-based scoring functions for deep generative models: a GPCR case study. Journal of Cheminformatics , 13(1), May 2021. [8] Meritxell Canals, J. Robert Lane, Adriel Wen, Peter J. Scammells, Patrick M. Sexton, and Arthur Christopoulos. A monod-wyman-changeux mechanism can explain g protein-coupled receptor (gpcr) allosteric modulation. Journal of Biological Chemistry , 287(1):650–659, January 2012. [9] Zeming Lin, Halil Akin, Roshan Rao, Brian Hie, Zhongkai Zhu, Wenting Lu, Nikita Smetanin, Robert Verkuil, Ori Kabeli, Yaniv Shmueli, Allan dos Santos Costa, Maryam Fazel-Zarandi, Tom Sercu, Salvatore Candido, and Alexander Rives. Evolutionary-scale prediction of atomic-level protein structure with a language model. Science ,379(6637):1123–1130, March 2023. [10] Jerret Ross, Brian Belgodere, Vijil Chenthamarakshan, Inkit Padhi, Youssef Mroueh, and Payel Das. Large-scale chemical language representations capture molecular structure and properties. Nature Machine Intelligence , 4(12):1256–1264, December 2022. [11] Xavier Deupi and Brian K. Kobilka. Energy landscapes as a tool to integrate gpcr structure, dynamics, and function. Physiology , 25(5):293–303, October 2010. [12] Rahul Brahma, Sunghyun Moon, Jae-Min Shin, and Kwang-Hwi Cho. AiGPro: a multi-tasks model for profiling of GPCRs for agonist and antagonist. Journal of Cheminformatics ,17(1), January 2025. [13] F. Xu, X. Zheng, W. Wang, H. Lu, Z. Yang, D. Meng, J. Long, and Y. Zhang. GLASS2: An updated database for comprehensive experimentally validated GPCR-ligand associations. 
+
+In submission , 2025. Preprint/Under review. [14] Wallace K. B. Chan, Hongjiu Zhang, Jianyi Yang, Jeffrey R. Brender, Junguk Hur, Arzucan Özgür, and Yang Zhang. GLASS: a comprehensive database for experimentally validated GPCR-ligand associations. Bioinformatics , 31(18):3035–3042, May 2015. [15] Luis P Taracena Herrera, Søren N Andreassen, Jimmy Caroli, Ismael Rodríguez-Espigares, Ali A Kermani, György M Keserű, Albert J Kooistra, Gáspár Pándy-Szekeres, and David E Gloriam. GPCRdb in 2025: adding odorant receptors, data mapper, structure sim-ilarity search and models of physiological ligand complexes. Nucleic Acids Research ,53(D1):D425–D435, November 2024.  
+
+> APBC2026
+
+13 [16] Pir Masoom Shah, Huimin Zhu, Zhangli Lu, Kaili Wang, Jing Tang, and Min Li. Deep-DTAGen: a multitask deep learning framework for drug-target affinity prediction and target-aware drugs generation. Nature Communications , 16(1), May 2025. [17] Peizhen Bai, Filip Miljković, Bino John, and Haiping Lu. Interpretable bilinear attention network with domain adaptation improves drug–target prediction. Nature Machine Intelli-gence , 5(2):126–136, February 2023. [18] Thin Nguyen, Hang Le, Thomas P Quinn, Tri Nguyen, Thuc Duy Le, and Svetha Venkatesh. GraphDTA: predicting drug–target binding affinity with graph neural networks. Bioinfor-matics , 37(8):1140–1147, October 2020. [19] Alexander S. Hauser, Albert J. Kooistra, Christian Munk, Franziska M. Heydenreich, Dmitry B. Veprintsev, Michel Bouvier, M. Madan Babu, and David E. Gloriam. GPCR activation mechanisms across classes and macro/microscales. Nature Structural & Molecu-lar Biology , 28(11):879–888, November 2021. [20] Jesper J. Madsen, Libin Ye, Thomas M. Frimurer, and Ole H. Olsen. Mechanistic basis of GPCR activation explored by ensemble refinement of crystallographic structures. Protein Science , 31(11), October 2022. [21] Subhashree Murali and Gopala Krishna Aradhyam. Divergent roles of DRY and NPxxY motifs in selective activation of downstream signalling by the apelin receptor. Biochemical Journal , 481(23):1707–1722, November 2024. [22] Qingtong Zhou, Dehua Yang, Meng Wu, Yu Guo, Wanjing Guo, Li Zhong, Xiaoqing Cai, Antao Dai, Wonjo Jang, Eugene I Shakhnovich, Zhi-Jie Liu, Raymond C Stevens, Nevin A Lambert, M Madan Babu, Ming-Wei Wang, and Suwen Zhao. Common activation mecha-nism of class A GPCRs. eLife , 8, December 2019. [23] M Wheatley, D Wootten, MT Conner, J Simms, R Kendrick, RT Logan, DR Poyner, and J Barwell. Lifting the lid on GPCRs: the role of extracellular loops. British Journal of Pharmacology , 165(6):1688–1703, February 2012. [24] Brian P Cary, Xin Zhang, Jianjun Cao, Rachel M Johnson, Sarah J Piper, Elliot J Gerrard, Denise Wootten, and Patrick M Sexton. New Insights into the Structure and Function of Class B1 GPCRs. Endocrine Reviews , 44(3):492–517, December 2022. [25] John Huynh, Walter Glen Thomas, Marie-Isabel Aguilar, and Leonard Keith Pattenden. Role of helix 8 in G protein-coupled receptors based on structure–function studies on the type 1 angiotensin receptor. Molecular and Cellular Endocrinology , 302(2):118–127, April 2009. [26] Hakime Öztürk, Arzucan Özgür, and Elif Ozkirimli. DeepDTA: deep drug–target binding affinity prediction. Bioinformatics , 34(17):i821–i829, September 2018. [27] João Paulo L Velloso, David B Ascher, and Douglas E V Pires. pdCSM-GPCR: predicting potent GPCR ligands with graph-based signatures. Bioinformatics Advances , 1(1), January 2021. [28] Wei-Cheng Huang, Wei-Ting Lin, Ming-Shiu Hung, Jinq-Chyi Lee, and Chun-Wei Tung. Decrypting orphan gpcr drug discovery via multitask learning. Journal of Cheminformatics ,16(1), January 2024.  
+
+> APBC2026
+
+14 N 10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200 210 220 230 240 250 260 270 280 290 300 310 320 330 340 350 360 370 380 390 400 410 TM1 420 430 440 450 460 ICL1 470 480 TM2 490 500 510 520 ECL1 530 540 TM3 550 560 570 580 ICL2 590 600 
+
+TM4 610 620 630 640 ECL2 650 660 670 680 690 700 710 720 730 740 750 760 770 780 790 800 810 820 830 840 850 
+
+TM5 860 870 880 890 900 910 920 ICL3 930 940 950 960 970 980 990 1000 1010 1020 1030 1040 1050 1060 1070 1080 1090 1100 1110 1120 1130 TM6 1140 1150 1160 1170 1180 ECL3 1190 1200 TM7 
+
+1210 1220 1230 1240 ICL4 H8 1250 1260 C 1270 1280 1290 1300 1310 1320 1330 1340 1350 1360 1370 1380 1390 1400 1410 Figure S1. Differential attention weights of class A receptors in test set 
+
+APBC2026 15 N 10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 TM1 180 190 200 210 ICL1 TM2 220 230 240 250 
+
+ECL1 260 270 TM3 280 290 300 310 ICL2 320 TM4 330 340 350 
+
+ECL2 360 TM5 370 380 390 400 
+
+ICL3 410 TM6 420 430 440 ECL3 450 
+
+TM7 460 470 480 H8 490 500 
+
+C 510 520 530 540 550 Figure S2. Differential attention weights of class B1 receptors in test set 
+
+APBC2026 16

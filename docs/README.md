@@ -48,7 +48,7 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-13 ~ 2026-09-22</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-22</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 17 篇</strong>
@@ -58,7 +58,7 @@
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>6</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>11</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-22 16:36:50 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-22 21:49:08 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>9月13日至22日共筛出17篇论文，精读6篇、速读11篇，重点覆盖多模态学习与单细胞扰动建模。</p>
-<p>最值得看的是两篇9分精读：多模态学习的信息论统一视角，以及面向单细胞扰动建模的强化微调CellRFT。</p>
-<p>普通读者可先读这两篇精读，再按需浏览速读中的长文本图文一致性校准、符号策略视觉生成和空间转录组双曲对比学习。</p>
+<p>今天从17篇推荐中筛出6篇精读、11篇速读，头条是两篇9分工作：深度ReLU表示的Brownian Heads与</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -83,7 +81,7 @@
     <strong class="dpr-home-dashboard-count">6 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Dependency, Compression, and Synergy: A Unified Information-Theoretic View of Multimodal Learning">Dependency, Compression, and Synergy: A Unified Information-Theoretic View of Multimodal Learning</span></li><li><span class="dpr-home-dashboard-paper-title" title="CellRFT: Reinforcement Fine-Tuning for Single-Cell Perturbation Modeling">CellRFT: Reinforcement Fine-Tuning for Single-Cell Perturbation Modeling</span></li><li><span class="dpr-home-dashboard-paper-title" title="A Framework for Supervised and Unsupervised Learning via Reproducing Kernel Hilbert Spaces">A Framework for Supervised and Unsupervised Learning via Reproducing Kernel Hilbert Spaces</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Brownian Heads for Deep ReLU Representations: Activation Mass and the Cost of Same-Sample Selection">Brownian Heads for Deep ReLU Representations: Activation Mass and the Cost of Same-Sample Selection</span></li><li><span class="dpr-home-dashboard-paper-title" title="QLoRA Fine-Tuning of Ministral LLM for Sequence-to-Function Protein Annotation">QLoRA Fine-Tuning of Ministral LLM for Sequence-to-Function Protein Annotation</span></li><li><span class="dpr-home-dashboard-paper-title" title="PACE: Progressive Angular-to-Norm Contrastive Embedding">PACE: Progressive Angular-to-Norm Contrastive Embedding</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">demo <strong>6</strong></span></div>
 </section>
@@ -96,7 +94,7 @@
     <strong class="dpr-home-dashboard-count">11 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Human-Grounded Calibration for Long-Text Image-Text Congruence in Vision-Language Models">Human-Grounded Calibration for Long-Text Image-Text Congruence in Vision-Language Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="OmniHarness: Harnessing Generalizable Visual Generation via Symbolic Policy Learning">OmniHarness: Harnessing Generalizable Visual Generation via Symbolic Policy Learning</span></li><li><span class="dpr-home-dashboard-paper-title" title="Hyperbolic Contrastive Learning with Entailment for Spatial Transcriptomics">Hyperbolic Contrastive Learning with Entailment for Spatial Transcriptomics</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="GPCR Ligand Bioactivity Prediction with Physics-Informed Dual-State Query Learning">GPCR Ligand Bioactivity Prediction with Physics-Informed Dual-State Query Learning</span></li><li><span class="dpr-home-dashboard-paper-title" title="Smarter by the Moment: Environment-Driven Dynamic Policies for Continual LLM Improvement">Smarter by the Moment: Environment-Driven Dynamic Policies for Continual LLM Improvement</span></li><li><span class="dpr-home-dashboard-paper-title" title="Can We Do Interpretable NLI with Graphs Based on Atomic Propositions?">Can We Do Interpretable NLI with Graphs Based on Atomic Propositions?</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">demo <strong>11</strong></span></div>
 </section>

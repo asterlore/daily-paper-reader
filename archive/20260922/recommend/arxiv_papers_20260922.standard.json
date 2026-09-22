@@ -1,0 +1,714 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-22T21:44:42.264373+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 36,
+    "deep_cap": 6,
+    "deep_selected": 6,
+    "quick_candidates": 86,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2609.21422v1",
+      "source": "arxiv",
+      "title": "Brownian Heads for Deep ReLU Representations: Activation Mass and the Cost of Same-Sample Selection",
+      "abstract": "Deep representation learning often selects hidden features and fits the final predictor on the same sample, so fixed-feature analysis performed after selection can omit selection cost. We study the conditional empirical Rademacher complexity of deep ReLU representations followed by bounded-norm predictors in additive or Lévy-Brownian RKHSs, termed Brownian heads. For a fixed representation, we derive an exact dual identity and sharp bounds in terms of activation mass, the average norm of the observed hidden vectors. Under same-sample selection, the representation supremum induces a quadratic Rademacher process. Brownian layer-cake and Gaussian-projection identities reduce it to coordinatewise or signed projected threshold traces, separating realized scale from selection complexity. For samples with pairwise-distinct inputs, explicit scalar ReLU families match the finite-trace and VC rates up to universal constants at the realized trace-and-envelope level. Induced-norm contraction also yields architecture-level bounds for rectangular, rank-deficient ReLU networks. Experiments verify the sharp bounds and rates, exhibit a selection gap at fixed activation mass, and assess the predictive feasibility of Brownian heads.",
+      "authors": [
+        "Mahdi Mohammadigohari",
+        "Nicole Mücke"
+      ],
+      "primary_category": "stat.ML",
+      "categories": [
+        "stat.ML",
+        "cs.LG"
+      ],
+      "published": "2026-09-18T07:32:19+00:00",
+      "link": "https://arxiv.org/pdf/2609.21422v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "learning theory of deep ReLU representation complexity",
+      "llm_evidence_cn": "深度ReLU表示的复杂度学习理论",
+      "llm_evidence": "深度ReLU表示的复杂度学习理论",
+      "canonical_evidence": "深度ReLU表示的复杂度学习理论",
+      "llm_tldr_en": "Deep representation learning selects features and fits predictors on the same sample, so fixed-feature analysis misses selection cost. This paper derives exact dual identities and sharp Rademacher bounds via activation mass and Brownian heads.",
+      "llm_tldr_cn": "深度表示学习通常在同一样本上选择隐藏特征并拟合最终预测器，而事后固定特征分析会忽略选择代价。本文研究深度ReLU表示接有界范数预测器的条件经验Rademacher复杂度，提出布朗头框架，针对固定表示给出精确对偶恒等式与基于激活质量的紧界，并在同一样本选择下将其化为二次Rademacher过程。该工作为深度学习的泛化理论分析提供了刻画选择代价的新工具。",
+      "llm_tldr": "深度表示学习通常在同一样本上选择隐藏特征并拟合最终预测器，而事后固定特征分析会忽略选择代价。本文研究深度ReLU表示接有界范数预测器的条件经验Rademacher复杂度，提出布朗头框架，针对固定表示给出精确对偶恒等式与基于激活质量的紧界，并在同一样本选择下将其化为二次Rademacher过程。该工作为深度学习的泛化理论分析提供了刻画选择代价的新工具。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "fundamentals of machine learning theory and algorithms",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.24538v1",
+      "source": "arxiv",
+      "title": "QLoRA Fine-Tuning of Ministral LLM for Sequence-to-Function Protein Annotation",
+      "abstract": "Functional annotation of newly sequenced proteins remains a bottleneck in molecular biology: the number of sequences in public repositories grows far faster than the capacity for manual curation. Most computational approaches consider annotation as multi-label classification over a fixed ontology, which constrains predictions to a predefined label set. In this work we study the the protein annotation as a sequence-to-text generation problem. We fine-tune the 3B-parameter Ministral 3 base model with QLoRA (4-bit NF4 quantization with low-rank adapters) on sequence annotation pairs. We assess predictions with an LLM-as-expert protocol: a GPT model prompted as a senior molecular-biology curator scores organism identification as binary and function annotation quality. We conclude that QLoRA-fine-tuned compact LLMs can generate curator-style annotations with genuine biological value for a substantial subset of proteins. We also discuss future directions in data quality, model scaling, and evidence grounding that are needed to make the approach sufficiently reliable for practical use.",
+      "authors": [
+        "Demian Pavlyshenko",
+        "Bohdan Pavlyshenko"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.NE",
+        "q-bio.QM"
+      ],
+      "published": "2026-09-21T13:09:59+00:00",
+      "link": "https://arxiv.org/pdf/2609.24538v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "QLoRA fine-tuned LLM for protein functional annotation in computational biology",
+      "llm_evidence_cn": "QLoRA微调大语言模型用于蛋白质功能注释",
+      "llm_evidence": "QLoRA微调大语言模型用于蛋白质功能注释",
+      "canonical_evidence": "QLoRA微调大语言模型用于蛋白质功能注释",
+      "llm_tldr_en": "This work reframes protein annotation as sequence-to-text generation, fine-tuning a 3B Ministral model with QLoRA and evaluating predictions via an LLM-as-expert protocol for functional annotation.",
+      "llm_tldr_cn": "新测序蛋白质的功能注释是分子生物学的瓶颈，现有方法多将其视为固定本体上的多标签分类，限制了预测标签集合。论文把蛋白质注释重构为序列到文本的生成任务，使用QLoRA对30亿参数的Ministral模型进行4比特量化微调，并采用大语言模型作为专家评审的协议评估预测。该工作为超越固定本体的蛋白质功能注释提供了生成式方案。",
+      "llm_tldr": "新测序蛋白质的功能注释是分子生物学的瓶颈，现有方法多将其视为固定本体上的多标签分类，限制了预测标签集合。论文把蛋白质注释重构为序列到文本的生成任务，使用QLoRA对30亿参数的Ministral模型进行4比特量化微调，并采用大语言模型作为专家评审的协议评估预测。该工作为超越固定本体的蛋白质功能注释提供了生成式方案。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "machine learning applications in biological data analysis",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.15152v1",
+      "source": "arxiv",
+      "title": "PACE: Progressive Angular-to-Norm Contrastive Embedding",
+      "abstract": "Multimodal embedding models encode heterogeneous inputs into a shared embedding space, enabling efficient similarity computation across modalities and tasks. Most existing methods optimize cosine-based contrastive objectives, which promote stable training but restrict semantic compatibility to angular geometry, precluding embedding norms from serving as an additional semantic signal. However, directly optimizing the more expressive dot-product similarity, which leverages both angular and norm information, underperforms cosine-based training and exhibits unstable training dynamics. We attribute this discrepancy to premature optimization-space expansion, manifested as angular--norm entanglement and directional anisotropy in the representation space and further compounded by full-parameter fine-tuning. In this paper, we propose PACE, a two-stage framework that progressively expands both the representation and trainable parameter spaces. Stage I combines cosine-based objective with low-rank adaptation to establish a reliable angular geometry within constrained optimization spaces. Stage II switches to dot-product similarity and full-parameter fine-tuning, enabling embedding directions and norms to jointly encode semantic information. We further introduce Focal Embedding Loss, a confidence-adaptive objective that downweights queries with high positive retrieval confidence while emphasizing ambiguous queries with competitive negatives. Experiments across multiple backbone scales and diverse multimodal embedding tasks consistently validate the effectiveness of PACE.",
+      "authors": [
+        "Yanping Li",
+        "Wei Zhou",
+        "Yawen Liu",
+        "Yibo Wang",
+        "Ke Zhu",
+        "Guangda Huzhang",
+        "Qing-Guo Chen",
+        "Zhao Xu",
+        "Jun Zhang",
+        "Wei Wei"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-09-14T07:26:55+00:00",
+      "link": "https://arxiv.org/pdf/2609.15152v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Contrastive embedding optimization for multimodal representation learning",
+      "llm_evidence_cn": "面向多模态表示学习的对比嵌入优化",
+      "llm_evidence": "面向多模态表示学习的对比嵌入优化",
+      "canonical_evidence": "面向多模态表示学习的对比嵌入优化",
+      "llm_tldr_en": "PACE addresses the instability of dot-product contrastive objectives in multimodal embedding models by progressively transitioning from angular to norm-aware geometry, enabling norms to carry semantic signal.",
+      "llm_tldr_cn": "多模态嵌入模型需将异构输入编码到共享空间，现有方法多优化余弦对比目标，虽训练稳定却把语义限制在角度几何上，无法利用嵌入范数。论文分析直接优化点积相似度时出现的不稳定与角度-范数纠缠问题，提出渐进式角度到范数对比嵌入PACE。该方法在保持训练稳定的同时让范数承载额外语义信号，提升了多模态相似度计算的表达能力。",
+      "llm_tldr": "多模态嵌入模型需将异构输入编码到共享空间，现有方法多优化余弦对比目标，虽训练稳定却把语义限制在角度几何上，无法利用嵌入范数。论文分析直接优化点积相似度时出现的不稳定与角度-范数纠缠问题，提出渐进式角度到范数对比嵌入PACE。该方法在保持训练稳定的同时让范数承载额外语义信号，提升了多模态相似度计算的表达能力。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "integrating multiple modalities like text and images in learning systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.16409v1",
+      "source": "arxiv",
+      "title": "Reasoning with Image Generation",
+      "abstract": "Chain-of-thought reasoning has revolutionized natural language processing by enabling large language models (LLMs) to decompose problems into intermediate steps before answering. Yet confining reasoning to the textual domain presents limitations for tasks requiring direct manipulation of visual representations. Recent efforts augment multimodal LLMs with external visual expert tools such as depth estimation or object detection modules, but these remain fundamentally limited by their reliance on narrow, rigid operations that cannot flexibly generate or transform visual content. We propose ReImaGin, which leverages image generation models as a flexible visual reasoning mechanism for multimodal LLMs: unlike fixed-function tools, they accept natural language commands and can perform open-ended visual operations, like removing an occlusion or generating a floorplan from multiple disjoint views of a room. Across six diverse visual reasoning tasks including multi-view spatial reasoning and collision prediction, ReImaGin consistently outperforms both text-only reasoning and specialist vision-tool baselines, with gains of up to 25\\%, demonstrating the advantage of flexible, generative visual reasoning.",
+      "authors": [
+        "Nishad Singhi",
+        "Hector Garcia Rodriguez",
+        "Aditya Arora",
+        "Marcus Rohrbach",
+        "Anna Rohrbach"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-14T22:29:03+00:00",
+      "link": "https://arxiv.org/pdf/2609.16409v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "uses image generation models as flexible visual reasoning for multimodal LLMs",
+      "llm_evidence_cn": "用图像生成模型作为多模态大模型的视觉推理机制",
+      "llm_evidence": "用图像生成模型作为多模态大模型的视觉推理机制",
+      "canonical_evidence": "用图像生成模型作为多模态大模型的视觉推理机制",
+      "llm_tldr_en": "Chain-of-thought reasoning is confined to text, limiting visual tasks; the paper proposes ReImaGin, using image generation models as flexible visual reasoning mechanisms for multimodal LLMs, enabling open-ended visual generation via natural language commands.",
+      "llm_tldr_cn": "链式思维推理虽革新了自然语言处理，但局限于文本域，难以直接操控视觉表征，现有视觉专家工具操作僵化。该文提出ReImaGin，将图像生成模型作为多模态大模型可灵活调用的视觉推理机制，使其能接受自然语言指令并执行开放式的视觉生成与变换，从而为多模态推理提供更通用的路径。",
+      "llm_tldr": "链式思维推理虽革新了自然语言处理，但局限于文本域，难以直接操控视觉表征，现有视觉专家工具操作僵化。该文提出ReImaGin，将图像生成模型作为多模态大模型可灵活调用的视觉推理机制，使其能接受自然语言指令并执行开放式的视觉生成与变换，从而为多模态推理提供更通用的路径。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "What are the key advances in generative artificial intelligence for multimodal content generation?",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.18279v1",
+      "source": "arxiv",
+      "title": "Decoder-Agnostic Token Merging for Vision Transformers: A Systematic Study of G2TM",
+      "abstract": "Vision Transformers (ViTs) have achieved state-of-the-art performance across a range of computer vision tasks, mainly thanks to the self-attention mechanism. However, its complexity, increasing quadratically with the number of tokens, remains the major obstacle to ViT efficiency and deployment at scale. Token merging reduces this cost by aggregating redundant tokens. Yet existing methods are typically evaluated within a single architecture, leaving open whether their effectiveness stems from the merging mechanism itself or from the specific decoder they are paired with. We extend Graph-Guided Token Merging (G2TM), a single module inserted early in a ViT-based network, beyond its original Segmenter setting. We evaluate G2TM across three semantic segmentation frameworks (Segmenter, SETR, EoMT) and three decoder families (Linear, Transformer-, convolution-based), as well as standard ViT image classification. Our results show that G2TM's behavior and accuracy-efficiency trade-off are consistent across every tested architecture for a given backbone size, indicating that its effectiveness is a property of the encoder rather than the decoder. G2TM also generalizes well to image classification, achieving an even smaller degradation in accuracy compared to semantic segmentation. We further find that G2TM's optimal hyperparameters, resulting in a consistent drop in GFLOPs of 22-47% and an increase in throughput by up to 74% for segmentation models on ADE20K dataset, depend primarily on the backbone's pre-training recipe and on the target dataset, rather than on the decoder choice.",
+      "authors": [
+        "Victor Bercy",
+        "Martyna Poreba",
+        "Michal Szczepanski",
+        "Samia Bouchafa"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-16T08:02:37+00:00",
+      "link": "https://arxiv.org/pdf/2609.18279v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "token merging for efficient vision transformers across segmentation tasks",
+      "llm_evidence_cn": "面向分割任务的视觉Transformer高效令牌合并",
+      "llm_evidence": "面向分割任务的视觉Transformer高效令牌合并",
+      "canonical_evidence": "面向分割任务的视觉Transformer高效令牌合并",
+      "llm_tldr_en": "G2TM is extended beyond its original setting and evaluated across multiple ViT decoders, showing token merging yields transferable gains for efficient vision transformer segmentation.",
+      "llm_tldr_cn": "视觉Transformer凭借自注意力取得领先性能，但其复杂度随令牌数二次增长，成为规模化部署的主要障碍，令牌合并可聚合冗余令牌以降低成本，然而现有方法多在同一架构内评估，难以判断有效性来自合并机制还是特定解码器。本文把图引导令牌合并G2TM这一早期插入模块扩展到多种ViT网络，在三个语义分割基准上系统评估。结果表明令牌合并机制本身具有可迁移的增益。该研究为ViT效率优化提供了清晰依据。",
+      "llm_tldr": "视觉Transformer凭借自注意力取得领先性能，但其复杂度随令牌数二次增长，成为规模化部署的主要障碍，令牌合并可聚合冗余令牌以降低成本，然而现有方法多在同一架构内评估，难以判断有效性来自合并机制还是特定解码器。本文把图引导令牌合并G2TM这一早期插入模块扩展到多种ViT网络，在三个语义分割基准上系统评估。结果表明令牌合并机制本身具有可迁移的增益。该研究为ViT效率优化提供了清晰依据。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "algorithms for image and video understanding",
+      "matched_requirement_id": "req-6",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.18279v1"
+    },
+    {
+      "id": "2609.23248v1",
+      "source": "arxiv",
+      "title": "SPACE: Semantic Projection and Alignment of CLIP Embeddings for Domain Adaptation",
+      "abstract": "A fundamental challenge in deploying vision models is domain shift, which arises when training and test data follow different distributions, leading to degraded performance. This challenge is amplified when the same semantic concept appears under distinct visual forms, such as photographs and sketches, where visual similarity is weak despite semantic correspondence. Existing unsupervised domain-adaptation methods aim to align distributions across domains but often ignore semantic relationships among samples of the same class. To address this issue, this paper introduces SPACE, a method that exploits the semantic structure of CLIP's vision-language space for domain adaptation. The key idea is to use text descriptions as semantic anchors by applying Singular Value Decomposition to CLIP embeddings of class descriptions, yielding an orthogonal basis that captures semantic relationships among categories. Visual features from both domains are projected into this semantic subspace, aligning images based on meaning rather than appearance.",
+      "authors": [
+        "João Renato Ribeiro Manesco",
+        "Danilo Samuel Jodas",
+        "Douglas Rodrigues",
+        "Leandro Aparecido Passos",
+        "João Paulo Papa"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-19T23:20:57+00:00",
+      "link": "https://arxiv.org/pdf/2609.23248v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "exploiting CLIP vision-language semantic structure for domain adaptation",
+      "llm_evidence_cn": "利用CLIP视觉语言语义结构进行域适应",
+      "llm_evidence": "利用CLIP视觉语言语义结构进行域适应",
+      "canonical_evidence": "利用CLIP视觉语言语义结构进行域适应",
+      "llm_tldr_en": "SPACE uses text descriptions as semantic anchors in CLIP's vision-language space to align class semantics across domains, mitigating domain shift in cross-domain visual recognition.",
+      "llm_tldr_cn": "部署视觉模型时常面临域偏移，尤其当同一语义概念以照片与素描等不同视觉形态出现时，视觉相似度弱而语义对应强。本文提出SPACE，利用CLIP视觉语言空间的语义结构，以文本描述作为语义锚点，对齐同类样本的语义关系而非仅对齐分布。实验表明该方法能有效缓解域偏移、提升跨域识别性能。该工作为利用多模态语义结构进行无监督域适应提供了新思路。",
+      "llm_tldr": "部署视觉模型时常面临域偏移，尤其当同一语义概念以照片与素描等不同视觉形态出现时，视觉相似度弱而语义对应强。本文提出SPACE，利用CLIP视觉语言空间的语义结构，以文本描述作为语义锚点，对齐同类样本的语义关系而非仅对齐分布。实验表明该方法能有效缓解域偏移、提升跨域识别性能。该工作为利用多模态语义结构进行无监督域适应提供了新思路。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "integrating multiple modalities like text and images in learning systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.23248v1"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.16468v1",
+      "source": "arxiv",
+      "title": "GPCR Ligand Bioactivity Prediction with Physics-Informed Dual-State Query Learning",
+      "abstract": "Predicting the bioactivity profiles of small molecules against G protein-coupled receptors (GPCRs) is a challenge in drug discovery. Although deep learning has accelerated the prediction of binding affinities, existing approaches often struggle to distinguish between functional efficacies because they neglect dynamic conformational equilibria. Furthermore, structure-based methods are frequently limited by the scarcity of high-resolution active-state crystal structures and the indistinguishability of conformational states in static representations. To bridge the gap between black-box prediction and biophysical reality, we propose Dual-State Query (DSQ), a physics-informed multimodal architecture that explicitly embeds the Monod-Wyman-Changeux (MWC) model of allostery within a neural network. Unlike conventional models that rely on explicit 3D structures, DSQ utilizes learnable orthogonal queries to extract disentangled representations of active and inactive receptor states. These latent representations are governed by a novel neural MWC gating module, which mathematically derives the probability of receptor activation from thermodynamic competition between ligand-state affinities and the receptor's intrinsic conformational energy barrier. A contrastive ranking objective is also introduced to enforce differential affinity constraints, ensuring physical consistency. Extensive experiments demonstrate that DSQ outperforms other baselines, particularly for the agonist subset. Additional homology-stratified, temperature-sensitivity, perturbation, clustering, and efficiency analyses show that DSQ provides useful thermodynamic inductive bias, while also exposing a clear limitation on low-homology receptors. The code is available at https://github.com/jiankliu/DSQ.",
+      "authors": [
+        "Shuo Zhang",
+        "Huifeng Zhang",
+        "Rongqi Hong",
+        "Jian K. Liu"
+      ],
+      "primary_category": "q-bio.QM",
+      "categories": [
+        "q-bio.QM"
+      ],
+      "published": "2026-09-15T00:38:27+00:00",
+      "link": "https://arxiv.org/pdf/2609.16468v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "deep learning for drug discovery and bioactivity prediction",
+      "llm_evidence_cn": "面向药物发现与生物活性预测的深度学习",
+      "llm_evidence": "面向药物发现与生物活性预测的深度学习",
+      "canonical_evidence": "面向药物发现与生物活性预测的深度学习",
+      "llm_tldr_en": "Predicting GPCR bioactivity is challenging because models neglect dynamic conformational equilibria. This paper proposes Dual-State Query, a physics-informed multimodal architecture embedding the MWC model to distinguish functional efficacies.",
+      "llm_tldr_cn": "预测小分子对G蛋白偶联受体的生物活性是药物发现中的难题，现有深度学习方法常忽略构象动态平衡，难以区分功能效力，且受限于高分辨率活性态晶体结构稀缺。本文提出双态查询（DSQ），一种物理信息多模态架构，显式嵌入Monod-Wyman-Changeux模型以刻画构象平衡。该方法弥合黑箱预测与生物物理现实之间的差距，为GPCR活性预测提供更符合机制的方法。",
+      "llm_tldr": "预测小分子对G蛋白偶联受体的生物活性是药物发现中的难题，现有深度学习方法常忽略构象动态平衡，难以区分功能效力，且受限于高分辨率活性态晶体结构稀缺。本文提出双态查询（DSQ），一种物理信息多模态架构，显式嵌入Monod-Wyman-Changeux模型以刻画构象平衡。该方法弥合黑箱预测与生物物理现实之间的差距，为GPCR活性预测提供更符合机制的方法。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "machine learning applications in biological data analysis",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.15320v1",
+      "source": "arxiv",
+      "title": "Hypergraph-Regularized Gramian Volumes for Multimodal Retrieval",
+      "abstract": "Volume-based multimodal retrieval jointly scores a text query with a candidate's video, audio, and subtitle embeddings. While this approach captures higher-order within-candidate alignment, the score remains candidate-local, and semantically related training samples primarily serve as contrastive negatives. This work introduces Hypergraph-Regularized Gramian Volumes (HyVol), a training-time module that incorporates these semantic relations prior to evaluating the original volume loss. Document hyperedges connect the observed modalities of each candidate, whereas semantic hyperedges link candidates whose detached captions are mutual top-k neighbors. A shallow gated hyper-graph network applies residual corrections to the modality embeddings. Presence masks exclude unavailable streams from message passing, and identity padding preserves the determinant of the observed Gram submatrix without feature imputation. As refinement operates on embeddings rather than scores, the same construction applies to both Gram and HyperGram. We remove the hypergraph after training, leaving the backbone-only architecture, original scoring function, and retrieval cost unchanged. We train both backbones on a 150K-clip subset of VAST-27M and evaluate zero-shot performance on six benchmarks. Under the paired protocol, HyVol improves R@1 across all five retrieval benchmarks, with video-to-text gains reaching +8.3 on MSR-VTT and +7.6 on VATEX. Under missing-modality masking, the V2T margin remains positive in all experimental settings, although the T2V margin becomes slightly negative in four.",
+      "authors": [
+        "Anindya Nag",
+        "Ambuj Mehrish",
+        "Sebastiano Vascon"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-14T10:12:07+00:00",
+      "link": "https://arxiv.org/pdf/2609.15320v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "jointly scores text query with video, audio and subtitle embeddings for multimodal retrieval",
+      "llm_evidence_cn": "联合文本查询与视频、音频、字幕嵌入进行多模态检索",
+      "llm_evidence": "联合文本查询与视频、音频、字幕嵌入进行多模态检索",
+      "canonical_evidence": "联合文本查询与视频、音频、字幕嵌入进行多模态检索",
+      "llm_tldr_en": "This work addresses multimodal retrieval where a text query is scored against a candidate's video, audio and subtitle embeddings, proposing hypergraph-regularized Gramian volumes that inject semantic relations among training samples to improve alignment.",
+      "llm_tldr_cn": "面向文本查询与候选视频、音频、字幕嵌入联合打分的多模态检索任务，现有基于体积的方法只做候选局部对齐，且语义相关样本仅作为对比负例被利用。本文提出超图正则化Gramian体积模块HyVol，在体积损失前引入文档超边与语义超边，通过浅层门控超图网络对模态嵌入做残差修正。实验表明该方法能更充分利用样本间语义关系，提升跨模态检索性能。工作为多模态对齐提供了可迁移的训练时正则化思路。",
+      "llm_tldr": "面向文本查询与候选视频、音频、字幕嵌入联合打分的多模态检索任务，现有基于体积的方法只做候选局部对齐，且语义相关样本仅作为对比负例被利用。本文提出超图正则化Gramian体积模块HyVol，在体积损失前引入文档超边与语义超边，通过浅层门控超图网络对模态嵌入做残差修正。实验表明该方法能更充分利用样本间语义关系，提升跨模态检索性能。工作为多模态对齐提供了可迁移的训练时正则化思路。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "integrating multiple modalities like text and images in learning systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.15348v1",
+      "source": "arxiv",
+      "title": "Robust Multi-Model Fitting through Learning Neighbor Regions",
+      "abstract": "Multi-model fitting involves fitting multiple models accurately in a noisy environment. It is the basis for computer vision tasks such as scene reconstruction and mixed reality. However, its performance is often limited by insufficient feature utilization, inefficient optimization, model overlap, and the non-differentiable pipelines. To overcome these limitations, we introduce a robust coarse-to-fine framework called Learning Neighbor Regions (LNR). Recognizing that substantial computational resources are wasted on numerous bad minimum sets, we propose the coarse-level module. This module utilizes a neural network to extract and analyze geometric feature of both local point-wise relationships and global contextual information in minimum sets, outputting confidence to pre-select a small number of good minimum sets, thereby enhancing overall efficiency before solving hypotheses. To address model overlap, LNR encodes neighbor region features for each hypothesis in its fine-level module. These region features consist of geometric features of neighboring data points, which can be used by multiple regions simultaneously. This design allows the neural network to individually refine and score each hypothesis. Importantly, LNR is trained to learn directly from data point features rather than from the hypothesis parameters, thus avoiding differentiating the sampling process and the model solvers. Extensive experiments on four classic multi-model fitting tasks demonstrate that LNR achieves state-of-the-art performance. The analysis suggests that LNR can be easily adapted to various robust multi-model fitting tasks.",
+      "authors": [
+        "Chang Nie",
+        "Guangming Wang",
+        "Zhe Liu",
+        "Hesheng Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-14T10:33:19+00:00",
+      "link": "https://arxiv.org/pdf/2609.15348v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Robust multi-model fitting for vision tasks via learned neighbor regions",
+      "llm_evidence_cn": "面向视觉任务的学习邻域区域鲁棒多模型拟合",
+      "llm_evidence": "面向视觉任务的学习邻域区域鲁棒多模型拟合",
+      "canonical_evidence": "面向视觉任务的学习邻域区域鲁棒多模型拟合",
+      "llm_tldr_en": "Introduces Learning Neighbor Regions (LNR), a coarse-to-fine framework using a neural network to analyze geometric features of minimum sets and output confidence, improving robust multi-model fitting for vision tasks.",
+      "llm_tldr_cn": "多模型拟合是场景重建与混合现实等计算机视觉任务的基础，但常受特征利用不足、优化低效、模型重叠与不可微流程限制。论文提出粗到细框架LNR，先用神经网络分析最小集中局部点对关系与全局上下文的几何特征并输出置信度，从而避免在大量劣质最小集上浪费算力，提升多模型拟合的鲁棒性与效率。",
+      "llm_tldr": "多模型拟合是场景重建与混合现实等计算机视觉任务的基础，但常受特征利用不足、优化低效、模型重叠与不可微流程限制。论文提出粗到细框架LNR，先用神经网络分析最小集中局部点对关系与全局上下文的几何特征并输出置信度，从而避免在大量劣质最小集上浪费算力，提升多模型拟合的鲁棒性与效率。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "algorithms for image and video understanding",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.16800v2",
+      "source": "arxiv",
+      "title": "Smarter by the Moment: Environment-Driven Dynamic Policies for Continual LLM Improvement",
+      "abstract": "Large Language Models (LLMs) have achieved remarkable progress across diverse domains, but continual adaptation to evolving tasks and environments remains a key challenge. Existing memory-augmented approaches retrieve individual past examples as direct references, but do not explicitly synthesize actionable strategies from them, causing the same types of errors to recur. We propose Dynamic Retrieval-based Policy Generation (DRPG), a framework that integrates memory-based retrieval with a dynamic policy generator, leveraging historical data and environment feedback to produce task-specific policies for continual LLM improvement. We evaluate DRPG across six benchmarks spanning text-to-SQL, question answering, medical diagnosis, and Python programming, using seven LLMs from both proprietary and open-weight families. DRPG outperforms strong baselines across most datasets and models. Further analysis demonstrates that DRPG's policy generation is robust to retrieval strategy, operates effectively without prior policy continuity, and can leverage smaller or cross-family models as cost-efficient policy generators. We also find that the benefit of policy-level guidance depends on task characteristics, offering practical insights into when and under what conditions this mechanism is most effective.",
+      "authors": [
+        "Ting-Wei Chang",
+        "Po-Chun Chen",
+        "Hen-Hsen Huang",
+        "Hsin-Hsi Chen"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-09-15T08:06:17+00:00",
+      "link": "https://arxiv.org/pdf/2609.16800v2",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "continual LLM improvement with dynamic policy generation",
+      "llm_evidence_cn": "基于动态策略生成的LLM持续改进",
+      "llm_evidence": "基于动态策略生成的LLM持续改进",
+      "canonical_evidence": "基于动态策略生成的LLM持续改进",
+      "llm_tldr_en": "LLMs struggle to continually adapt to evolving tasks. This paper proposes Dynamic Retrieval-based Policy Generation, integrating memory retrieval with a dynamic policy generator using historical data and environment feedback.",
+      "llm_tldr_cn": "大语言模型虽在多领域取得进展，但持续适应不断变化的任务与环境仍是关键挑战。现有记忆增强方法仅检索过往样例作为直接参考，未能显式综合出可执行策略，导致同类错误反复出现。本文提出动态检索策略生成（DRPG）框架，结合基于记忆的检索与动态策略生成器，利用历史数据和环境反馈产出任务特定策略。作者在文本到SQL、问答、医疗诊断与Python等六个基准上验证了该方法。",
+      "llm_tldr": "大语言模型虽在多领域取得进展，但持续适应不断变化的任务与环境仍是关键挑战。现有记忆增强方法仅检索过往样例作为直接参考，未能显式综合出可执行策略，导致同类错误反复出现。本文提出动态检索策略生成（DRPG）框架，结合基于记忆的检索与动态策略生成器，利用历史数据和环境反馈产出任务特定策略。作者在文本到SQL、问答、医疗诊断与Python等六个基准上验证了该方法。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "What methods in natural language processing leverage large language models?",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.15972v1",
+      "source": "arxiv",
+      "title": "Mind2Dialogue: Training Human-Aware Language Models by Simulating User Mental States",
+      "abstract": "As language models become more capable, long-term collaboration in learning, reasoning, and decision-making calls for a deeper understanding of the people they serve. Yet training such human-aware language models faces a fundamental supervision gap because current datasets for LLM assistant training contain few if any well-informed responses explicitly grounded in users' unspoken beliefs and goals. Scaling such supervision is inherently constrained, as users' underlying states are not directly observable. We thus propose the Mind2Dialogue framework to mitigate this gap by simulating users' mental states and turning them into privileged supervision for human-aware training. Specifically, we first propose a psychology-guided simulator that preserves personal characteristics while updating mental states through interaction to generate coherent conversations. The key idea is to enforce a shared evolving mental state that drives user behavior and guides an Oracle assistant's responses. Our privileged distillation then trains models on the Oracle's well-informed responses to assist users without direct access to their mental states at deployment. Moreover, we propose to evaluate human-aware learning by combining personalization and theory of mind, examining how models understand people and act on that understanding. Training on the full Mind2Dialogue corpus improves every reported personalization metric over the corresponding Qwen, Llama, and OLMo instruction-tuned baselines, including gains of 26.6 to 40.9 percentage points in preference-following generation. The gains extend to belief and action reasoning on Qwen and Llama, beyond personalized assistance. Looking forward, Mind2Dialogue makes user simulation a foundation for genuine AI collaborators that understand beliefs and intentions behind people's words and support their long-term goals across education, work, and everyday life.",
+      "authors": [
+        "Zixuan Wang",
+        "Yufan Zhou",
+        "Jinzhou Tang",
+        "Xinle Yu",
+        "Chengjun Wu",
+        "Lyumanshan Ye",
+        "Zhaoxiang Feng",
+        "Letian Peng",
+        "Adyasha Patra",
+        "Fan Bai",
+        "Enze Ma",
+        "Zhengding Hu",
+        "Jianyang Gu",
+        "Zhao Wang",
+        "Yufei Ding",
+        "Jingbo Shang",
+        "Tianmin Shu",
+        "Zhiting Hu",
+        "Zhen Wang"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-09-14T17:55:58+00:00",
+      "link": "https://arxiv.org/pdf/2609.15972v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Training human-aware language models by simulating user mental states",
+      "llm_evidence_cn": "通过模拟用户心理状态训练人类感知语言模型",
+      "llm_evidence": "通过模拟用户心理状态训练人类感知语言模型",
+      "canonical_evidence": "通过模拟用户心理状态训练人类感知语言模型",
+      "llm_tldr_en": "Mind2Dialogue simulates users' mental states into privileged supervision to train human-aware LLMs, addressing the supervision gap in assistant training data.",
+      "llm_tldr_cn": "针对大语言模型助手训练数据缺乏基于用户未言明信念与目标的高质量监督、而用户内部状态又难以直接观测这一缺口，本文提出Mind2Dialogue框架，用心理学引导的模拟器生成用户心理状态，并将其转化为特权监督信号用于人类感知训练。该方法在不直接观测用户内部状态的前提下实现可扩展的人类感知训练，为长期协作式语言模型提供了新的监督范式。",
+      "llm_tldr": "针对大语言模型助手训练数据缺乏基于用户未言明信念与目标的高质量监督、而用户内部状态又难以直接观测这一缺口，本文提出Mind2Dialogue框架，用心理学引导的模拟器生成用户心理状态，并将其转化为特权监督信号用于人类感知训练。该方法在不直接观测用户内部状态的前提下实现可扩展的人类感知训练，为长期协作式语言模型提供了新的监督范式。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "computational techniques for understanding and generating human language",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.15938v1",
+      "source": "arxiv",
+      "title": "HypoEvolve: Genetic Algorithms Enable Multi-Agent LLMs to Discover Scientific Hypotheses",
+      "abstract": "Scientific agents contribute to hypothesis discovery by synthesizing evidence, assessing proposals, and developing new explanations. Recent systems combine scientific agents with evolutionary search through critique, comparison, and revision. However, how different forms of agent collaboration affect hypothesis quality remains an open question. Answering this question requires separating the effects of agents' scientific capabilities from those of their collaboration. A framework must therefore preserve agents' scientific roles and support rules for combining, revising, and retaining hypotheses. Building on this view, we introduce HypoEvolve, which makes collaboration explicit through successive updates to a hypothesis population. Specifically, we propose a generational genetic algorithm to coordinate specialized large language model (LLM) agents that integrate mechanistic arguments, reconsider assumptions, and assess evidence and testability. Each generation specifies how scientific judgments and new proposals reshape the population, making collaboration effects on hypothesis quality directly testable. Moreover, we design our evaluation around scientifically meaningful hypotheses that explain how a proposed intervention could work. Drug repurposing links these explanations to target-level biological claims assessed against external evidence. Specifically, we adapt DepMap and Open Targets into complementary external measures grounded in experimental, genetic, and clinical evidence. Across 34 cancer types, HypoEvolve achieves the highest scores against six baselines on both measures. DepMap selectivity reaches 0.171, versus 0.115 for the strongest baseline. Gains over single-pass generation also generalize to held-out cancer types. HypoEvolve advances a vision of autonomous science in which AI research teams achieve a capacity for discovery beyond that of individual models.",
+      "authors": [
+        "Jieyuan Liu",
+        "Mengzhou Hu",
+        "Jefferson Chen",
+        "JungHo Kong",
+        "Pratibha Jagannatha",
+        "Yiming Gao",
+        "Dexter Pratt",
+        "Hsin-Yuan Lee",
+        "Zhiting Hu",
+        "Trey Ideker",
+        "Wei Wang",
+        "Eric P. Xing",
+        "Zhen Wang"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.CE",
+        "cs.MA",
+        "cs.NE"
+      ],
+      "published": "2026-09-14T17:44:49+00:00",
+      "link": "https://arxiv.org/pdf/2609.15938v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Multi-agent LLMs with evolutionary search for scientific hypothesis discovery",
+      "llm_evidence_cn": "多智能体大语言模型结合进化搜索发现科学假设",
+      "llm_evidence": "多智能体大语言模型结合进化搜索发现科学假设",
+      "canonical_evidence": "多智能体大语言模型结合进化搜索发现科学假设",
+      "llm_tldr_en": "HypoEvolve studies how different forms of multi-agent LLM collaboration affect scientific hypothesis quality, making collaboration explicit through successive updates to a hypothesis population guided by evolutionary search.",
+      "llm_tldr_cn": "科学智能体通过综合证据与评估提案参与假设发现，但不同智能体协作形式对假设质量的影响尚不明确。本文提出HypoEvolve，通过遗传算法对假设种群进行连续更新，将协作机制显式化，从而分离智能体科学能力与协作方式的影响。该框架在保持智能体科学角色的同时支持假设的合并、修订与保留，为基于大语言模型的科学发现与协作式推理提供了可分析的范式。",
+      "llm_tldr": "科学智能体通过综合证据与评估提案参与假设发现，但不同智能体协作形式对假设质量的影响尚不明确。本文提出HypoEvolve，通过遗传算法对假设种群进行连续更新，将协作机制显式化，从而分离智能体科学能力与协作方式的影响。该框架在保持智能体科学角色的同时支持假设的合并、修订与保留，为基于大语言模型的科学发现与协作式推理提供了可分析的范式。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "What methods in natural language processing leverage large language models?",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.16814v2",
+      "source": "arxiv",
+      "title": "Can We Do Interpretable NLI with Graphs Based on Atomic Propositions?",
+      "abstract": "While Large Language Model (LLM)-based Natural Language Inference (NLI) systems achieve high accuracy, their decision-making processes lack auditable structures. This paper explores whether NLI can be performed using only interpretable, graph-based representations of evidence. We introduce a fully graph-based pipeline where the classifier never directly processes the input text. Instead, sentences are decomposed into atomic propositions, converted into ConceptNet triples via constrained decoding, and represented as three graphs per pair: premise, hypothesis, and a retrieved ConceptNet subgraph. These graphs are then fed into a fine-tuned 0.8-billion-parameter language model. On the SNLI dataset, our pipeline achieves 89.7% accuracy, just 1.9 points below an identically trained text-based model. On ANLI, it matches the published performance of RoBERTa-large on rounds R2 and R3 (48.0% vs. 48.9% and 44.9% vs. 44.4%) but trails by 16 points on R1, resulting in an overall gap of 9 to 14 points compared to its text counterpart. We term this gap the price of interpretability and demonstrate that it stems from representational limitations rather than data constraints. Ablation studies further reveal that graphs and text are complementary: combining both modalities achieves 92.1% accuracy on SNLI.",
+      "authors": [
+        "Younes Boufouss",
+        "Luc Pommeret",
+        "Thomas Gerald",
+        "Patrick Paroubek",
+        "Sophie Rosset"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.IR"
+      ],
+      "published": "2026-09-15T08:20:20+00:00",
+      "link": "https://arxiv.org/pdf/2609.16814v2",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "interpretable graph-based natural language inference with LLMs",
+      "llm_evidence_cn": "基于图与LLM的可解释自然语言推理",
+      "llm_evidence": "基于图与LLM的可解释自然语言推理",
+      "canonical_evidence": "基于图与LLM的可解释自然语言推理",
+      "llm_tldr_en": "LLM-based NLI systems are accurate but lack auditable decision structures. This paper builds a fully graph-based pipeline that decomposes sentences into atomic propositions and ConceptNet triples, feeding graphs to a fine-tuned language model.",
+      "llm_tldr_cn": "基于大语言模型的自然语言推理系统准确率高，但决策过程缺乏可审计结构。本文探索仅用可解释的图结构表示证据进行推理，提出全图化流程：分类器不直接处理原文，而是将句子分解为原子命题，经约束解码转为ConceptNet三元组，并表示为前提、假设与检索子图。在SNLI数据集上取得89.7%的准确率，仅比基线低1.9分，兼顾可解释性与性能。",
+      "llm_tldr": "基于大语言模型的自然语言推理系统准确率高，但决策过程缺乏可审计结构。本文探索仅用可解释的图结构表示证据进行推理，提出全图化流程：分类器不直接处理原文，而是将句子分解为原子命题，经约束解码转为ConceptNet三元组，并表示为前提、假设与检索子图。在SNLI数据集上取得89.7%的准确率，仅比基线低1.9分，兼顾可解释性与性能。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "computational techniques for understanding and generating human language",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.16129v1",
+      "source": "arxiv",
+      "title": "Optimal Pruning for Neural Architectures using Fisher Information Distances",
+      "abstract": "A new scheme for parameter pruning is introduced, derived from the differential-geometric distance in model space. Pruning a parameter sets its value to zero, representing a displacement of the model to the hypersurface on which that parameter vanishes. The minimal distance from the unpruned model to this hypersurface is naturally computed via the geodesic distance in the model space as determined by the Fisher information metric. This distance determines the true change in the model, and its performance, under pruning. By analysing progressively more faithful approximations of this geodesic distance a natural hierarchy of optimality for pruning methods is determined. This starts with the traditional magnitude pruning, then develops into new more sophisticated and effective pruning schemes. The method is demonstrated for both fully-connected networks and vision transformers, on MNIST and CIFAR-10, over the complete $0$-$100\\%$ pruning range and across five random seeds. It outperforms pruning by parameter magnitude and by the local Fisher information alone in every architecture and dataset combination considered, on both accuracy and the Matthews correlation coefficient. Additionally, analysis of different levels of geodesic approximation produces intermediate pruning schemes that are computationally efficient and maintain near-optimal performance. This geometric picture supplies not only a state-of-the-art pruning methodology for AI models, but also a verified and mathematically-motivated justification for pruning schemes.",
+      "authors": [
+        "David S. Berman",
+        "Yen-Yu Fu",
+        "Edward Hirst",
+        "Thelma Chiwete Obirai"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.IT",
+        "math.DG"
+      ],
+      "published": "2026-09-14T18:00:03+00:00",
+      "link": "https://arxiv.org/pdf/2609.16129v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Optimal pruning of neural architectures via Fisher information geodesic distances",
+      "llm_evidence_cn": "基于Fisher信息测地距离的神经网络架构最优剪枝",
+      "llm_evidence": "基于Fisher信息测地距离的神经网络架构最优剪枝",
+      "canonical_evidence": "基于Fisher信息测地距离的神经网络架构最优剪枝",
+      "llm_tldr_en": "The paper derives parameter pruning from differential-geometric distance in model space, using Fisher information geodesics to establish a hierarchy of optimality for pruning methods.",
+      "llm_tldr_cn": "针对神经网络参数剪枝缺乏理论最优性刻画的问题，本文从模型空间中的微分几何距离出发，将剪枝视为模型向参数取零超曲面的位移，并用Fisher信息度量下的测地距离衡量剪枝带来的真实模型变化。通过分析逐步精细的测地距离近似，得到剪枝方法的最优性层级，从传统幅度剪枝延伸到更优的新方法，为机器学习算法理论提供了几何视角。",
+      "llm_tldr": "针对神经网络参数剪枝缺乏理论最优性刻画的问题，本文从模型空间中的微分几何距离出发，将剪枝视为模型向参数取零超曲面的位移，并用Fisher信息度量下的测地距离衡量剪枝带来的真实模型变化。通过分析逐步精细的测地距离近似，得到剪枝方法的最优性层级，从传统幅度剪枝延伸到更优的新方法，为机器学习算法理论提供了几何视角。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "fundamentals of machine learning theory and algorithms",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.16336v1",
+      "source": "arxiv",
+      "title": "Illusion of Depth: Revealing Hidden Stereo Vision Vulnerabilities in Depth Estimation",
+      "abstract": "Stereo cameras are integrated into autonomous systems such as self-driving cars, drones, and robots to offer precise depth estimation in a cost-effective manner compared to LiDAR technology. In this work, we reveal an intrinsic vulnerability in stereo cameras that stems from their pixel sampling and calibration processes, which can influence the outputs of stereo matching algorithms. Attackers can achieve fine-grained control over the estimated depth of real obstacles using simple repeating patterns, without relying on sophisticated adversarial machine learning techniques. Furthermore, deep learning-based depth estimation models exhibit a similar vulnerability. We evaluate the impact of this attack on two widely used stereo matching algorithms (BM and SGBM), three deep learning models (PSMNet, MoCha-Stereo, and UniMatch), a stereo-LiDAR fusion model (SGM-DDC), and two popular commercial stereo cameras, the ZED2 and Intel RealSense D435. For example, in the ZED2 camera, an attacker can displace obstacles up to 20~meters farther or 12~meters closer. In our real-world evaluation in a driving setting, a brief 0.5~second attack can trigger emergency braking in a popular autonomous driving framework. We further demonstrate the feasibility at driving speeds up to 40~km/h using CARLA. Finally, we confirm the ineffectiveness of state-of-the-art defenses, and we propose a novel strategy that leverages similarity scores to dynamically detect and suppress the depth discrepancies. Our work highlights vulnerabilities hidden in stereo matching and deep learning depth estimation models, addressing critical limitations in autonomous system deployments.",
+      "authors": [
+        "Sri Hrushikesh Varma Bhupathiraju",
+        "Tetsu Ishizue",
+        "Nicholas U. Costagliola",
+        "Ozora Sako",
+        "Kentaro Yoshioka",
+        "Takeshi Sugawara",
+        "Sara Rampazzi"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-09-14T20:51:49+00:00",
+      "link": "https://arxiv.org/pdf/2609.16336v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Deep-learning depth estimation vulnerability in stereo vision",
+      "llm_evidence_cn": "立体视觉深度估计中的深度学习模型漏洞",
+      "llm_evidence": "立体视觉深度估计中的深度学习模型漏洞",
+      "canonical_evidence": "立体视觉深度估计中的深度学习模型漏洞",
+      "llm_tldr_en": "Reveals intrinsic vulnerabilities in stereo cameras from pixel sampling and calibration, enabling fine-grained control over estimated depth via simple repeating patterns, and shows deep-learning depth models share the flaw.",
+      "llm_tldr_cn": "论文关注立体相机在自动驾驶等场景中的深度估计安全问题，指出其像素采样与标定过程存在固有漏洞。作者用简单重复图案即可精细操控真实障碍物的估计深度，无需复杂对抗攻击，并发现基于深度学习的深度估计模型也存在类似缺陷，为立体视觉安全性评估提供了新视角。",
+      "llm_tldr": "论文关注立体相机在自动驾驶等场景中的深度估计安全问题，指出其像素采样与标定过程存在固有漏洞。作者用简单重复图案即可精细操控真实障碍物的估计深度，无需复杂对抗攻击，并发现基于深度学习的深度估计模型也存在类似缺陷，为立体视觉安全性评估提供了新视角。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "How can deep learning models be applied to computer vision tasks?",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.17094v1",
+      "source": "arxiv",
+      "title": "Hub-Spectral Activation of Latent Multimodal Knowledge",
+      "abstract": "Multimodal representation learning seeks shared representations for cross-modal retrieval and knowledge transfer. Hub-based binding reduces pairwise supervision costs, but separate hub connections cannot guarantee reliable alignment between modalities without direct joint training. We introduce Hub-Spectral Activation (HSA), a closed-form method for recovering and activating the hub-readable component of latent multimodal knowledge in frozen representations. We formalize this knowledge as source-induced cross-modal dependence and characterize the component determined by the second-order statistics of two trained hub edges. Under a second-order source model, we establish conditions for exact recovery of the complete source-induced relation and bound the dimension of its hub-readable component by the hub covariance rank. HSA composes and standardizes hub-edge statistics, extracts paired spectral directions, and combines reliability-weighted matching evidence with source-gated candidate resolution for bidirectional retrieval and prototype classification. HSA requires no target-pair supervision, gradient optimization, or backbone updates. Across 19 retrieval and 11 prototype-classification relations on ImageBind and LanguageBind, HSA raises mean bidirectional Recall@10 from 18.27% to 31.15% and mean macro Top-1 accuracy from 29.01% to 52.43%, respectively. Controlled analyses further identify valid hub-edge correspondence and leading spectral directions as key sources of retrieval gains, demonstrating the utility of latent multimodal knowledge beyond native similarity scores. Code and models are publicly available at https://github.com/Luo1Yan/HSA.",
+      "authors": [
+        "Ying Guo",
+        "Haidong Chen",
+        "Linrui Xu",
+        "Xiaohao Liu",
+        "Chuancheng Shi",
+        "Canran Xiao",
+        "Dan Zhang",
+        "Fei Shen",
+        "Li Shen",
+        "Tat-Seng Chua"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-15T12:27:42+00:00",
+      "link": "https://arxiv.org/pdf/2609.17094v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "closed-form method for multimodal representation alignment",
+      "llm_evidence_cn": "多模态表示对齐的闭式方法",
+      "llm_evidence": "多模态表示对齐的闭式方法",
+      "canonical_evidence": "多模态表示对齐的闭式方法",
+      "llm_tldr_en": "Multimodal representation learning needs reliable cross-modal alignment, but hub-based binding without joint training cannot guarantee it. The paper introduces Hub-Spectral Activation, a closed-form method recovering multimodal knowledge from frozen representations.",
+      "llm_tldr_cn": "多模态表示学习追求跨模态共享表示，但仅靠分离的枢纽连接在缺乏联合训练时难以保证模态间可靠对齐。本文提出枢纽-谱激活（HSA）这一闭式方法，将潜在多模态知识形式化为源诱导的跨模态依赖，并利用两条训练枢纽边的二阶统计量刻画可恢复成分。作者在二阶源模型下给出完整关系精确恢复的条件及维度上界，为低成本多模态对齐提供了理论工具。",
+      "llm_tldr": "多模态表示学习追求跨模态共享表示，但仅靠分离的枢纽连接在缺乏联合训练时难以保证模态间可靠对齐。本文提出枢纽-谱激活（HSA）这一闭式方法，将潜在多模态知识形式化为源诱导的跨模态依赖，并利用两条训练枢纽边的二阶统计量刻画可恢复成分。作者在二阶源模型下给出完整关系精确恢复的条件及维度上界，为低成本多模态对齐提供了理论工具。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "integrating multiple modalities like text and images in learning systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.16689v1",
+      "source": "arxiv",
+      "title": "Efficient Quantization-Aware Distillation with Cross-Modal Alignment for Edge Vision-Language Models",
+      "abstract": "Large-scale vision-language models (VLM) such as CLIP enable strong open-vocabulary reasoning, yet deploying these capabilities on resource-constrained edge devices remains challenging. EdgeVL addresses this problem by distilling CLIP representations into lightweight multi-modal encoders and applying quantization-aware training (QAT) for efficient Open-Vocabulary Classification (OVC) on edge hardware. However, its two-stage optimization applies different objectives for distillation and QAT, and contrastive learning is performed within the quantized student space, which can result in inconsistent optimization and reduced training efficiency. Moreover, identical supervision across RGB and non-RGB modalities may lead to modality imbalance. We propose a unified framework for quantized semantic distillation tailored to edge deployment. By jointly optimizing distillation and quantization within a unified teacher-anchored framework, our method ensures consistent training under quantization, suppressing hard negatives and enlarging decision margins. Additionally, we design a lightweight cross-attention adapter that enhances non-RGB representations through RGB-guided semantic transfer, narrowing the modality gap. Extensive experiments demonstrate consistent improvements on non-RGB modalities while maintaining deployment efficiency.",
+      "authors": [
+        "Jinwoo Jeon",
+        "GyuYeop Do",
+        "Yubin Lim",
+        "Nam-Joon Kim",
+        "Hyun Gon Ryu",
+        "Hyuk-Jae Lee",
+        "Byung-Jun Lee"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-15T06:12:54+00:00",
+      "link": "https://arxiv.org/pdf/2609.16689v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "quantization-aware distillation with cross-modal alignment for vision-language models",
+      "llm_evidence_cn": "面向视觉语言模型的量化感知蒸馏与跨模态对齐",
+      "llm_evidence": "面向视觉语言模型的量化感知蒸馏与跨模态对齐",
+      "canonical_evidence": "面向视觉语言模型的量化感知蒸馏与跨模态对齐",
+      "llm_tldr_en": "This work improves EdgeVL by jointly optimizing quantization-aware distillation and cross-modal alignment, addressing inconsistent objectives and efficiency loss for edge vision-language models.",
+      "llm_tldr_cn": "大规模视觉语言模型如CLIP具备强开放词汇推理能力，但难以部署到资源受限的边缘设备。EdgeVL通过将CLIP表示蒸馏到轻量多模态编码器并施加量化感知训练来实现开放词汇分类，但其两阶段优化目标不一致，且在量化学生空间中做对比学习导致训练效率下降。本文提出高效量化感知蒸馏与跨模态对齐方法，改善优化一致性与训练效率，为边缘VLM部署提供更优方案。",
+      "llm_tldr": "大规模视觉语言模型如CLIP具备强开放词汇推理能力，但难以部署到资源受限的边缘设备。EdgeVL通过将CLIP表示蒸馏到轻量多模态编码器并施加量化感知训练来实现开放词汇分类，但其两阶段优化目标不一致，且在量化学生空间中做对比学习导致训练效率下降。本文提出高效量化感知蒸馏与跨模态对齐方法，改善优化一致性与训练效率，为边缘VLM部署提供更优方案。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "integrating multiple modalities like text and images in learning systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

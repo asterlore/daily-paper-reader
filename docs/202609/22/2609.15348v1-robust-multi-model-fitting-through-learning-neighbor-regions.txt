@@ -1,0 +1,514 @@
+Title: Robust Multi-Model Fitting through Learning Neighbor Regions
+
+URL Source: https://arxiv.org/pdf/2609.15348v1
+
+Published Time: Tue, 15 Sep 2026 02:49:46 GMT
+
+Number of Pages: 12
+
+Markdown Content:
+> JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 1
+
+# Robust Multi-Model Fitting through Learning Neighbor Regions 
+
+Chang Nie, Guangming Wang, Zhe Liu, Member, IEEE, and Hesheng Wang, Senior Member, IEEE, 
+
+Abstract —Multi-model fitting involves fitting multiple models accurately in a noisy environment. It is the basis for computer vision tasks such as scene reconstruction and mixed reality. However, its performance is often limited by insufficient feature utilization, inefficient optimization, model overlap, and the non-differentiable pipelines. To overcome these limitations, we intro-duce a robust coarse-to-fine framework called Learning Neighbor Regions (LNR). Recognizing that substantial computational re-sources are wasted on numerous bad minimum sets, we propose the coarse-level module. This module utilizes a neural network to extract and analyze geometric feature of both local point-wise relationships and global contextual information in minimum sets, outputting confidence to pre-select a small number of good minimum sets, thereby enhancing overall efficiency before solving hypotheses. To address model overlap, LNR encodes neighbor region features for each hypothesis in its fine-level module. These region features consist of geometric features of neighboring data points, which can be used by multiple regions simultaneously. This design allows the neural network to individually refine and score each hypothesis. Importantly, LNR is trained to learn directly from data point features rather than from the hypothesis parameters, thus avoiding differentiating the sampling process and the model solvers. Extensive experiments on four classic multi-model fitting tasks demonstrate that LNR achieves state-of-the-art performance. The analysis suggests that LNR can be easily adapted to various robust multi-model fitting tasks. The code will be available at https://github.com/IRMVLab/LNR. 
+
+Index Terms —Multi-Model Fitting, Robust Estimation, Van-ishing Point Estimation, Two-view Plane Segmentation, Two-view Motion. 
+
+I. I NTRODUCTION 
+
+# ROBUST multi-model fitting is an essential and widely applied task in computer vision. It involves identifying and fitting multiple models within a dataset, often compli-cated by significant noise. Improvements in this area have broad implications, benefiting numerous applications such as robot navigation [1]–[4], 3D scene reconstruction [5]–[8], autonomous driving [9]–[13], and mixed reality [14]–[17]. To address this task, a straightforward idea is to extend the single-model methods, like RANdom SAmple Consensus (RANSAC) [18], to multi-model. For example, Sequential RANSAC [19] finds multiple instances by iteratively removing inliers. This greedy strategy resembles clustering, where each data point is 
+
+This work was supported in part by the Natural Science Foundation of China under Grant 62225309, U24A20278, 62361166632 and U21A20480. (Corresponding Author: Hesheng Wang, e-mail: wanghesheng@sjtu.edu.cn) Chang Nie, Zhe Liu and Hesheng Wang are with School of Automation and Intelligent Sensing, Shanghai Jiao Tong University and Key Laboratory of System Control and Information Processing, Ministry of Education of China, Shanghai 200240, China. Guangming Wang is with the Department of Engineering, Cambridge University, Cambridge CB2 1TN, UK. Various Robust Multi-Model Fitting Tasks   
+
+> Vanishing Point Estimation
+> Multi-line Fitting Two-view Plane Segmentation Two-view motion
+
+Previous Two-step Framework for Multi-Model Fitting Methods 
+
+Hypothesis Pool Sample Minimum Sets   
+
+> Inefficient optimization caused by numerous noise Model Overlap Non-Differentiable Modules Insufficient utilization of geometric features
+
+Challenges 
+
+LNR 
+
+Addressed Compound Model Optimization 
+
+Geometric Feature Extraction Good minimum sets selection Encoding Region Features Optimization with Region Features Easily Applied Coarse-Level Module Fine-Level Module 
+
+Fig. 1. LNR addresses the challenges of the two-step framework. LNR uses neural network in the coarse module to fully extract geometric features and select good minimum sets for efficiency. In the fine-level module, LNR encodes region features for each hypothesis independently to deal with model overlap. This framework learns on data points rather than the hypothesis parameters, avoiding sampling process and model solvers 
+
+assigned to a single model. Consequently, it may overlook the model overlap, where data points belong to both models. This limitation can lead to an underestimation of certain models, particularly when instances are not clearly separated. Most recent methods adopt a two-step process. Firstly, they generate a hypothesis pool from minimum data sets [20]– [24]. These methods often employ iterative sampling tech-niques to expand the hypothesis pool, attempting to discard less promising ones. However, because each new model is built upon previous iterations, errors can accumulate due to model overlap throughout the process. Numerous noise also causes inefficient optimization on bad hypotheses. Secondly, a compound model is selected from the generated hypotheses [25]–[31]. Techniques include energy optimization [25], [27] or hyper-graph partitioning [28], [30]. These methods often rely on complex cost functions to handle model overlap. These intricate cost functions, however, might not fully exploit the un-derlying geometric information inherent in the data, potentially limiting their effectiveness across diverse and complex scenar-ios. These limitations motivate the exploration of alternative approaches that can more effectively utilize geometric features, such as integrating deep learning methods [22], [32]. However, arXiv:2609.15348v1 [cs.CV] 14 Sep 2026 JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 2
+
+challenges arise in incorporating learning-based methods due to the non-differentiable nature of traditional sampling and model-fitting processes. To address the challenges of insufficient features utiliza-tion, inefficient optimization, model overlap, and the non-differentiable pipelines as shown in Fig. 1, we propose Learn-ing Neighbor Regions (LNR) for robust multi-model fitting. To avoid error accumulation from iterative sampling, LNR simultaneously generates a large number of minimum sets through random sampling. This randomized approach ensures a broad coverage of potential models and enhances general-ization. Meanwhile, to fully utilize the geometric features and manage the computational cost associated with numerous bad minimum sets, LNR introduces a coarse-level module. This module analyzes the geometric features of each minimum set to select good minimum sets before solving for the hypotheses. For confusion caused by model overlap and the barrier of non-differentiable pipelines, LNR encodes neighbor region features for each hypothesis. This allows individual data points to contribute to multiple region features simultaneously, providing rich information to deal with various noises and model overlap. A neural network then analyzes these region features to refine and score the hypotheses. Importantly, LNR focuses on features derived from the data points, rather than the hypothesis parameters, avoiding the need to differentiate the sampling process or model solvers. Finally, to determine the number of models without prior knowledge, LNR em-ploys non-maximum suppression (NMS), a post-processing technique commonly used in object detection, to output the final multi-model fitting results. We evaluate LNR on four established multi-model fitting tasks: multi-line fitting, vanishing point estimation, two-view plane segmentation, and two-view motion estimation. Experi-mental results demonstrate that LNR achieves state-of-the-art performance across these tasks. The main contributions of LNR are as follows:  
+
+> •
+
+We propose Learning Neighbor Regions (LNR), a novel framework for robust multi-model fitting. For challenges of non-learning methods, this learning-based method fully analyzes region features of hypotheses for better performance, effectively avoiding differentiation through sampling and solving processes.  
+
+> •
+
+LNR introduces a coarse-level hypotheses generation module. It leverages random minimum set sampling for robustness and employs confidence-based selection to prioritize good minimum sets for coarse-hypothesis generation. Furthermore, a fine-level module encodes region features of hypotheses to handle noise and model overlap, which are then used for hypotheses refinement and assessment.  
+
+> •
+
+Extensive evaluations across four classic robust multi-model fitting tasks show that LNR achieves state-of-the-art performance in multi-line fitting, vanishing point estimation, two-view plane segmentation, and two-view motion tasks. Analysis indicates broad applicability of LNR to various robust multi-model fitting tasks. II. R ELATED WORK 
+
+A. Extension of Single-Model Robust Estimation 
+
+Robust multi-model fitting attracts extensive exploration due to its significance. Traditional single-model estimation tasks are often addressed using RANSAC-based methods [33], [34]. Given the success of these single-model approaches, researchers have naturally sought to extend them to the more complex scenario of multi-model fitting. For instance, Sequential RANSAC [19] iteratively detects models by clus-tering inliers, preserving the robustness and generalization of RANSAC. In contrast, MultiRANSAC [35] attempts to fit multiple models by sampling K models simultaneously to avoid data reuse issues. However, this approach requires K
+
+as a prior knowledge and faces computational inefficiency as 
+
+K grows, since finding multiple good models in one iteration is challenging. 
+
+B. Two Steps Frameworks 
+
+Nowadays, most methods [20], [26], [27], [36] often adopt a two-step framework: hypothesis generation followed by instance selection. First, a large number of minimum sets are sampled. Then, these minimum sets will generate a hypothesis pool, where the hypotheses are filtered by various numerical optimization methods. Second, many methods select multiple instances from the hypothesis pool to form a compound model. Following the idea of RANSAC, the selected compound model is generally required to have the most inliers. In the hypothesis pool generation step, some methods aim to improve efficiency by generating only necessary hypothe-ses. For example, Chin et al. [37] employ residual ordering information to guide the sampling process. Purkait et al. 
+
+[36] propose a hyperedge-guided sampling strategy based on the concept of clustering. MF-Net [38] directly classifies the minimum sets as valid or invalid through a neural network. T-Linkage [39] performs clustering via preference sets. How-ever, these clustering-style techniques ignore the reuse of data. Prog-X [20] removes bad instances through the design of proposal validation and optimizing modules to improve efficiency. CONSAC extends the NG-RANSAC [40] method from single-model robust estimation to multi-model fitting tasks. Specifically, CONSAC simultaneously feeds generated hypotheses information along with data points into a network. Then the network produces the probabilities of data points, which can guide the sampling for this iteration. PARSAC [32] improves its efficiency by parallel computing. But the number of instances is needed as a priori information, which limits the application of PARSAC. In the selecting instances step, several approaches aim to evaluate the qualities of hypotheses [25]–[27]. PEARL [25] addresses geometric multi-model fitting by viewing it as an optimization problem. This approach employs a global energy function that considers both geometric errors and the intrinsic regularity of clusters. Amayo et al. [26] explore the soft assignments of points to the geometric model by minimizing the overall assignment energy. In addition, there are methods [28] that treat instances as vertices and points as hyper-edges, solving the evaluation problem through hyper-graph partitioning. MSH [28] regards the multi-model fitting task as a mode-seeking problem on a hyper-graph. JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 3Input N× c data 
+
+> Good Minimum Sets Bad Minimum Sets
+
+Coarse-Hypotheses 
+
+3. Fine-Level Module 1. Geometric Feature Extraction 
+
+> Score  Refinement Confidence
+
+Multi-Line Fitting Task Data Points 𝜒 
+
+Geometric Features 𝐹       
+
+> Point-wise Global Geometric Feature of Point 1
+> Point-wise Global Geometric Feature of Point 2
+> Point-wise Global Geometric Feature of Point N
+> shared MLP MLP MLP MLP MLP shared MLP Max Pool MLP MLP MLP Fully Connected MLP
+
+n Minimum Sets  
+
+> shared MLP Max Pool MLP MLP MLP MLP Fourier γ( )
+
+𝜒 
+
+Random Sample Solve Hypotheses Encode Region Features 
+
+Hypothesis-based Non-Maximum Suppression 
+
+Multi-Model Robust Fitting Result 
+
+Post-Processing 
+
+Fine-Hypotheses with Scores 
+
+2. Coarse-Level Hypotheses Generation Module 
+
+Fig. 2. The pipeline of the proposed LNR. Using the multi-line fitting task as an example. Different colored lines indicate their scores and categories. Two points can form a minimum set to determine a line. LNR consists of three main components: 1. Geometric features are extracted from the data points (Sec. III-A). 2. The quality of randomly sampled minimum sets is evaluated. The good minimum sets are solved into coarse-hypotheses (Sec. III-B). 3. For each coarse-hypotheses, encoding its region feature, which is used for refinement and assessment to get fine-hypotheses (Sec. III-C). Then a Hypothesis-based Non-Maximum Suppression (HNMS) outputs a compound model as the final robust multi-model fitting results (Sec. III-D). 
+
+Building on the above methods, we further remodel the two-step framework into a deep learning framework as LNR. It extracts geometric features and selects good minimum sets in the coarse-level to improve efficiency. At the fine-level, LNR encodes region features for scoring and refining these hypotheses, avoiding differentiating the hypotheses and addressing model overlap. III. M ETHOD 
+
+We design a coarse-to-fine framework for robust multi-model fitting. Fig. 2 provides an overview of our proposed method, which comprises three key stages: geometric feature extraction (Sec. III-A), coarse hypothesis generation (Sec. III-B), and fine-level refinement (Sec. III-B). 
+
+A. Geometric Feature Extraction 
+
+For a given set of input data points, denoted as χ = {xi}Ni=1 
+
+contaminated by noise, we first extract geometric features F
+
+that capture both local and global information. As shown in Fig. 3, raw data points undergo Fourier feature mapping [41] to enhance spatial frequency encoding. Shared multilayer perceptrons (MLPs) (implemented via 1×1 convolutions) then generate point-wise features for each data point. Subsequently, a max-pooling operation aggregates these point-wise features to generate global features, representing the holistic properties of the input data. These point-wise and global features are concatenated to form a 256-dimensional geometric feature vector F for each point. This combined representation enables subsequent modules to leverage both local point-specific de-tails and global contextual information. N×c  
+
+> Dimension Alignment
+> N×128
+> Residual Blocks
+> N×128
+> Point-wise Feature Extraction
+> 1×128
+> Repeating
+> N×256
+> Max Pool
+> N×128
+> Global Feature Extraction C
+> MLP [128] MLP [128, 128] Block ×2MLP [128] Fourier γ(X)
+
+Fig. 3. The architecture of the neural network in geometric feature extraction. Most raw data can be represented as unordered N ×c data points, making the input data N × c. The symbol ⊕ denotes element-wise vector addition, while “C” denotes vector concatenation. The network output is 256-dimensional, comprising 128-dimensional point-wise features concatenated with 128-dimensional global features. 
+
+B. Coarse-level Hypotheses Generation Module 
+
+After extracting geometric features, LNR generates coarse-hypotheses through random sampling akin to RANSAC. Specifically, LNR draws n minimum sets M = {Mj }nj=1 
+
+from χ, where each set Mj contains the minimum number of points required for model estimation (e.g., two points for line fitting). The number of minimum sets, n, is intentionally large to ensure a comprehensive exploration of potential hypotheses. Among the sampled minimum sets M, a large number of sets are incorrect. To select a small number of good minimum sets to improve efficiency, avoiding numerous of bad minimum sets consuming resources, LNR introduces a coarse-level module to estimate confidence of each sampled minimum set. This module uses a neural network, illustrated in Fig. 4, to fully analyzes the geometric features of the minimum sets to assign confidence. Specifically, the geometric features of the points within a minimum set, FM , are concatenated to form a minimum set feature. To preserve original data information, the original features are also incorporated at JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 4Dimension Alignment       
+
+> n×128
+> Residual Blocks
+> n×128
+> Confidence Head
+> n×1
+> Conf
+> mpoints form a minimum set
+> m256+c
+> ×nn×(m×(256 +c)) Tensor Concatenation MLP [128] MLP [128, 128] Block ×2MLP [128] Sigmoid
+
+Fig. 4. The architecture of the neural network in coarse-level module. 
+
+The input data consists of the features of each point in the n minimum sets. The size m of the minimum set varies with the task. The features of each point are concatenated with c-dimensional original features and the extracted 256-dimensional geometric features. The tensor concatenation module concatenates the features of all the points of a minimum set. Region Points Corresponding Geometric Features 
+
+Coarse-Hypothesis  
+
+> Neighbor Region Region Points Non-Region Points Neighbor Range R
+
+Learning Neighbor Regions Neural Network 
+
+Fine-Hypothesis Encode Region Features 
+
+Fig. 5. Encoding region features in fine-level module. Each coarse-hypothesis is encoded region features. The data points within a distance R of the hypothesis are delimited as region points. Geometric features associated with these region points are concatenated as region features, which are learned by the neural network for refinement. Learning the region features of the hypothesis rather than the hypothesis parameters avoids differentiating the sampling process and the model solvers. 
+
+each point. Features from all minimum sets, FM , are then processed together. Then, the LNR analyzes these features using shared MLPs and generates a confidence Fconf (Mj ) for each minimum set. A higher confidence indicates a minimum set of better quality. Only the top ngood minimum sets, Mgood ,with the highest confidence scores are then processed by a minimum solver S. This solver produces coarse-hypotheses 
+
+Hcoarse = {S (Mj ) |Mj ∈ Mgood , j = 1 , 2, ..., n good }. Thus, even though a large number of minimum sets are initially sampled, only a small fraction of the minimum sets will be solved, greatly improving the overall efficiency. 
+
+C. Fine-level Module 
+
+To refine and assess each coarse-hypothesis, LNR employs a fine-level module. This module prioritizes local information over global context, as local details are more relevant for refining individual hypotheses [18], [33], [42]. In contrast, while global information is comprehensive, it can introduce many irrelevant details that may hinder the refinement process for a specific hypothesis. As depicted in Fig. 5, the fine-level module begins by encoding a region feature for each hypothesis. For each Dimension Alignment    
+
+> B×K×128
+> Residual Blocks Global Region Feature Extraction
+> B×1
+> Score MLP [128, 128] Block ×3
+> 256+c+Res K
+> ×B, B= n good
+> Batched Region Features MLP [256, 128] MLP [128] Max Pool
+> Score Head Refinement Head
+> Fully Connected [64, 32, q]
+> B×K×128 B×128 B×q
+> Refinement
+> B×q
+> Refined Hypotheses Fully Connected [64, 32, 1] Sigmoid
+
+Fig. 6. The architecture of the neural network in the fine-level module. 
+
+The input data consists of the encoded features of the neighbor region points, forming a batch. Based on the features input to the coarse-level module, the residuals from each point in the neighbor region to its hypothesis are also concatenated. The symbol ⊕ denotes element-wise vector addition. The Refinement Head outputs only the increments of the hypothesis parameters, which need to be added to the original hypotheses to obtain the refined hypotheses. 
+
+hypothesis, a neighbor region is defined as the area within a range R in the data point space. The definition of this range 
+
+R and the distance metric used vary depending on the task. For example, in multi-line fitting, it is a Euclidean distance; for vanishing point estimation, it is a directional distance; for two-view plane segmentation, it is re-projection error; and for two-view motion, it is normalized epipolar constraint distance. The geometric features F of the data points within these neighbor regions are then encoded as the region feature Fregion . Since the number of points within each region can vary, regions with fewer points are padded with zeros to ensure consistent input size for a data batch. Inspired by MQ-Net [38], LNR concatenates residuals from each point in the neighbor region to the hypothesis. These enriched features are then fed into a network with a refinement head and a score head. The refinement head predicts increments to the hypothesis parameters. These in-crements are added to the coarse-hypotheses Hcoarse to yield the refined fine-hypotheses Hf ine . The score head, with a single output channel, assesses the quality of each hypothesis, providing a more robust evaluation than simple inlier counting (verified in the ablation study (Sec. IV-F). This fine-level module thus refines the initial coarse-hypotheses by focusing on local region information and learning to score and adjust hypothesis parameters. 
+
+D. Testing Post-Processing and Training Loss 
+
+During testing, the goal is to obtain a set of non-redundant, high-quality hypotheses that represent the underlying multi-model structure. To achieve this, LNR employs Hypothesis-based Non-Maximum Suppression (HNMS) to filter the fine-hypotheses Hf ine . HNMS, inspired by the method of Lin et al. 
+
+[43] and Non-Maximum Suppression in object detection [44], iteratively selects the best hypotheses based on their fine-level scores and suppresses geometrically similar and redundant hy-potheses. For the calculation of similarity between hypotheses, (1) the multi-line fitting task uses the distance between two endpoints and the angle between the two lines to compute the similarity. (2) For the vanishing point estimation task, the VPs can be projected onto the Gaussian sphere [43], where proximity on the sphere indicates similarity, as shown in Fig. 7. (3) In the two-view plane segmentation and two-view motion tasks, which are “point-to-model assignment” problems, the JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 5
+
+Fig. 7. The similarity between vanishing points. The vanishing points are projected onto a Gaussian sphere and the distances on the sphere are used to compute the similarity between the vanishing points. 
+
+distance from each point to the hypothesis is encoded as a vector. The similarity between homographies and fundamental matrices is then computed based on the similarity between these vectors. The final set of selected hypotheses from HNMS constitutes the multi-model fitting result. The training of LNR involves optimizing three loss func-tions: Confidence Loss ( LConf ), Score Loss ( LScore ), and Refinement Loss (LRef ine ), as illustrated in Fig. 8. The Confidence Loss, applied in the coarse-level module, and the Score Loss, applied in the fine-level module, both use Binary Cross Entropy (BCE) loss for binary classification. For Confidence Loss, minimum sets are labeled as “good” (1) or “bad” (0) based on the similarity of their solved hypotheses to ground truth instances yconf j ∈ { 0, 1}. This allows the coarse-level module to learn to select promising minimum sets without relying on explicit degeneracy tests. Therefore, Binary Cross Entropy (BCE) loss is used: 
+
+LConf = − 1
+
+n
+
+> n
+
+X
+
+> j=1
+
+[yconf j · log ( Fconf (Mj )) +  1 − yconf j
+
+ · log (1 − F conf (Mj ))] .
+
+(1) For the Score Loss, the label yscore j also comes from the similarity between the hypothesis hj and the ground truth instance Igt . The difference is that the confidence of the minimum sets M is predicted in the coarse-level module. While the score of the hypothesis hj is predicted in the fine-level module. Therefore, the scoring part is also a binary classification problem with BCE loss: 
+
+Lscore = − 1
+
+ngood ngood 
+
+X
+
+> j=1
+
+[yscore j · log ( Fscore (hj )) +  1 − yscore j
+
+ · log (1 − F score (hj ))] .
+
+(2) The Refinement Loss utilizes Smooth L1 loss to regress the offsets needed to refine the hypothesis parameters. For the multi-line fitting task, the predicted refinement offsets for the two endpoints of the hypothetical line segment are denoted as ∆x1, ∆y1, ∆x2, ∆y2. These offsets are then applied to the coordinate x1h , y 1h , x 2h , y 2h , forming the regression residuals between ground truth and hypothesis: 
+
+rx1 = x1gt − (x1h + ∆ x1), r y1 = y1gt − (y1h + ∆ y1),rx2 = x2gt − (x2h + ∆ x2), r y2 = y2gt − (y2h + ∆ y2).
+
+(3) n×1    
+
+> Conf Coarse-level Module Fine-level Module
+> B×1
+> Score Fine-level Module
+> B×q
+> Refined Hypotheses
+> nCorresponding Ground Truths
+> nHypotheses Solved from
+> nMinimum Sets Calculate the similarity of positive samples.
+> n×1
+> Similarly
+> Calculate Confidence Loss BCE Loss
+> ngood
+> Corresponding Ground Truths
+> ngood Hypotheses from Coarse-level Module
+> B×1
+> Similarly
+> BCE Loss Calculate Score Loss
+> B×q
+> Ground Truths Parameters Calculate the similarity of positive samples.
+> Calculate Refinement Loss Smooth L1 Loss
+
+Fig. 8. The architecture of the neural network in fine-level module. 
+
+The LNR optimizes three loss functions: Confidence Loss, Score Loss, and Refinement Loss. Both Confidence Loss and Score Loss utilize Binary Cross Entropy Loss (BCE Loss). The coarse-level module identifies the most similar ground truths for loss after solving the hypotheses for the minimum sets of all sampled minimum sets. The fine-level module refines coarse-hypotheses by finding the most similar ground truths for the coarse-hypotheses. To enhance training efficiency, BCE Loss is applied only to positive samples. The Refinement Loss uses Smooth L1 Loss for regression. 
+
+The smooth L1 [45] regression loss can represent this regres-sion: 
+
+LRef ine =
+
+> ngood
+
+X
+
+> j=1
+
+X
+
+> q∈(x1,y 1,x 2,y 2)
+
+Smooth L1 ( rq ). (4) The regression residuals of vanishing point estimation is 
+
+rx = xgt − (xh + ∆ x),ry = ygt − (yh + ∆ y),rz = zgt − (zh + ∆ z).
+
+(5) The smooth L1 regression loss can represent this regression: 
+
+LRef ine =
+
+> ngood
+
+X
+
+> j=1
+
+X
+
+> q∈(x,y,z )
+
+Smooth L1 ( rq ). (6) For the two-view plane segmentation task, the predicted offset is ∆H. Then the regression residual is: 
+
+rH = Hgt − (Hh + ∆ H). (7) Thus the smooth L1 regression loss of this task can represent: 
+
+LRef ine =
+
+> ngood
+
+X
+
+> j=1
+
+Smooth L1 ( rH ). (8) For the two-view motion task, it is similar to the two-view plane segmentation task. The predicted offset is ∆F . Then the regression residual is: 
+
+rF = Fgt − (Fh + ∆ F ). (9) Thus the smooth L1 regression loss of this task is: 
+
+LRef ine =
+
+> ngood
+
+X
+
+> j=1
+
+Smooth L1 ( rF ). (10) JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 6
+
+Thus, the total loss function is: 
+
+LT otal = LConf + LScore + LRef ine . (11) In this way, this multi-task loss can jointly optimizes all modules towards a common goal, improving overall perfor-mance. Moreover, the training of this multi-task loss function allows the loss of the fine-level module to optimize coarse-level module as well. This means that the coarse-level module produces coarse-hypotheses Hcoarse that are more consistent with the requirements of the fine-level module. IV. E XPERIMENTS 
+
+This section details the experiments conducted to evaluate the performance of LNR across four distinct and classic computer vision tasks: multi-line fitting, vanishing point es-timation, two-view plane segmentation, and two-view motion estimation. Multi-line fitting serves as a foundational task for robust multi-model fitting algorithms. It offers a clear visualization of an algorithm to various noise scales and its ability to manage model overlap, as it can manipulate the degree of overlap between models. Vanishing point estimation, conversely, showcases algorithm performance in complex, real-world scenarios. Finally, the two-view plane segmentation and two-view motion estimation tasks assess the capability of LNR in processing correspondences between image pairs. Crucially, these two tasks represent classic instances of “point assignment to model” problems. 
+
+A. Settings 
+
+The LNR framework undergoes training for 100 epochs. Post-processing is not incorporated during the training phase. All experiments are executed on an RTX 3090 GPU, with the framework implemented using PyTorch. The computational efficiency of LNR is O(n). 
+
+B. Case Study 1: Multi-Line Fitting 
+
+This task evaluates basic multi-model fitting capabilities using synthetic 2D point data χ = {[xi, y i] | i = 1 , 2, ..., N } ∈ 
+
+RN ×c, where c = 2 indicates that the data points only contain the coordinates. As a line can be defined by two points, each minimum set consists of two data points. For comparison, several classic methods are also evaluated in the same scenes with the same settings. A synthetic dataset is generated to systematically evaluate performance, encompassing scenes with 1 to 10 lines, each scene containing 12,000 pictures. Of these, 10,000 pictures are designated for training and the remaining 2,000 for testing. All data points are constrained within a 1 × 1 picture. Lines, ranging from 1 to 10 per picture, are randomly generated with a minimum length of 0.3 times the longest distance of the picture. Each line segment comprises 40 to 100 points, ran-domly distributed and perturbed by Gaussian noise N (0 , σ 2),with σ varying between 0.007 and 0.008. Outliers, constituting 40% to 60% of the total data points, are added uniformly and randomly. Note that outliers close to line segments may become inliers due to random scattering.                          
+
+> TABLE I
+> THE QUANTITATIVE RESULT OF MULTI -LINE FITTING .THE AVERAGE
+> AUC@ 0.5◦↑ON 1-10 LINE SCENARIOS WITH FIVE RUNS ARE REPORTED .THE BEST INDICATORS ARE BOLDED .
+> Method 12345678910 Seq. RANSAC [19] 91.98 65.76 58.16 53.80 51.95 50.66 50.01 49.28 49.02 48.55 J-linkage [46] 93.14 74.98 67.98 66.87 66.02 65.68 65.17 64.97 64.63 63.97 T-linkage [39] 94.31 77.90 69.97 68.01 67.18 66.61 66.10 65.71 65.10 64.29 CONSAC [22] 96.14 91.29 86.63 84.21 81.61 79.83 78.30 76.34 75.51 74.84
+> Ours 96.73 93.41 89.99 87.71 84.89 83.32 81.47 79.91 78.59 77.51 (a) stair4 (b) star5 (c) One line (e) Five lines (f) Seven Lines (d) Three line
+> Fig. 9. The qualitative results of LNR on multi-line fitting. The red points represent inliers, while the black points are outliers. The ground truth is represented by green lines, while the fitted lines are represented by blue lines.
+
+Performance assessment relies on the Area Under the Curve (AUC) metric, as detailed in Kluger et al. [22]. AUC calcula-tion generating a recall curve for all line segments in the test set, considering a maximum angular error of 0.5◦. AUC can comprehensively assess the accuracy and recall of a method. TABLE I summarizes the quantitative performance of LNR and comparative methods across scenes with increasing line counts. LNR consistently outperforms other methods across all scenarios, demonstrating its effective feature learning for accurate instance generation. As the number of lines increases, a general performance decrease is observed across all methods, attributable to heightened model overlap and noise. However, the performance of alternative methods degrades significantly, highlighting their limitations in managing model overlap. Con-versely, our proposed method exhibits a minimal performance reduction, underscoring its robust resistance to interference and effective handling of model overlap, properties attributed to its effective region feature encoding. Qualitative evaluations, shown in Fig. 9 (a) and (b) using an existing dataset [46], illustrate that our proposed method can accurately fit lines. Moreover, Fig. 9 (c) demonstrates the efficacy of our proposed method in fitting a single line, indicating its capability in single-model robust estimation tasks. Furthermore, even with increased line counts and noise levels, as shown in Fig. 9 (d), (e), and (f), LNR maintains accurate multi-instance fitting. These qualitative and quanti-tative results collectively suggest that our proposed method effectively leverages region features to address the challenges posed by model overlap. 
+
+C. Case Study 2: Vanishing Point Estimation 
+
+In this task, data points are represented as χ = xi
+
+> 1
+
+, y i
+
+> 1
+
+, x i
+
+> 2
+
+, y i
+
+> 2
+
+ | i = 1 , 2, ...., N , where χ ∈ RN ×c and JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 7
+
+TABLE II 
+
+THE QUANTITATIVE RESULT OF VANISHING POINT ESTIMATION TASK . THE AVERAGE AUC IN % AND RELATED STANDARD DEVIATIONS (STD .) OVER FIVE RUNS ARE REPORTED . T HE GENERAL ROBUST FITTING METHODS ARE COMPARED . T HE “G ENERAL ” IS “Y ES ” FOR A GENERAL ROBUST FITTING METHOD , AND “N O” FOR A VANISHING POINT -SPECIFIC METHOD . T HE “DL” IS “Y ES ” FOR A DEEP LEARNING METHOD . T HE BEST INDICATORS ARE BOLDED AND SUB -OPTIMAL INDICATORS ARE UNDERLINED .Method General DL NYU-VP YUD+ YUD Speed (Hz) ↑@5◦↑ std. ↓ @10 ◦↑ std. ↓ @5◦↑ std. ↓ @10 ◦↑ std. ↓ @5◦↑ std. ↓ @10 ◦↑ std. ↓
+
+J-Linkage [46] Yes No 42.22 0.82 56.60 0.83 60.42 1.16 72.39 0.85 68.71 2.26 81.10 1.55 0.52 T-Linkage [39] Yes No 43.03 0.71 57.79 0.72 59.45 0.84 71.75 0.55 66.11 1.43 79.54 0.92 1.28 Prog-X [20] Yes No 49.28 0.20 60.73 0.22 60.03 0.71 68.54 0.70 60.11 0.78 68.48 0.74 29.42 CONSAC [22] Yes Yes 50.61 0.39 64.29 0.40 63.76 0.68 74.45 0.76 71.34 0.48 82.81 0.30 0.31 Lin et al. [43] No Yes 55.87 - 69.53 - 59.57 - 71.34 - 72.25 - 84.98 - 5.50 PARSAC [32] Yes Yes 51.68 0.12 64.61 0.13 65.49 0.35 74.76 0.42 75.92 0.15 86.39 0.09 84.13 Ours Yes Yes 57.54 0.08 71.93 0.10 67.96 0.28 77.21 0.32 76.39 0.13 87.12 0.08 10.31 
+
+Ours-tiny Yes Yes 51.52 0.11 64.46 0.12 65.53 0.31 74.91 0.34 75.92 0.14 86.40 0.10 46.96 CONSAC LNR (Ours)  Ground Truth 
+
+Fig. 10. The qualitative results of CONSAC and LNR on the vanishing point estimation task in various scenes. The inlier line segments that belong to different vanishing points are distinguished by different colors. The major errors are indicated by red circles. 
+
+c = 4 , representing the endpoints of line segments. Evaluation settings are consistent with CONSAC [22]. For comparison, several methods are compared. Notably, to test robustness and generalization, LNR is trained exclusively on the NYU-VP dataset and subsequently tested on the YUD+ and YUD datasets without further training. The quantitative results, presented in TABLE II, demon-strate strong average AUC performance of LNR. Notably, LNR, as a general algorithm, surpasses the performance of Lin 
+
+et al. [43], a method specifically designed for vanishing point estimation. This outcome underscores the efficacy of the fine-level module of LNR in refining and assessing hypotheses. Furthermore, LNR achieves a processing speed of 10 Hz, outperforming most compared methods and delivering top-tier results, benefiting from GPU-accelerated parallel computing. Moreover, a reduced configuration, Ours-tiny , achieves com-petitive real-time performance, demonstrating the efficiency of the multi-task loss training framework for robust multi-model fitting. While PARSAC [32] exhibits marginally faster speed, it requires prior knowledge of the number of hypotheses, a limitation in practical scenarios. Our proposed method, relying on accurate scoring, effectively fits multiple instances through HNMS without needing to predefine the number of hypotheses. TABLE II also reveals the sustained superior performance of LNR on the YUD+ and YUD datasets despite being trained only on NYU-VP. This highlights the exceptional generalization capability of LNR, validating the effectiveness of its region feature encoding. This suggests that our proposed method effectively classifies neighboring region points for refinement and assessment, enabling the selection of superior hypotheses from well-classified region points. Qualitative evaluations in Fig. 10 visualize vanishing point estimation performance across diverse scenes. Comparison with CONSAC 1 [22], a state-of-the-art method, reveals that LNR more accurately determines line directions, resulting in fitting outcomes closer to the ground truth, especially for shorter lines. This directional accuracy contributes to the precise vanishing point estimation of LNR, consistently demonstrated across varied scenes. In contrast, CONSAC exhibits a tendency to misclassify and miss lines. The superior performance of LNR is attributed to the effective quality assessment scores and refined parameters of its generated hypotheses. Score visualization for vanishing point estimation, presented in Fig. 12, further underscore the capability of LNR to accu-rately determine line directions. The hypothetical vanishing points of the high scores assigned by the LNR are similar to the locations of the ground truth. Moreover, the LNR assigns low scores to bad hypotheses, providing an excellent suppres-
+
+> 1
+
+Implemented at https://github.com/fkluger/consac. JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 8Method of Barath et al. LNR (Ours)  Ground Truth 
+
+Fig. 11. The qualitative results of the method of Barath et al. [21] and LNR on the two-view plane segmentation task in various scenes. Different colors indicate which of the planes the correspondences belong to. The small image and the large image are a pair of images. Their correspondences are used as input to the task. The major errors are indicated by red circles. (a) Inlier Line Segments (b) Ground Truth Similarities (c) Predicted Scores 
+
+Fig. 12. Score visualization for the vanishing point estimation task. 
+
+(a) Line segments belonging to different vanishing points are indicated by different colors. All hypothetical vanishing points are projected on a Gaussian sphere (b) and (c). In (b), the linear similarities of the hypotheses to the ground truth are indicated by different colors. In (c), the scores for the hypotheses evaluated by LNR are also indicated by different colors. The same vanishing points in (b) and (c) are marked by the same color circles. LNR assigns high scores to correct hypotheses while greatly suppressing the scores of incorrect hypotheses, better than the linear similarities. 
+
+sion for these hypotheses to be selected. Such a property can make it easier for the correct hypotheses to be selected. 
+
+D. Case Study 3: Two-view Plane Segmentation 
+
+Plane segmentation in two views involves detecting homo-graphies between two images of the same scene to segment multiple 3D planes. For training, the HEB dataset [47] is utilized, which provides 226,260 ground truth homographies. Given that a single image in HEB may contain multiple ho-mographies, we merge HEB into a multi-homography dataset 
+
+TABLE III 
+
+THE QUANTITATIVE RESULT OF TWO -VIEW PLANE SEGMENTATION AND TWO -VIEW MOTION ON ADELAIDE RMF DATASET . THE AVERAGE MISCLASSIFICATION ERRORS (AVG . IN %, 5 RUNS ) AND THEIR STANDARD DEVIATIONS (STD .). T HE BEST INDICATORS ARE BOLDED AND SUB -OPTIMAL INDICATORS ARE UNDERLINED .                                                 
+
+> Method Two-view plane segmentation Two-view motion avg. ↓std. ↓Speed (Hz) ↑avg. ↓std. ↓Speed (Hz) ↑
+> Prog-X [20] 6.68 5.84 0.82 10.72 8.70 0.92 PARSAC [32] 7.24 5.21 12.31 8.73 4.35 60.13
+> CONSAC [22] 5.23 6.47 0.11 ---Barath et al. [21] 3.12 3.53 1.59 5.33 4.42 5.15
+> Ours 2.91 3.14 4.79 5.75 4.13 12.47
+> Ours-tiny 3.12 3.50 10.21 6.27 4.32 30.26
+
+for training. Evaluation is conducted on the AdelaideRMF-H dataset [48], employing the average misclassification er-ror (ME) and its standard deviation as evaluation metrics, consistent with Prog-X [20]. The input data, representing corresponding points across two views, is formulated as χ = xi
+
+> 1
+
+, y i
+
+> 1
+
+, x i
+
+> 2
+
+, y i
+
+> 2
+
+ | i = 1 , 2, ...., N , where χ ∈ RN ×c and 
+
+c = 4 . LNR is evaluated against several competing methods. The quantitative results for two-view plane segmentation, summarized in TABLE III. LNR achieves state-of-the-art performance, where the mean ME and standard deviation are slightly better than Barath et al. [21]. Consistent with the vanishing point estimation task, the Ours-tiny configuration of LNR provides notable speed enhancements. These results underscore the effectiveness of the encoded region features in both refining and scoring hypotheses, further illustrating its proficiency in handling image-based correspondences. Qualitative evaluations, visualized in Fig. 11, confirm the effectiveness of LNR in estimating 3D planes across diverse scenes. As one of the state-of-the-art methods, the method of Barath et al. 2 [21] is also visualized. Compared to Barath et al. [21], LNR is closer to the ground truth. For example, in contrast to Barath et al. [21] which misses planes in columns 1 and 4 of Fig. 11, LNR successfully segments all planes. 
+
+> 2
+
+It is implemented with https://github.com/danini/clustering-in-consensus-space. JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 9Method of Barath et al. LNR (Ours)  Ground Truth 
+
+Fig. 13. The qualitative results of the method of Barath et al. [21] and LNR on the two-view motion task in various scenes. Different colors indicate which of the fundamental matrix the correspondences belong to. The small image and the large image are a pair of images. Their correspondences are used as input to the task. The major errors are indicated by red circles. 
+
+This improvement is attributed to the ability of LNR to weight neighbors within a broader region, effectively mitigating noise interference. Furthermore, results in the last column of Fig. 11 indicate the applicability of LNR to single-model robust fitting scenarios. In these situations, Barath et al. [21] incorrectly segments a single plane into two. In contrast, LNR accurately identifies the single plane, demonstrating the compatibility of our proposed method for the single model. 
+
+E. Case Study 4: Two-view Motion 
+
+For two-view motion estimation, LNR is trained on the HOPE-F Dataset [32], which comprises 4000 image pairs with keypoint features. Evaluation is performed using the AdelaideRMF-F dataset [48], with the average ME and its standard deviation serving as the evaluation metrics. Input data representation χ ∈ RN ×c remains consistent with the two-view plane segmentation task, where c = 4 . our proposed method is compared with several other methods. Quantitative results for two-view motion estimation, pre-sented in TABLE III. LNR achieves state-of-the-art perfor-mance. Qualitative results, shown in Fig. 13, further illustrate the superior ability of LNR to solve the “point assignment to model” problem compared to the state-of-the-art method of Barath et al. 2 [21]. This performance advantage is supported by LNR’s efficient classification of data points based on geometric features. 
+
+F. Ablation Study 
+
+This section details an ablation study designed to evaluate the contribution of each module within the LNR framework. The experimental settings and evaluation metrics remain con-sistent with those previously established. 
+
+The generalization of LNR across different numbers of instances is shown by Ours-5 and Ours-6 in TABLE IV. Specifically, Ours-5 and Ours-6 denote models trained exclusively on scenes containing 5 and 6 lines, respectively. 
+
+TABLE IV 
+
+THE ABLATION STUDY OF MULTI -LINE FITTING . THE AVERAGE 
+
+AUC@ 0.5◦ ↑ ON 1-10 LINE SCENARIOS WITH FIVE RUNS ARE REPORTED .“5” AND “6” INDICATE THAT THE METHODS ARE TRAINED ONLY IN “5”  
+
+> AND
+
+“6” LINES SCENARIOS , TESTED DIRECTLY ON OTHER SCENARIOS .THE BEST INDICATORS ARE BOLDED AND SUB -OPTIMAL INDICATORS ARE UNDERLINED .                                                                      
+
+> Method 12345678910 Ours 96.73 93.41 89.99 87.71 84.89 83.32 81.47 79.91 78.59 77.51
+> Ours-5 92.33 91.82 90.06 87.75 84.89 82.58 80.31 78.62 77.28 76.14 Ours-6 91.25 91.47 89.83 87.90 85.47 83.32 81.41 79.67 78.37 77.20 CONSAC [22] 96.14 91.29 86.63 84.21 81.61 79.83 78.30 76.34 75.51 74.84
+> CONSAC-5 [22] 91.25 90.42 86.59 84.23 81.61 79.12 77.41 75.32 74.13 73.25 CONSAC-6 [22] 90.32 90.01 86.21 84.15 81.64 79.83 77.57 75.43 74.23 73.38
+
+These models are then directly tested on scenes with different line counts. Performance metrics exceeding those of the stan-dard Ours model are highlighted in bold. Intriguingly, Ours-5 
+
+achieves performance levels closely comparable to Ours . Even more notably, Ours-5 slightly surpasses the performance of LNR trained on scenes with 3 or 4 lines. This unexpected outcome suggests that training with a higher instance count, specifically 5 lines in this case, potentially introduces greater data variability or noise. This increased variability may foster a more robust model, enhancing the resilience of LNR to interference. Similar to Ours-5 , Ours-6 also exhibits a slight performance advantage over Ours when evaluated on scenes with 4 and 5 lines. We performed the same setup on CONSAC [22]. CONSAC-5 and CONSAC-6 exhibits the same findings, but its performance gains are smaller. Collectively, these results underscore the robustness and strong generalization capabilities inherent in our proposed method. 
+
+The effects of multi-task loss training are examined in TABLE V (a). One approach considered is to directly predict hypotheses and refine them for numerous sampled minimum sets, bypassing the generation of coarse hypotheses altogether. However, removing the coarse-level module leads to a signif-icant decline in performance. This degradation likely occurs because the network struggles to effectively learn from the substantially increased data volume associated with directly JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 10                                              
+
+> TABLE V
+> THE ABLATION STUDY RESULTS OF LNR FOR VANISHING POINT ESTIMATION ON THE NYU-VP DATASET . T HE AUC IN %IS REPORTED .THE SETTINGS ARE CONSISTENT WITH TABLE II. T HE BEST INDICATORS ARE BOLDED .
+> Method @5◦↑@10 ◦↑
+> (a) Ours (w/o coarse-level) 49.26 63.12 Ours (pre-trained coarse-level) 55.14 69.42 Ours (full, multi-task loss trained coarse-level) 57.54 71.93
+> (b) Ours (w/o fine-level, coarse-level +inlier count) 44.21 58.68 Ours (w/o fine-level, coarse-level +inlier count+inlier refinement) 49.73 63.61 Ours (coarse-level +inlier count+fine-level refinement) 52.41 67.21 Ours (coarse-level +fine-level count+inlier refinement) 53.94 68.62 Ours (full, coarse-level +fine-level count+fine-level refinement) 57.54 71.93
+> (c) CONSAC-(Time:3.19s) 49.85 64.07 Ours (full, LNR)-(Time:0.09s) 57.54 71.93 CONSAC+LNR-(Time:3.32s) 57.63 72.03
+> (d) Ours (PointNet without Embedding) 57.31 71.69 Ours (PointNet+Basic Embedding) 57.42 71.81 Ours (full, PointNet+Fourier Embedding) 57.54 71.93
+> (e) Ours (LSQ refinement) 53.89 68.57 Ours (full, NN refinement) 57.54 71.93
+
+processing all minimum sets. Furthermore, the presence of excessive noisy data negatively affects the performance of the fine-level module in both scoring and refinement stages. While pre-training the coarse-level module is another possible strategy, it proves less effective than multi-task loss training. Multi-task training offers an advantage because the loss signals from the fine-level module are propagated back to optimize the coarse-level module, a mechanism observed in prior re-searches [49], [50]. This back-propagation enables the coarse-level module to prioritize the selection of coarse hypotheses that are more compatible with the fine-level module, rather than simply adhering to pre-defined labels. This synergistic interaction between the coarse-level and fine-level modules is facilitated by their shared input of encoded region features during training. 
+
+The different coarse-to-fine approaches are evaluated in TABLE V (b). This evaluation involves substituting the fine-level module with more conventional methodologies. The re-sults indicate that employing a simple inlier count as a replace-ment yields inferior performance. This finding reinforces the conclusion from MQ-Net that “consensus maximization does not favor the best model”. Moreover, using inlier refinement as an alternative to the fine-level module also underperforms. Inlier refinement appears to be more susceptible to variations in data quality. These findings collectively validate the ef-fectiveness and necessity of the dedicated fine-level module within the LNR framework. 
+
+Combining the different sampling methods are presented in TABLE V (c). LNR, in its standard configuration, employs an unbiased random sampling strategy to generate a large number of minimum sets, contrasting with probability-based sampling techniques like CONSAC. Substituting the random sampling with CONSAC sampling leads to improved perfor-mance. However, this performance gain comes at the cost of increased computational time, making the overall process considerably slower. 
+
+The effects of Fourier feature mapping is tested in TABLE V (d). Positional embedding, through Fourier fea-ture mapping, converts geometric information into high-dimensional vectors. This transformation empowers the neu-ral network to more effectively learn and represent subtle, high-frequency geometric details. Consequently, the network becomes better equipped to discern and learn the nuanced differences between individual data points. 
+
+Different hypothesis refinement approaches are tested in the TABLE V (e). The neural network refinement outperforms LSQ refinement. This is because the neural network effectively identifies and discards noisy points, enhancing the use of significant data points. 
+
+The effects of Fourier feature mapping is tested in TABLE V (d). The results demonstrate that neural network-based refinement surpasses traditional Least Squares (LSQ) refinement. This performance advantage can be attributed to the ability of neural network to effectively identify and disregard noisy data points, thereby prioritizing and leveraging the more informative and significant data points during the refinement process. V. D ISCUSSION 
+
+Traditional multi-model fitting methods, grounded in nu-merical computation, offer inherent interpretability and clearly defined application scopes. However, these approaches often struggle to fully exploit the geometric features of the data, potentially limiting their performance. Conversely, while deep learning techniques have demonstrated remarkable perfor-mance gains, end-to-end methods [43], [51] that directly map input data points to multi-models can operate as “black boxes”, lacking transparency and potentially hindering their reliable deployment in practical applications. In contrast, our proposed method seeks to bridge this gap by enhancing performance while maintaining interpretability. LNR leverages neural networks to effectively analyze the ge-ometric features within the data. Crucially, for interpretability, LNR adopts the established two-step strategy: first, it gathers high-quality minimum sets of data points. Second, it applies minimum solvers to generate multi-models. This is achieved by training LNR to learn from data points within neighboring regions, rather than directly from hypotheses. This strategic choice naturally avoids the need to explicitly differentiate the sampling process and the model solvers, thus integrating traditional frameworks into the learning pipeline. Furthermore, Experiments indicate that learning-based hypothesis evaluation is significantly more efficient than most traditional rule-based evaluation techniques. Therefore, we hope to introduce a new idea for addressing multi-model fitting problems in learning fashions. In addition, LNR can be easily transferred to various robust multi-model fitting tasks due to the following reasons:  
+
+> •
+
+Our proposed method accepts generic, unordered data points as input, encompassing various data modalities including image correspondences, 3D point clouds, and 2D pixel points, all uniformly represented as point sets.  
+
+> •
+
+The network input focuses solely on the geometric fea-tures of these data points. While hypotheses and neighbor regions guide the utilization of these features, the loss JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 11 
+
+function operates on the geometric features rather than the hypotheses. As a result, Our proposed method maintains compatibility with a broad spectrum of hypothesis solvers and sampling processes, whether differentiable or non-differentiable. VI. C ONCLUSION 
+
+In this paper, we introduce LNR, a coarse-to-fine framework of Learning Neighbor Regions (LNR) to achieve robust multi-model fitting. For the inefficiency caused by sampling numer-ous minimum sets, LNR introduces a coarse-level module to select good minimum sets by analyzing geometric features, solving the coarse-hypotheses. For the model overlap and non-differentiable problem, LNR encodes neighbor region features for each coarse-hypothesis to refine and score these hypotheses individually. Since the region features consist of data points rather than hypotheses, the LNR avoids differentiating the sampling process and the model solvers. Furthermore, the multi-task loss function optimizes the coarse-to-fine process towards a consistent goal. In the experiments, the multi-line fitting task highlights the powerful generalization of LNR across different scenes. Notably, LNR excels in vanishing point estimation, two-view plane segmentation and two-view motion tasks, achieving state-of-the-art performance. LNR can effectively process correspondences and address the “point-to-model assignment” problem. Significantly, LNR framework is not task-specific. It can be easily transferred to various robust multi-model fitting tasks. REFERENCES [1] L. Kong, S. Xie, H. Hu, L. X. Ng, B. Cottereau, and W. T. Ooi, “Ro-bodepth: Robust out-of-distribution depth estimation under corruptions,” 
+
+Advances in Neural Information Processing Systems (NeurIPS) , vol. 36, 2024. [2] Z. Jian, Z. Lu, X. Zhou, B. Lan, A. Xiao, X. Wang, and B. Liang, “Putn: A plane-fitting based uneven terrain navigation framework,” in 2022 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) . IEEE, 2022, pp. 7160–7166. [3] Z. Jian, Z. Liu, H. Shao, X. Wang, X. Chen, and B. Liang, “Path generation for wheeled robots autonomous navigation on vegetated terrain,” IEEE Robotics and Automation Letters , vol. 9, no. 2, pp. 1764– 1771, 2023. [4] B. Li, D. Zou, Y. Huang, X. Niu, L. Pei, and W. Yu, “Textslam: Visual slam with semantic planar text features,” IEEE Transactions on Pattern Analysis and Machine Intelligence , vol. 46, no. 1, pp. 593–610, 2023. [5] D. Rempe, T. Birdal, A. Hertzmann, J. Yang, S. Sridhar, and L. J. Guibas, “Humor: 3d human motion model for robust pose estimation,” in Proceedings of the IEEE/CVF international conference on computer vision (ICCV) , 2021, pp. 11 488–11 499. [6] H. Guo, S. Peng, H. Lin, Q. Wang, G. Zhang, H. Bao, and X. Zhou, “Neural 3d scene reconstruction with the manhattan-world assumption,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2022, pp. 5511–5520. [7] J. Liu, P. Ji, N. Bansal, C. Cai, Q. Yan, X. Huang, and Y. Xu, “Planemvs: 3d plane reconstruction from multi-view stereo,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition ,2022, pp. 8665–8675. [8] W. Yin, J. Zhang, O. Wang, S. Niklaus, S. Chen, Y. Liu, and C. Shen, “Towards accurate reconstruction of 3d scene shape from a single monocular image,” IEEE Transactions on Pattern Analysis and Machine Intelligence , vol. 45, no. 5, pp. 6480–6494, 2022. [9] D. Jin, S. Karmalkar, H. Zhang, and L. Carlone, “Multi-model 3d registration: Finding multiple moving objects in cluttered point clouds,” in 2024 IEEE International Conference on Robotics and Automation (ICRA) . IEEE, 2024, pp. 4990–4997. [10] Q. Yang, Y. Ma, L. Li, Y. Gao, J. Tao, Z. Huang, and R. Jiang, “A fast vanishing point detection method based on row space features suitable for real driving scenarios,” Scientific reports , vol. 13, no. 1, p. 3088, 2023. [11] S. Liu, Y. Zhou, and Y. Zhao, “Vapid: A rapid vanishing point detector via learned optimizers,” in Proceedings of the IEEE/CVF International Conference on Computer Vision , 2021, pp. 12 859–12 868. [12] W. Yang, B. Fang, and Y. Y. Tang, “Fast and accurate vanishing point detection and its application in inverse perspective mapping of structured road,” IEEE Transactions on Systems, Man, and Cybernetics: Systems ,vol. 48, no. 5, pp. 755–766, 2016. [13] C.-K. Chang, J. Zhao, and L. Itti, “Deepvp: Deep learning for vanishing point detection on 1 million street view images,” in 2018 IEEE Interna-tional Conference on Robotics and Automation (ICRA) . IEEE, 2018, pp. 4496–4503. [14] Z. Shi, N. Carlini, A. Balashankar, L. Schmidt, C.-J. Hsieh, A. Beutel, and Y. Qin, “Effective robustness against natural distribution shifts for models with different training data,” Advances in Neural Information Processing Systems (NeurIPS) , vol. 36, 2024. [15] X. Jiang and J. Ma, “Robust Model Reasoning and Fitting via Dual Sparsity Pursuit,” Advances in Neural Information Processing Systems (NeurIPS) , vol. 36, 2024. [16] D. Chen, H. Li, W. Ye, Y. Wang, W. Xie, S. Zhai, N. Wang, H. Liu, H. Bao, and G. Zhang, “Pgsr: Planar-based gaussian splatting for efficient and high-fidelity surface reconstruction,” IEEE Transactions on Visualization and Computer Graphics , 2024. [17] C. Ebner, S. Mori, P. Mohr, Y. Peng, D. Schmalstieg, G. Wetzstein, and D. Kalkofen, “Video see-through mixed reality with focus cues,” IEEE Transactions on Visualization and Computer Graphics , vol. 28, no. 5, pp. 2256–2266, 2022. [18] M. A. Fischler and R. C. Bolles, “Random sample consensus: a paradigm for model fitting with applications to image analysis and automated cartography,” Communications of the ACM , vol. 24, no. 6, pp. 381–395, 1981. [19] E. Vincent and R. Lagani´ ere, “Detecting planar homographies in an image pair,” in Proceedings of the 2nd International Symposium on Image and Signal Processing and Analysis (ISPA). , 2001, pp. 182–187. [20] D. Barath and J. Matas, “Progressive-x: Efficient, anytime, multi-model fitting algorithm,” in Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV) , 2019, pp. 3780–3788. [21] D. Barath, D. Rozumnyi, I. Eichhardt, L. Hajder, and J. Matas, “Finding Geometric Models by Clustering in the Consensus Space,” in Proceed-ings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2023, pp. 5414–5424. [22] F. Kluger, E. Brachmann, H. Ackermann, C. Rother, M. Y. Yang, and B. Rosenhahn, “CONSAC: Robust multi-model fitting by conditional sample consensus,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2020, pp. 4634– 4643. [23] X. Lu, Y. Zhou, and S. Shen, “Event-based motion segmentation by cascaded two-level multi-model fitting,” in 2021 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) . IEEE, 2021, pp. 4445–4452. [24] L. Magri, F. Leveni, and G. Boracchi, “Multilink: Multi-class structure recovery via agglomerative clustering and model selection,” in Pro-ceedings of the IEEE/CVF conference on computer vision and pattern recognition , 2021, pp. 1853–1862. [25] H. Isack and Y. Boykov, “Energy-based geometric multi-model fitting,” 
+
+International journal of computer vision , vol. 97, no. 2, pp. 123–147, 2012. [26] P. Amayo, P. Pini´ es, L. M. Paz, and P. Newman, “Geometric multi-model fitting with a convex relaxation algorithm,” in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) ,2018, pp. 8138–8146. [27] D. Barath and J. Matas, “Multi-class model fitting by energy minimiza-tion and mode-seeking,” in Proceedings of the European Conference on Computer Vision (ECCV) , 2018, pp. 221–236. [28] H. Wang, G. Xiao, Y. Yan, and D. Suter, “Mode-seeking on hypergraphs for robust geometric model fitting,” in Proceedings of the IEEE Inter-national Conference on Computer Vision (ICCV) , 2015, pp. 2902–2910. [29] M. Farina, L. Magri, W. Menapace, E. Ricci, V. Golyanik, and F. Ar-rigoni, “Quantum multi-model fitting,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2023, pp. 13 640–13 649. [30] Y. Feng, S. Ji, Y.-S. Liu, S. Du, Q. Dai, and Y. Gao, “Hypergraph-based multi-modal representation for open-set 3d object retrieval,” IEEE JOURNAL OF L ATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 12 
+
+Transactions on Pattern Analysis and Machine Intelligence , vol. 46, no. 4, pp. 2206–2223, 2023. [31] E. Levinkov, A. Kardoost, B. Andres, and M. Keuper, “Higher-order multicuts for geometric model fitting and motion segmentation,” IEEE Transactions on Pattern Analysis and Machine Intelligence , vol. 45, no. 1, pp. 608–622, 2022. [32] F. Kluger and B. Rosenhahn, “PARSAC: Accelerating Robust Multi-Model Fitting with Parallel Sample Consensus,” in Proceedings of the AAAI Conference on Artificial Intelligence , 2024, pp. 2804–2812. [33] O. Chum, J. Matas, and J. Kittler, “Locally optimized RANSAC,” in 
+
+Joint Pattern Recognition Symposium , 2003, pp. 236–243. [34] P. H. Torr, S. J. Nasuto, and J. M. Bishop, “Napsac: High noise, high dimensional robust estimation-it’s in the bag,” in British Machine Vision Conference (BMVC) , 2002, p. 3. [35] M. Zuliani, C. S. Kenney, and B. Manjunath, “The multiransac algorithm and its application to detect planar homographies,” in IEEE International Conference on Image Processing 2005 , vol. 3, 2005, pp. III–153. [36] P. Purkait, T.-J. Chin, A. Sadri, and D. Suter, “Clustering with hyper-graphs: the case for large hyperedges,” IEEE transactions on pattern analysis and machine intelligence , vol. 39, no. 9, pp. 1697–1711, 2016. [37] T.-J. Chin, J. Yu, and D. Suter, “Accelerated hypothesis generation for multistructure data via preference analysis,” IEEE Transactions on Pattern Analysis and Machine Intelligence , vol. 34, no. 4, pp. 625–638, 2011. [38] D. Barath, L. Cavalli, and M. Pollefeys, “Learning to find good models in RANSAC,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2022, pp. 15 744–15 753. [39] L. Magri and A. Fusiello, “T-linkage: A continuous relaxation of j-linkage for multi-model fitting,” in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) , 2014, pp. 3954– 3961. [40] E. Brachmann and C. Rother, “Neural-guided RANSAC: Learning where to sample model hypotheses,” in Proceedings of the IEEE/CVF International Conference on Computer Vision (CVPR) , 2019, pp. 4322– 4331. [41] M. Tancik, P. Srinivasan, B. Mildenhall, S. Fridovich-Keil, N. Raghavan, U. Singhal, R. Ramamoorthi, J. Barron, and R. Ng, “Fourier features let networks learn high frequency functions in low dimensional domains,” 
+
+Advances in neural information processing systems (NeurIPS) , vol. 33, pp. 7537–7547, 2020. [42] D. Barath, J. Noskova, M. Ivashechkin, and J. Matas, “MAGSAC++, a fast, reliable and accurate robust estimator,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition (CVPR) , 2020, pp. 1304–1312. [43] Y. Lin, R. Wiersma, S. L. Pintea, K. Hildebrandt, E. Eisemann, and J. C. van Gemert, “Deep vanishing point detection: Geometric priors make dataset variations vanish,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2022, pp. 6103– 6113. [44] J. Redmon, S. Divvala, R. Girshick, and A. Farhadi, “You only look once: Unified, real-time object detection,” in Proceedings of the IEEE conference on computer vision and pattern recognition (CVPR) , 2016, pp. 779–788. [45] R. Girshick, “Fast R-CNN,” in Proceedings of the IEEE international conference on computer vision (ICCV) , 2015, pp. 1440–1448. [46] R. Toldo and A. Fusiello, “Robust multiple structures estimation with j-linkage,” in 10th European Conference on Computer Vision (ECCV) ,2008, pp. 537–547. [47] D. Barath, D. Mishkin, M. Polic, W. F¨ orstner, and J. Matas, “A Large-Scale Homography Benchmark,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2023, pp. 21 360–21 370. [48] H. S. Wong, T.-J. Chin, J. Yu, and D. Suter, “Dynamic and hierarchical multi-structure geometric model fitting,” in 2011 International Confer-ence on Computer Vision (ICCV) , 2011, pp. 1044–1051. [49] J. Sun, Z. Shen, Y. Wang, H. Bao, and X. Zhou, “LoFTR: Detector-free local feature matching with transformers,” in Proceedings of the IEEE/CVF conference on computer vision and pattern recognition (CVPR) , 2021, pp. 8922–8931. [50] J. Ma, Z. Zhao, X. Yi, J. Chen, L. Hong, and E. H. Chi, “Modeling task relationships in multi-task learning with multi-gate mixture-of-experts,” in Proceedings of the 24th ACM SIGKDD international conference on knowledge discovery & data mining , 2018, pp. 1930–1939. [51] T. Chen, X. Ying, J. Yang, R. Wang, R. Guo, B. Xing, and J. Shi, “VPDETR: End-to-End Vanishing Point DEtection TRansformers,” in 
+
+Proceedings of the AAAI Conference on Artificial Intelligence , vol. 38, no. 2, 2024, pp. 1192–1200.

@@ -1,0 +1,6101 @@
+Title: Brownian Heads for Deep ReLU Representations: Activation Mass and the Cost of Same-Sample Selection
+
+URL Source: https://arxiv.org/pdf/2609.21422v1
+
+Published Time: Mon, 21 Sep 2026 00:37:02 GMT
+
+Number of Pages: 52
+
+Markdown Content:
+# Brownian Heads for Deep ReLU Representations: Activation Mass and the Cost of Same-Sample Selection 
+
+Mahdi Mohammadigohari Faculty of Engineering Free University of Bozen–Bolzano Bruno Buozzi 1 39100 Bolzano, Italy 
+
+Mahdi.Mohammadigohari@gmail.com 
+
+Nicole Mücke Institute for Statistics and Foundations of Machine Learning Technische Universität Braunschweig Universitätsplatz 2 38106 Braunschweig, Germany 
+
+nicole.muecke@tu-braunschweig.de 
+
+Abstract 
+
+Deep representation learning often selects hidden features and fits the final predictor on the same sample, so fixed-feature analysis performed after selection can omit selection cost. We study the conditional empirical Rademacher complexity of deep ReLU representations followed by bounded-norm predictors in additive or Lévy–Brownian RKHSs, termed Brownian heads . For a fixed representation, we derive an exact dual identity and sharp bounds in terms of activation mass, the average norm of the observed hidden vectors. Under same-sample selection, the representation supremum induces a quadratic Rademacher process. Brownian layer-cake and Gaussian-projection identities reduce it to coordinatewise or signed projected threshold traces, separating realized scale from selection complexity. For samples with pairwise-distinct inputs, explicit scalar ReLU families match the finite-trace and VC rates up to universal constants at the realized trace-and-envelope level. Induced-norm contraction also yields architecture-level bounds for rectangular, rank-deficient ReLU networks. Experiments verify the sharp bounds and rates, exhibit a selection gap at fixed activation mass, and assess the predictive feasibility of Brownian heads. 
+
+## 1 Introduction and Related Work 
+
+Modern learning architectures are commonly decomposed into a representation map and a comparatively simple prediction head. Given an input space X , such predictors take the form f = h ◦ ϕ, where ϕ : X → Z 
+
+extracts task-relevant features and the head h maps the resulting representation to the output space. This viewpoint covers end-to-end neural networks, feature extraction followed by kernel or linear prediction, and the selection of representations from intermediate training checkpoints. Its statistical analysis depends crucially on whether the representation is fixed independently of the sample used to train the head or is selected using that same sample. Generalization bounds control the discrepancy between empirical and population performance through the Rademacher complexity (RC) of the prediction class (Bartlett and Mendelson, 2002; Mohri et al., 2018). For a representation ϕ fixed independently of the training sample S, the terminal class 
+
+Fϕ = {h ◦ ϕ : h ∈ H} 
+
+is fixed, and standard symmetrization applies. If the same sample selects a representation from a family Φ( S), however, the relevant class is 
+
+FS = ⋃
+
+> ϕ∈Φ( S)
+
+{h ◦ ϕ : h ∈ H} .
+
+A fixed-representation bound applied only after selection treats this choice as free and may therefore omit part of the statistical complexity. We call this setting same-sample representation selection .The distinction covers several common regimes. An encoder pretrained without the target sample and fixed before that sample is observed defines a fixed representation; choosing among several such encoders using the target sample already incurs a finite model-selection cost. Fine-tuning, adapter selection, checkpoint selection, and end-to-end training make the representation sample-dependent. A uniform analysis must then 1arXiv:2609.21422v1 [stat.ML] 18 Sep 2026 cover the representations the procedure could have returned, not only its realized output. This issue occurs within training and is distinct from validation- or test-set leakage. To isolate this effect, we place a structured terminal class after a deep ReLU representation. Let zθ : X → Rm
+
+denote the output of the last hidden layer of a feedforward ReLU network. For q ∈ { 1, 2}, we study the complexity of classes containing functions of the form 
+
+f (q) 
+
+> a,θ
+
+(x) = ⟨a, Φq (zθ (x)) ⟩Hq , ∥a∥Hq ≤ B, (1) where Φ q is the canonical feature map of the additive Brownian kernel for q = 1 and of the rotation-invariant Lévy–Brownian kernel for q = 2. Thus the network produces zθ(x), while a bounded-norm predictor in the corresponding Brownian RKHS produces the output. We call the latter a Brownian head .Since Kq (z, z ) = ∥z∥q , the fixed-representation RC is governed by the empirical activation mass ̂ Mq,S (z) := 
+
+n−1 ∑ni=1 ∥z(xi)∥q . Under same-sample selection, the representation supremum instead produces a quadratic Rademacher process. Brownian layer-cake and Gaussian-projection identities reduce this process to coor-dinatewise or signed projected threshold traces, separating representation scale from selection complexity. We obtain matching finite-trace and VC rates through explicit scalar ReLU constructions and propagate Brownian feature distance through arbitrary rectangular and rank-deficient ReLU layers using induced matrix norms. Our bounds are empirical and conditional on the realized representation family. For a sample-independent family Z, standard symmetrization and contraction yield population guarantees for bounded Lipschitz losses; see Corollary B.22. If Z = Z(S) is itself sample-dependent, Theorem 3.2 controls the conditional empirical complexity, while a complete population bound additionally requires control of the dependence between the random class and S, for example through a random-class argument (Dupuis et al., 2024). Thus, our results isolate the selection term omitted by a post hoc fixed-representation analysis. 
+
+Contributions. 
+
+• For a fixed representation z, we derive an exact dual identity and show that the empirical Rademacher complexity of its Brownian-head class scales as B
+
+√̂ 
+
+Mq,S (z)/n , with optimal lower and upper constants 1/√2 and 1. Both endpoints are attained by finite Brownian canonical-feature configurations; see Theorem 2.2. • For a representation family Z that may be constructed from the same sample, we reduce the representation-indexed quadratic Rademacher process to coordinatewise or signed Gaussian-projected threshold traces. The resulting bounds separate representation scale from threshold-selection complexity; see Lemma 3.1 and Theorem 3.2. • We prove that the finite-trace and VC dependences are unavoidable, up to universal constants, at the trace-and-envelope level. For pairwise-distinct sample inputs, explicit scalar one-hidden-layer ReLU families attain the corresponding rates; see Theorem 3.3 and Proposition B.14. • We propagate Brownian feature distance through arbitrary rectangular and rank-deficient exact-ReLU layers using induced matrix norms, without inverse maps or determinant factors, and obtain an explicit deep-network envelope; see Proposition 2.3 and Corollary 3.4. • Exact finite-sample constructions recover the fixed-representation endpoints and the finite-trace and VC rates. Controlled same-sample adapter families isolate selection at fixed empirical activation mass, while frozen-feature transfer experiments assess the predictive feasibility of Brownian heads; see Sections C and 4. 
+
+Related work. Data-dependent hypothesis classes. Classical uniform-convergence arguments assume a sample-independent hypothesis class. Foster et al. (2019) study sample-dependent classes through transduc-tive Rademacher complexity and hypothesis-set stability, including stable representation learning; related approaches use algorithm-dependent empirical Rademacher complexity (Sachs et al., 2023) or PAC-Bayesian bounds for random hypothesis sets (Dupuis et al., 2024). These frameworks control the dependence between a random class and its generating sample. Conditional on a realized family Z, we instead exploit Brownian threshold structure to obtain explicit empirical complexity bounds and matching trace-and-envelope lower bounds for exact-ReLU representations. 2Brownian and learned kernels. The additive and Lévy–Brownian kernels are classical distance-induced kernels (Sejdinovic et al., 2013). Data-dependent kernel-selection bounds typically control a prespecified family through entropy or kernel pseudodimension (Ying and Campbell, 2010; Cortes et al., 2010; Zhang and Zhang, 2023). Follain and Bach (2025) analyze a shallow Brownian-kernel network that jointly learns a distribution of one-dimensional projections and the predictor, producing a same-sample supremum over Brownian Gram quadratic forms. We place a Brownian RKHS head after a potentially deep ReLU representation and reduce this process to coordinatewise or projected threshold traces, with matching sample-level ReLU constructions. 
+
+Composition-operator bounds. Koopman or composition-operator approaches represent layers through 
+
+h 7 → h ◦ φ. On Sobolev RKHSs, Hashimoto et al. (2024) obtain determinant-sensitive bounds requiring injective, full-rank layers and smooth bi-Lipschitz activations. Hashimoto et al. (2026) allow bounded domains, changing widths, noninjective weights, and several activations, but their assumptions exclude exact ReLU. Our direct Brownian-metric argument permits rectangular, rank-deficient exact-ReLU layers and controls same-sample selection through threshold traces rather than composition-operator norms. 
+
+Recursive RKHS constructions. Brownian Kernel Ladders recursively average Brownian comparisons of preceding-level functions and distinguish a fully adaptive variational family from a fixed ladder or sample-independent finite dictionary (Mohammadigohari et al., 2026). In Section D, we combine the metric and energy recursions of a fixed ladder with our fixed-representation theorem; this is a consequence of the Brownian-head analysis, not part of the same-sample argument. Related layerwise models include Neural Hilbert Ladders and reproducing-kernel chains (Chen, 2023; Heeringa et al., 2025). 
+
+Notation. For p ∈ N, let [ p] := {1, . . . , p }, and for a finite set I, let 2 I := {T : T ⊆ I} denote its power set. For v = ( vj )dj=1 ∈ Rd and q ∈ { 1, 2}, write ∥v∥q := (∑ dj=1 |vj |q )1/q . For W ∈ Rd′×d, let ∥W ∥q→q := sup v∈Rd\{ 0} ∥W v ∥q / ∥v∥q denote the induced operator norm. The ReLU function ReLU( t) := max {t, 0} is applied coordinatewise to vectors, and Tr( A) denotes the trace of a square matrix A. For nonnegative a and 
+
+b, we write a ≲ b if a ≤ Cb and a ≍ b if cb ≤ a ≤ Cb , where 0 < c < C are universal constants. 
+
+## 2 Brownian Geometry and the Fixed-Representation Baseline 
+
+We first identify the empirical capacity of a Brownian head on one representation, then bound it through the network layers. For u, v ∈ Rm and q ∈ { 1, 2}, define 
+
+Kq (u, v ) = ∥u∥q + ∥v∥q − ∥ u − v∥q
+
+2 , Φq (u) = Kq (·, u ). (2) These classical positive-definite, distance-induced kernels (Sejdinovic et al., 2013) define RKHSs Hq with canonical maps Φ q : Rm → H q . The additive kernel K1 sums scalar Brownian kernels over coordinates; the rotation-invariant Lévy–Brownian kernel K2 is a Gaussian mixture of scalar Brownian projection kernels (Proposition B.1). Their basic identities are: 
+
+Proposition 2.1 (Distance-induced Brownian geometry) . For every u, v ∈ Rm and q ∈ { 1, 2},
+
+∥Φq (u)∥2 
+
+> Hq
+
+= ∥u∥q , ∥Φq (u) − Φq (v)∥2 
+
+> Hq
+
+= ∥u − v∥q . (3) The proof is in Section A.1. These identities connect activation mass to feature size and convert representation distances into squared feature distances. Fix a map z : X → Rm, an observed sample S = ( xi)ni=1 , and a head radius B > 0. The two objects associated with the pair ( S, z ) are 
+
+F(q) 
+
+> z,B
+
+=
+
+{
+
+x 7 → ⟨ a, Φq (z(x)) ⟩Hq
+
+∣∣∣ a ∈ H q , ∥a∥Hq ≤ B
+
+}
+
+,̂ Mq,S (z) = 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+∥z(xi)∥q . (4) Here ̂ Mq,S (z) is the empirical activation mass , the average squared norm of the canonical features by (3). We measure the size of the fixed terminal class by its empirical Rademacher complexity. For a class of real-valued functions G, write ̂
+
+RS (G) = 1
+
+n Eε sup 
+
+> g∈G
+> n
+
+∑
+
+> i=1
+
+εig(xi), εi
+
+> i.i.d.
+
+∼ Unif {− 1, +1 }. (5) 3The expectation in (5) is taken over the auxiliary Rademacher variables ε1, . . . , ε n, conditionally on the sample S and the representation z. Hence, the theorem below holds for every realized pair ( S, z ), including representations constructed from the same observed training data. Whenever a supremum over an uncountable class is not known to be measurable, expectations and probabilities involving that supremum are understood in the outer sense. 
+
+Theorem 2.2 (Activation-mass characterization on a fixed representation) . For q ∈ { 1, 2},̂
+
+RS (F(q) 
+
+> z,B
+
+) = Bn Eε
+
+∥∥∥∥∥
+
+> n
+
+∑
+
+> i=1
+
+εiΦq (z(xi)) 
+
+∥∥∥∥∥Hq
+
+, (6) 
+
+with 
+
+B
+
+√2
+
+√̂ 
+
+Mq,S (z)
+
+n ≤̂ RS (F(q) 
+
+> z,B
+
+) ≤ B
+
+√̂ 
+
+Mq,S (z)
+
+n . (7) 
+
+The constants 1/√2 and 1 are optimal. If n ≥ 2, both endpoints are attained by nonnegative Brownian canonical feature configurations at every prescribed positive activation mass. 
+
+The proof in Section A.3 combines Hilbert-space duality, the Brownian diagonal identity, and the Hilbert-valued Khintchine inequality. 
+
+Interpreting the fixed baseline. Let KS := (Kq (z(xi), z (xj )) )ni,j =1 be the realized Brownian Gram matrix and let ε = ( ε1, . . . , ε n)⊤. Then the empirical RC becomes ̂
+
+RS (F(q) 
+
+> z,B
+
+) = Bn Eε
+
+√ε⊤KS ε, Tr( KS ) = n̂Mq,S (z).
+
+Thus, the activation mass records the total squared size of the canonical features, whereas the off-diagonal entries of KS record their pairwise alignment. It therefore determines the sharp universal range in (7), but not the exact complexity. Indeed, one nonzero canonical feature eliminates cancellation and attains the upper endpoint, whereas two identical nonzero features cancel with probability 1 /2 and attain the lower endpoint. The Gram-sensitive bound in Proposition B.2 refines these trace-only bounds when the off-diagonal energy is known. When hidden states are unavailable, a layer-norm envelope gives an architecture-level bound. Assume that X ⊆ Rd0 and let dL = m. For each ℓ ∈ [L], let Wℓ ∈ Rdℓ×dℓ−1 , bℓ ∈ Rdℓ , and define z0(x) = x,
+
+zℓ(x) = ReLU (Wℓzℓ−1(x) + bℓ
+
+), ℓ ∈ [L]. No Wℓ is assumed square or full rank, and we write sℓ,q := ∥Wℓ∥q→q .Pairwise feature-distance propagation and its one-point, bias-sensitive envelope are stated and proved in Proposition A.2 and Section A.4. The pairwise argument uses coordinatewise 1-Lipschitzness; the one-point bound also uses ReLU(0) = 0. Neither needs determinants, inverse maps, or a positive minimum singular value. Averaging the envelope gives the following consequence. 
+
+Proposition 2.3 (Architecture-level fixed-head bound for rectangular ReLU layers) . For every sample 
+
+S = ( xi)ni=1 and q ∈ { 1, 2},̂
+
+RS (F(q) 
+
+> zL,B
+
+) ≤ B
+
+√n
+
+[( L∏
+
+> ℓ=1
+
+sℓ,q 
+
+)
+
+1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+∥xi∥q +
+
+> L
+
+∑
+
+> r=1
+
+∥br ∥qL∏
+
+> ℓ=r+1
+
+sℓ,q 
+
+]1/2
+
+. (8) 
+
+No weight matrix is required to be square or full rank. 
+
+The bound follows by averaging the one-point estimate (34) and applying (7); see Section A.4. It is necessarily one-sided, since global layer norms need not control the activations realized on the sample; see Proposition B.21. For a representation fixed independently of the sample, standard symmetrization and loss contraction turn the empirical estimate into the risk bound stated in Corollary B.22. If the same sample is used to select the representation, the conditional empirical identity remains valid, but conditioning on the selected representation cannot justify the same population argument: it removes the selection event from the analysis. The next section retains the corresponding representation supremum explicitly. 43 Same-Sample Representation Selection 
+
+Let Z be a family of representations z : X → Rm with a common finite output dimension m, and set 
+
+F(q) 
+
+> Z,B
+
+:= ⋃
+
+> z∈Z
+
+F(q) 
+
+> z,B
+
+,̂ M ∗ 
+
+> q,S
+
+(Z) := sup 
+
+> z∈Z
+
+1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+∥z(xi)∥q .
+
+The family may depend on the observed inputs and training labels, but is held fixed before the auxiliary Rademacher signs are drawn. The upper bounds allow arbitrary, possibly uncountable families for which the displayed quantities are finite. For traces T ⊆ 2[n], define 
+
+ρn(T ) = 1
+
+n Eη sup  
+
+> T∈T
+
+∣∣∣∣∣∑
+
+> i∈T
+
+ηi
+
+∣∣∣∣∣ , ηi
+
+> i.i.d.
+
+∼ Unif {− 1, +1 }. (9) Every realized trace family has at most 2 n elements, even when Z is uncountable. 
+
+Why activation mass alone is insufficient. For pairwise distinct inputs, Proposition B.14 realizes every 
+
+T ⊆ [n] by a scalar one-hidden-layer ReLU representation zT (xi) = A1{i∈T }, A > 0. The scalar kernels coincide, giving ̂
+
+RS
+
+( ⋃ 
+
+> T∈T
+
+F(q) 
+
+> zT,B
+
+)
+
+= B√A ρ n(T ), q ∈ { 1, 2}.
+
+For even n and the family T = {T : |T | = n/ 2} fixed before the signs, every candidate has activation mass 
+
+A/ 2 and fixed-head complexity of order B√A/n . Yet ρn(T ) = 1 /2, so the union complexity is B√A/ 2. The fixed-head identity still holds for a selected member; its value alone does not control the selection procedure. 
+
+From representation selection to threshold traces. Writing zi = z(xi), Hilbert-space duality and the Brownian diagonal identity give ̂
+
+RS (F(q) 
+
+> Z,B
+
+) = Bn Eε sup 
+
+> z∈Z
+
+∥∥∥∥∥
+
+> n
+
+∑
+
+> i=1
+
+εiΦq (zi)
+
+∥∥∥∥∥Hq
+
+,
+
+∥∥∥∥∥
+
+> n
+
+∑
+
+> i=1
+
+εiΦq (zi)
+
+∥∥∥∥∥
+
+> 2
+> Hq
+
+=
+
+> n
+
+∑
+
+> i=1
+
+∥zi∥q + 2 ∑
+
+> i<j
+
+εiεj Kq (zi, z j ). (10) The diagonal is at most n̂ M ∗ 
+
+> q,S
+
+(Z). The off-diagonal term has mean zero for each fixed z, but selection inside the expectation can align the kernel values with εiεj .For q = 1, assume henceforth that z(xi) ∈ Rm 
+
+> +
+
+for all z ∈ Z and i ∈ [n], as after a final ReLU layer. The coordinatewise layer-cake identity is 
+
+K1(zi, z j ) = 
+
+> m
+
+∑
+
+> r=1
+
+∫ ∞
+
+> 0
+
+1{zr (xi)≥t}1{zr (xj )≥t} dt. 
+
+For q = 2, let c0 = √π/ 2, G ∼ N (0 , I m), and kB(α, β ) = ( |α| + |β| − | α − β|)/2. The Gaussian-mixture identity of Proposition B.1 yields 
+
+K2(u, v ) = c0EGkB(⟨G, u ⟩, ⟨G, v ⟩), kB(α, β ) = ∑
+
+> s∈{− 1,+1 }
+
+∫ ∞
+
+> 0
+
+1{sα ≥t}1{sβ ≥t} dt. 
+
+Thus coordinates for q = 1, or signed projections for q = 2, reduce the quadratic kernel process to threshold subsets of the sample: 
+
+T1,S (Z) := {{i ∈ [n] : zj (xi) ≥ t} : z ∈ Z , j ∈ [m], t > 0}, (11) 
+
+T2,S (Z) := {{i ∈ [n] : s⟨g, z (xi)⟩ ≥ t} : z ∈ Z , g ∈ Rm, s ∈ {− 1, +1 }, t > 0}, (12) 
+
+ρq,S (Z) := ρn
+
+(Tq,S (Z)). (13) 5Both signs in the projected traces account for the two Brownian half-lines. To separate this selection freedom from the threshold ranges, define ̂
+
+A1,S (Z) := sup 
+
+> z∈Z
+> m
+
+∑
+
+> j=1
+
+max  
+
+> i∈[n]
+
+zj (xi),̂ W2,S (Z) := c0EG sup 
+
+> z∈Z
+> i∈[n]
+
+|⟨ G, z (xi)⟩| .
+
+These are the total coordinatewise range and expected largest Gaussian projection, respectively; they satisfy ̂
+
+M ∗ 
+
+> 1,S
+
+(Z) ≤̂ A1,S (Z) and ̂ M ∗ 
+
+> 2,S
+
+(Z) ≤̂ W2,S (Z). 
+
+From quadratic chaos to trace complexity. Lemma 3.1 (Threshold-chaos reduction) . Let T ⊆ 2[n] and QT (ε) = n−1 ∑ 
+
+> i<j
+
+εiεj 1{i∈T }1{j∈T }. There is a universal Cch > 0 such that 
+
+Eε sup  
+
+> T∈T
+
+|QT (ε)| ≤ Cch nρ n(T )2. (14) Since QT = (( ∑ 
+
+> i∈T
+
+εi)2 − | T |)/(2 n), the lemma controls centered squared trace sums by first-order trace complexity. Applying it inside the threshold integrals gives the following bound; proofs are in Sections A.5 and A.6. 
+
+Theorem 3.2 (Uniform threshold control under same-sample selection) . For q ∈ { 1, 2}, there are universal constants Cq , C ′ 
+
+> q
+
+> 0 such that ̂
+
+RS (F(1)  
+
+> Z,B
+
+) ≤ B
+
+[̂ M ∗ 
+
+> 1,S
+
+(Z)
+
+n + C1̂ A1,S (Z)ρ1,S (Z)2
+
+]1/2
+
+≤ C′
+
+> 1
+
+B
+
+√̂ 
+
+A1,S (Z) ρ1,S (Z), (15) ̂
+
+RS (F(2)  
+
+> Z,B
+
+) ≤ B
+
+[̂ M ∗ 
+
+> 2,S
+
+(Z)
+
+n + C2̂ W2,S (Z)ρ2,S (Z)2
+
+]1/2
+
+≤ C′
+
+> 2
+
+B
+
+√̂ 
+
+W2,S (Z) ρ2,S (Z). (16) The first inequalities separate diagonal activation mass from the selection cost, factored into threshold scale and trace complexity. Absorbing the diagonal gives the shorter second bounds, which may be looser when activation mass is much smaller than the envelope. RKHS duality is generic; the diagonal, layer-cake, and Gaussian-projection identities are Brownian-specific. Other kernels would require an analogous controlled threshold-mixture representation. The bounds are conditional on the sample and family. For sample-independent Z, symmetrization and contraction give population guarantees for bounded Lipschitz losses. A sample-generated Z(S) needs an additional random-class argument, and the empirical bound must cover all traces available for selection. Selection-safe root-mass and intrinsic-width refinements appear in Propositions B.11 and B.12. 
+
+Sharpness of the trace dependence. Write VCdim( T ) for the Vapnik–Chervonenkis dimension (Vapnik and Chervonenkis, 1971). The next result concerns worst-case empirical capacity at the specified trace and envelope level, not statistical minimax excess risk. Its finite-family restriction does not apply to the preceding upper bounds. 
+
+Theorem 3.3 (Matching finite-trace and VC dependence) . There are universal constants 0 < c < C such that, for every A, B > 0, 2 ≤ N ≤ 2n, 1 ≤ V ≤ n, and q ∈ { 1, 2}, the following holds. Each supremum ranges over finite families Z with common finite output dimension m (which may vary between families), subject to ̂
+
+A1,S (Z) ≤ A for q = 1 and ̂ W2,S (Z) ≤ A for q = 2 ; the q = 1 states are nonnegative. The upper directions hold for every sample S. For pairwise distinct inputs x1, . . . , x n ∈ Rd, the matching lower directions also hold, and hence 
+
+sup   
+
+> Z:|T q,S (Z)|≤ N
+
+̂ RS (F(q) 
+
+> Z,B
+
+) ≍ B√A min 
+
+{
+
+1,
+
+√ log Nn
+
+}
+
+, (17) sup  
+
+> Z: VCdim( Tq,S (Z)) ≤V
+
+̂ RS (F(q) 
+
+> Z,B
+
+) ≍ B√A min 
+
+{
+
+1,
+
+√ Vn
+
+}
+
+. (18) 6The saturation follows from ρn(T ) ≤ 1. For sharpness, all unions of k disjoint blocks give 2 k traces, VC dimension k, and ρn(T ) ≍ min {1, √k/n }; take k ≍ log N or k ≍ V . Scalar ReLU realizations apply to both kernels, but may depend on the sample and require width of order n. Thus the result does not claim simultaneous sharpness under all architectural constraints. See Section A.7, corollary B.13, and proposition B.14. 
+
+From realized to architecture-level control. Layer norms bound the realized scale via Proposition A.2; ReLU VC bounds control the traces through depth and parameter count. For q = 2, the projection contributes 
+
+m parameters, and the scalar threshold is absorbed into the universal constant. 
+
+Corollary 3.4 (Explicit ReLU-family specialization) . Let Θ index a depth-L ReLU representation family with final width m, and set ZΘ = {zθL : θ ∈ Θ}. Assume at most P scalar parameters, sample input radius 
+
+R0,q = max i ∥xi∥q , and uniform bounds ∥Wℓ∥q→q ≤ Sℓ,q and ∥bℓ∥q ≤ Bℓ,q . Set 
+
+RΘ,q = R0,q L∏
+
+> ℓ=1
+
+Sℓ,q +
+
+> L
+
+∑
+
+> r=1
+
+Br,q L∏
+
+> ℓ=r+1
+
+Sℓ,q ,
+
+with empty products equal to one. Let VΘ bound the VC dimensions of both realized trace systems; one may take VΘ = Cnet (P + m)( L + 1) log( e(P + m)) for a universal Cnet > 0. Then ̂
+
+RS (F(1)  
+
+> ZΘ,B
+
+) ≲ B min 
+
+{√RΘ,1,
+
+√
+
+min {m, n }RΘ,1 min {1, √VΘ/n }
+
+}
+
+, (19) ̂
+
+RS (F(2)  
+
+> ZΘ,B
+
+) ≲ B min 
+
+{√RΘ,2, √RΘ,2m1/4 min {1, √VΘ/n }
+
+}
+
+. (20) 
+
+If all states realized across the family and sample lie in one common r-dimensional subspace, m1/4 can be replaced by r1/4.
+
+Indeed, ∥∥zθL(xi)∥∥q ≤ RΘ,q uniformly, so ̂ M ∗ 
+
+> q,S
+
+(ZΘ) ≤ RΘ,q and ̂
+
+A1,S (ZΘ) ≤ min {m, n }RΘ,1,̂ W2,S (ZΘ) ≲ √m R Θ,2.
+
+For q = 1, bound coordinate maxima individually or by sample sums. For q = 2, Gaussian projection gives 
+
+√m (or √r in the common subspace). Combine these with ρq,S (ZΘ) ≲ min {1, √VΘ/n }; see Section A.8. The first branch is the selection-safe root-mass bound; the second is useful when VΘ ≪ n. These architectural bounds need no terminal-state inspection; the realized bounds may be sharper. Representer, finite-realization, and recursive-chain results are in Sections B and D. 
+
+## 4 Controlled Experiments 
+
+We use three complementary protocols. Exact finite-sample constructions evaluate the theorem endpoints and trace-rate formulas without optimization. Label-dependent one-step rank-one ReLU adapters form nested same-sample families on frozen ResNet-18 features; every candidate is positively rescaled to the same empirical activation mass before complexity is evaluated. Finally, matched linear, stationary-kernel, and Brownian heads are compared on frozen ImageNet features. Complete protocols, all six transfer settings, raw summaries, and secondary diagnostics are in Sections C and C.6 to C.8. The exact formulas attain both endpoints and recover fitted slopes 0 .979 for √log N/n and 0 .980 for √V /n (R2 = 0 .9998 in both cases). Across three datasets and five paired seeds, the largest predeclared family increases empirical Brownian union complexity by a factor 1 .40 over its strongest fixed member (minimum across the 15 contexts: 1 .338), despite identical activation mass. At the fixed sample size n = 500, the context-normalized selection excess grows consistently with a √log K curve across the nested families. The dependence on n is established by the separate exact constructions, not by this fixed-n study. This is a controlled selection experiment rather than an end-to-end benchmark. Across the six dataset–budget combinations, the Lévy–Brownian head ranks first by mean accuracy on four tasks and second on two, with average rank 1 .33. Its gains over linear ridge are modest but positive in all six settings, ranging from 0 .65 to 1 .90 percentage points; it is no more than 0 .06 percentage points below the best observed head in any setting. Figure 3 shows the paired differences across all six settings, and Table 1 reports the nlab = 1000 results. Section C.8 gives the protocol and both budgets in Table 5. 710 −1  
+
+> √
+
+log N/n
+
+10 −1    
+
+> exact selection excess
+> (a) Finite-family selection growth
+> exact block-union excess
+> √log N/nreference
+
+10 2 10 3
+
+sample size n
+
+10 −1 
+
+> complexity ( A = B = 1)
+> (b) Equal mass does not control selection
+> same-sample family fixed-member trace upper
+
+Figure 1: Exact finite-sample constructions supporting the selection theorem. Panel (a) evaluates the closed-form finite-family selection excess. Panel (b) keeps every representation at the same activation mass while the same-sample family complexity remains constant and each fixed-member trace upper decays with n. These are deterministic evaluations, not independent stochastic experiments. 20 21 22 23 24 25
+
+nested family size K
+
+0.045 0.050 0.055 0.060 Brownian complexity ( B = 1)  (a) Same-sample union versus fixed member 
+
+20 21 22 23 24 25
+
+nested family size K
+
+0.0 0.2 0.4 0.6 0.8 1.0 context-normalized selection excess 
+
+(b) Fixed-n curve shape ( n = 500)         
+
+> mean normalized excess normalized √log Kreference
+> CIFAR-10 CIFAR-100 EuroSAT union strongest fixed
+
+Figure 2: Same-sample learned representation families at the fixed sample size n = 500. Panel (a) compares the Brownian union complexity with the strongest fixed member after all candidates are rescaled to identical activation mass. Panel (b) shows the context-normalized union-minus-fixed excess; the dashed curve is a descriptive normalized √log K reference. Table 1: Frozen ImageNet-pretrained ResNet-18 transfer with nlab = 1000 labels. Values are mean ± standard deviation over five paired seeds; bold marks the largest observed mean and is not a significance claim. Ridge regularization is selected by training-set GCV. Test labels are never used for fitting or model selection and are accessed only for final evaluation. Method CIFAR-10 CIFAR-100 EuroSAT Linear ridge 79 .63 ± 0.33 45 .41 ± 0.75 90 .58 ± 0.42 RBF KRR 80 .53 ± 0.37 46 .55 ± 0.56 91 .49 ± 0.33 Laplace KRR 80 .68 ± 0.45 47 .10 ± 0.43 91 .71 ± 0.30 Brownian q = 1 79 .67 ± 0.53 45 .68 ± 0.54 90 .58 ± 0.57 Brownian q = 2 80 .67 ± 0.23 47 .31 ± 0.48 91 .90 ± 0.30 
+
+These frozen-representation experiments do not establish end-to-end superiority or remove the selection term required when the representation is selected using the same sample that trains the head. 80.0 0.5 1.0 1.5 2.0 paired accuracy difference (pp)           
+
+> CIFAR-10 500 CIFAR-10 1000 CIFAR-100 500 CIFAR-100 1000 EuroSAT 500 EuroSAT 1000
+> (a) Brownian q= 2 minus linear ridge
+> −0.4 −0.2 0.0 0.2 0.4 0.6 0.8 paired accuracy difference (pp)
+> (b) Brownian q= 2 minus Laplace KRR
+
+Figure 3: Paired frozen-transfer differences for the Lévy–Brownian head. Small points are the five seed-level paired differences; the large point is their mean with a descriptive paired percentile-bootstrap interval. All methods share the same frozen features and labeled splits. No multiplicity-corrected significance claim is made. 
+
+## 5 Limitations and Conclusion 
+
+Distance-induced Brownian geometry separates two sources of empirical capacity: the activation mass of a fixed representation and the threshold-trace complexity of selecting that representation on the same sample. For a fixed representation, activation mass gives the sharp universal scale of the exact dual complexity. Under same-sample selection, the representation supremum can align threshold traces with the Rademacher signs, and the adaptive bound captures this additional cost. Contraction and induced operator norms extend the analysis to rectangular and rank-deficient ReLU representations. The resulting architecture-level bound is worst-case, while the realized trace and envelope bounds retain the geometry of the candidate family. The experiments isolate these mechanisms. Exact constructions recover the fixed-representation endpoints and selection rates, while the adapter study exhibits the union gap at fixed activation mass. The frozen-transfer study demonstrates the practical feasibility of Brownian heads, but neither measures the adaptive selection penalty nor establishes predictive superiority. The scope is limited to Brownian terminal geometries rather than arbitrary heads or a complete theory of end-to-end learning. The matching results concern worst-case empirical capacity, not minimax excess risk, and do not simultaneously saturate all architectural constraints. Moreover, the empirical study uses five seeds, one frozen architecture, and three datasets. Natural directions are to localize the trace cost around a trained representation and to analyze covariance-shaped or recursive Brownian geometries learned from the same data. 9AI Use Statement 
+
+Generative AI tools were used for literature discovery and comparison; feedback on problem framing, mathematical claims, proof writing and revision, experimental design, research-code implementation and editing, interpretation of experimental results, scientific figures, language editing, and L ATEX formatting. The authors take full responsibility for the final content of this work. 
+
+## Reproducibility Statement 
+
+Complete proofs of all main results and the auxiliary results used by them are provided in Appendices A and B. Appendix C documents the exact finite-sample constructions and experimental protocols, including preprocessing, candidate generation, seed counts, paired-split procedures, hyperparameter grids, complete transfer tables, and secondary diagnostics. The source package contains all L ATEX and figure files required to compile the paper. Experimental code and machine-readable records, including individual random seeds and split/corruption hashes, are separate from this manuscript project. 
+
+## References 
+
+Peter L. Bartlett and Shahar Mendelson. Rademacher and gaussian complexities: Risk bounds and structural results. Journal of Machine Learning Research , 3:463–482, 2002. Peter L. Bartlett, Nick Harvey, Christopher Liaw, and Abbas Mehrabian. Nearly-tight VC-dimension and pseudodimension bounds for piecewise linear neural networks. Journal of Machine Learning Research , 20 (63):1–17, 2019. Zhengdao Chen. Multi-layer neural networks as trainable ladders of hilbert spaces. In Proceedings of the International Conference on Machine Learning , volume 202, pages 4294–4329, 2023. Corinna Cortes, Mehryar Mohri, and Afshin Rostamizadeh. Generalization bounds for learning kernels. In 
+
+Proceedings of the 27th International Conference on Machine Learning , pages 247–254, 2010. Benjamin Dupuis, Paul Viallard, George Deligiannidis, and Umut Simsekli. Uniform generalization bounds on data-dependent hypothesis sets via PAC-bayesian theory on random sets. Journal of Machine Learning Research , 25(409):1–55, 2024. Bertille Follain and Francis Bach. Enhanced feature learning via regularisation: Integrating neural networks and kernel methods. Journal of Machine Learning Research , 26(172):1–56, 2025. Dylan J. Foster, Spencer Greenberg, Satyen Kale, Haipeng Luo, Mehryar Mohri, and Karthik Sridharan. Hypothesis set stability and generalization. In Advances in Neural Information Processing Systems ,volume 32, pages 6729–6739. Curran Associates, Inc., 2019. URL https://proceedings.neurips.cc/ paper/2019/hash/300d1539c3b6aa1793b5678b857732cf-Abstract.html .Uffe Haagerup. The best constants in the khintchine inequality. Studia Mathematica , 70(3):231–283, 1981. Yuka Hashimoto, Sho Sonoda, Isao Ishikawa, Atsushi Nitanda, and Taiji Suzuki. Koopman-based generaliza-tion bound: New aspect for full-rank weights. In International Conference on Learning Representations ,2024. Yuka Hashimoto, Sho Sonoda, Isao Ishikawa, and Masahiro Ikeda. Why high-rank neural networks generalize?: An algebraic framework with RKHSs. arXiv preprint arXiv:2509.21895, 2026. David Haussler. Sphere packing numbers for subsets of the boolean n-cube with bounded vapnik–chervonenkis dimension. Journal of Combinatorial Theory, Series A , 69(2):217–232, 1995. Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image recognition. In 
+
+Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition , pages 770–778, 2016. doi: 10.1109/CVPR.2016.90. 10 Tjeerd Jan Heeringa, Len Spek, and Christoph Brune. Deep networks are reproducing kernel chains. arXiv preprint arXiv:2501.03697, 2025. Patrick Helber, Benjamin Bischke, Andreas Dengel, and Damian Borth. EuroSAT: A novel dataset and deep learning benchmark for land use and land cover classification. IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing , 12(7):2217–2226, 2019. doi: 10.1109/JSTARS.2019.2918242. Alex Krizhevsky. Learning multiple layers of features from tiny images. Technical report, University of Toronto, 2009. Michel Ledoux and Michel Talagrand. Probability in Banach Spaces: Isoperimetry and Processes . Springer, 1991. Fanghui Liu, Xiaolin Huang, Chen Gong, Jie Yang, and Li Li. Learning data-adaptive non-parametric kernels. 
+
+Journal of Machine Learning Research , 21(208):1–39, 2020. Mahdi Mohammadigohari, Giuseppe Di Fatta, Giuseppe Nicosia, and Panos M. Pardalos. Brownian kernel ladders. arXiv preprint arXiv:2606.15812, 2026. Mehryar Mohri, Afshin Rostamizadeh, and Ameet Talwalkar. Foundations of Machine Learning . MIT Press, 2 edition, 2018. Adam Paszke et al. PyTorch: An imperative style, high-performance deep learning library. In Advances in Neural Information Processing Systems , volume 32, 2019. Fabian Pedregosa et al. Scikit-learn: Machine learning in python. Journal of Machine Learning Research , 12: 2825–2830, 2011. Sarah Sachs, Tim van Erven, Liam Hodgkinson, Rajiv Khanna, and Umut Şimşekli. Generalization guarantees via algorithm-dependent Rademacher complexity. In Proceedings of the Thirty-Sixth Conference on Learning Theory , volume 195 of Proceedings of Machine Learning Research , pages 4863–4880. PMLR, 2023. URL 
+
+https://proceedings.mlr.press/v195/sachs23a.html .Dino Sejdinovic, Bharath K. Sriperumbudur, Arthur Gretton, and Kenji Fukumizu. Equivalence of distance-based and RKHS-based statistics in hypothesis testing. The Annals of Statistics , 41(5):2263–2291, 2013. doi: 10.1214/13-AOS1140. V. N. Vapnik and A. Ya. Chervonenkis. On the uniform convergence of relative frequencies of events to their probabilities. Theory of Probability and Its Applications , 16(2):264–280, 1971. doi: 10.1137/1116025. Yiming Ying and Colin Campbell. Rademacher chaos complexities for learning the kernel problem. Neural Computation , 22(11):2858–2886, 2010. doi: 10.1162/NECO_a_00028. Yifan Zhang and Min-Ling Zhang. Nearly-tight bounds for deep kernel learning. In Proceedings of the 40th International Conference on Machine Learning , volume 202 of Proceedings of Machine Learning Research ,pages 41861–41879, 2023. 11 Appendix Map 
+
+The appendix separates proofs required by the main paper from optional extensions. Section A is self-contained and follows the seven retained main results in order, including the pairwise/one-point propagation statement beside its proof. Section B collects additional terminal-head statements, each immediately followed by its proof. Section C supplies the complete experimental protocols and secondary figures. Section D is an independent recursive-chain and BKL extension and is not used by the main terminal-head theorems. 
+
+Table 2: Role of each appendix block. Block Contents Connection to the main paper A Proofs and proof tools for canonical geometry, ReLU propagation, the fixed-head theorem, threshold chaos, same-sample bounds, matching trace dependence, and the explicit network corollary Direct proof destination for every formal result retained in the nine-page paper B Gram, centered, spectral, covariance, root-mass, width, trace, representer, ridge, finite-realization, vector-valued, generalization, and rescaling results Optional refinements and computational consequences for the terminal-head analysis C Exact theorem-aligned diagnostics, learned same-sample families, frozen-feature transfer, digits checks, and reproducibility details Full evidence and protocols supporting Section 4 D Fixed-measure BKL links, recursive Brownian chains, dyadic and affine propagation, and sample compression Optional independent extension; not an ingredient of the main terminal-head theorems 
+
+A. Main proofs. Canonical geometry; Hilbert-valued Khintchine tool; fixed-head activation mass; rectangu-lar ReLU propagation and the architecture-level bound; threshold chaos; uniform same-sample control; matching finite-trace and VC dependence; explicit ReLU specializa-tion. 
+
+B–D. Supplementary material. Additional terminal-head results; supplementary experiments and reproducibil-ity; optional recursive Brownian-chain and BKL theory. 
+
+## A Proofs and Proof Tools for the Main Results 
+
+This section is self-contained and follows the order of the retained main-text results. It contains no forward reference to later appendices. All Hilbert spaces are real. Samples have n ≥ 1, head radii satisfy B ≥ 0, and representation families used in a union are nonempty. Because every trace family is a subset of the finite set 2[n], every trace supremum is an ordinary maximum. For finite representation families all remaining suprema are measurable. For unrestricted families, every displayed expectation of a representation supremum means outer expectation; the inequalities are first proved for measurable finite subfamilies and pass to the stated outer quantities by monotonicity. The representation family is conditioned on the observed sample and is fixed before any auxiliary Rademacher or Gaussian variable is introduced. 
+
+A.1 Proof of Proposition 2.1 
+
+Proof. We first verify that the two displayed kernels are positive definite, so their canonical RKHS feature maps are well defined. For s ∈ R, define the signed-threshold feature 
+
+ϕB(s)( σ, r ) = 
+
+
+
+1(0 ,s ](r), σ = +1 , s > 0,
+
+1(0 ,−s](r), σ = −1, s < 0,
+
+0, otherwise ,
+
+12 in L2({− 1, +1 } × R+, # ⊗ dr). If s and t have opposite signs, the two features have disjoint sign coordinates and their inner product is zero; this equals ( |s| + |t| − | s − t|)/2. If they have the same sign, their inner product is min {| s|, |t|} , which is again ( |s| + |t| − | s − t|)/2. Thus 
+
+⟨ϕB(s), ϕ B(t)⟩ = kB(s, t ) := |s| + |t| − | s − t|
+
+2 , ∥ϕB(s)∥2 = |s|. (21) In particular, kB is positive definite. For q = 1, the identity ∥u∥1 = ∑mj=1 |uj | gives 
+
+K1(u, v ) = 
+
+> m
+
+∑
+
+> j=1
+
+kB(uj , v j ).
+
+Hence u 7 → (ϕB(uj )) mj=1 is a feature map in the Hilbert direct sum of m copies of the scalar feature space, and K1 is positive definite. For q = 2, let G ∼ N (0 , I m) and put c0 = √π/ 2. Since E| ⟨ G, w ⟩ | = √2/π ∥w∥2, applying the scalar Brownian formula to the three vectors u, v, u − v gives 
+
+c0EGkB(⟨G, u ⟩ , ⟨G, v ⟩) = 12 (c0E| ⟨ G, u ⟩ | + c0E| ⟨ G, v ⟩ | − c0E| ⟨ G, u − v⟩ | ) (22) = ∥u∥2 + ∥v∥2 − ∥ u − v∥2
+
+2 = K2(u, v ). (23) The integrand is measurable and is bounded in absolute value by min {| ⟨ G, u ⟩ | , | ⟨ G, v ⟩ |} , which is integrable. Therefore u 7 → √c0 ϕB(⟨· , u ⟩) is a feature map in the corresponding Gaussian L2 space. This proves positive definiteness of K2, including singular and zero configurations. Let Φ q (u) = Kq (·, u ) be the canonical feature map in the RKHS of Kq . The reproducing identity now yields 
+
+∥Φq (u)∥2 
+
+> Hq
+
+= Kq (u, u ) = ∥u∥q .
+
+Expanding the squared Hilbert distance and substituting the definition of Kq gives 
+
+∥Φq (u) − Φq (v)∥2 
+
+> Hq
+
+= Kq (u, u ) + Kq (v, v ) − 2Kq (u, v )= ∥u − v∥q .
+
+Both identities also hold when one or both vectors are zero, because Kq (0 , ·) = 0. 
+
+A.2 A Hilbert-valued Khintchine proof tool 
+
+The fixed-head theorem uses the following inequality for a finite vector family in an arbitrary real Hilbert space. 
+
+Lemma A.1 (Hilbert-valued Khintchine inequality) . For vectors v1, . . . , v n in a real Hilbert space, 
+
+1
+
+√2
+
+(∑
+
+> i
+
+∥vi∥2
+
+)1/2
+
+≤ Eε
+
+∥∥∥∥∥∑
+
+> i
+
+εivi
+
+∥∥∥∥∥ ≤
+
+(∑
+
+> i
+
+∥vi∥2
+
+)1/2
+
+. (24) 
+
+Both constants are optimal over all finite Hilbert-space configurations. Proof. Set Sε = ∑ 
+
+> i
+
+εivi. If every vi is zero, all three quantities in (24) vanish, so assume below that ∑ 
+
+> i
+
+∥vi∥2 > 0. For the upper bound, Jensen’s inequality and independence of the signs give 
+
+Eε ∥Sε∥H ≤
+
+(
+
+Eε ∥Sε∥2
+
+> H
+
+)1/2
+
+(25) =
+
+∑
+
+> i,j
+
+E(εiεj ) ⟨vi, v j ⟩H
+
+
+
+> 1/2
+
+=
+
+(∑
+
+> i
+
+∥vi∥2
+
+> H
+
+)1/2
+
+. (26) 13 For the lower bound, it is enough to work in the finite-dimensional space H0 = span {v1, . . . , v n}. Let G be a standard Gaussian vector in H0. For every fixed x ∈ H0, EG |⟨ G, x ⟩H | = √2/π ∥x∥H ; therefore Tonelli’s theorem yields 
+
+Eε ∥Sε∥H =
+
+√ π
+
+2 EGEε
+
+∣∣∣∣∣∑
+
+> i
+
+εi ⟨G, v i⟩H
+
+∣∣∣∣∣ . (27) The sharp scalar Khintchine inequality at exponent one (Haagerup, 1981) states that 
+
+Eε
+
+∣∣∣∣∣∑
+
+> i
+
+εiai
+
+∣∣∣∣∣ ≥ 1
+
+√2
+
+(∑
+
+> i
+
+a2
+
+> i
+
+)1/2
+
+.
+
+Applying it conditionally on G in (27) gives 
+
+Eε ∥Sε∥H ≥√π
+
+2 EG
+
+(∑
+
+> i
+
+⟨G, v i⟩2
+
+> H
+
+)1/2
+
+. (28) Let A = ∑ 
+
+> i
+
+vi ⊗ vi on H0, and let λ1, . . . , λ r ≥ 0 be its nonzero eigenvalues. If g1, . . . , g r are independent standard Gaussians, then 
+
+∑
+
+> i
+
+⟨G, v i⟩2
+
+> Hd
+
+=
+
+> r
+
+∑
+
+> j=1
+
+λj g2 
+
+> j
+
+,
+
+> r
+
+∑
+
+> j=1
+
+λj = tr( A) = ∑
+
+> i
+
+∥vi∥2 
+
+> H
+
+.
+
+When the trace is nonzero, put pj = λj / tr( A). The map p 7 → E(∑ 
+
+> j
+
+pj g2 
+
+> j
+
+)1/2 is concave on the probability simplex. Since p = ∑ 
+
+> j
+
+pj ej , concavity and E |gj | = √2/π imply 
+
+EG
+
+(∑
+
+> i
+
+⟨G, v i⟩2
+
+> H
+
+)1/2
+
+=
+
+(∑
+
+> i
+
+∥vi∥2
+
+> H
+
+)1/2
+
+E
+
+∑
+
+> j
+
+pj g2
+
+> j
+
+
+
+> 1/2
+
+(29) 
+
+≥
+
+√ 2
+
+π
+
+(∑
+
+> i
+
+∥vi∥2
+
+> H
+
+)1/2
+
+. (30) The zero-trace case was separated at the start. Substitution into (28) proves the lower bound. For optimality of 1 /√2, take n = 2 and v1 = v2̸ = 0 in a one-dimensional Hilbert space. Then 
+
+E ∥ε1v1 + ε2v2∥ = ∥v1∥, whereas ( ∥v1∥2 + ∥v2∥2)1/2 = √2 ∥v1∥. For optimality of the upper constant, take one nonzero vector (or, more generally, pairwise orthogonal vectors); the norm of the signed sum is then deterministic and equal to the right-hand side of (24). 
+
+A.3 Proof of Theorem 2.2 
+
+Proof. If B = 0, the class contains only the zero function and all asserted quantities vanish. We may therefore keep B ≥ 0 in the formulas without dividing by it. Put ui = z(xi) and vi = Φ q (ui) ∈ H q . For a fixed sign vector ε, Hilbert-space duality gives sup  
+
+> ∥a∥Hq≤Bn
+
+∑
+
+> i=1
+
+εi ⟨a, v i⟩Hq = sup 
+
+> ∥a∥≤ B
+
+〈
+
+a, 
+
+> n
+
+∑
+
+> i=1
+
+εivi
+
+〉
+
+> Hq
+
+(31) = B
+
+∥∥∥∥∥
+
+> n
+
+∑
+
+> i=1
+
+εivi
+
+∥∥∥∥∥Hq
+
+. (32) Taking expectation and dividing by n proves (6). By (3), 
+
+> n
+
+∑
+
+> i=1
+
+∥vi∥2 
+
+> Hq
+
+=
+
+> n
+
+∑
+
+> i=1
+
+∥ui∥q = n̂Mq,S (z).
+
+Applying Lemma A.1 to ( vi)ni=1 and multiplying by B/n gives (7). If ̂ Mq,S (z) = 0, then every ui = 0, hence every vi = 0 and the identity gives zero complexity. For n = 1 and positive mass, the signed norm is deterministic, so only the upper numerical endpoint is attained. 14 It remains to verify that both constants occur inside the Brownian canonical feature class. Fix a prescribed mass M > 0 and n ≥ 2. For the lower endpoint, let u1 = u2 = ( nM/ 2) e1 and ui = 0 for i ≥ 3. These states are nonnegative and their empirical activation mass is M . Since Φ q (0) = 0, 
+
+∑
+
+> i
+
+εiΦq (ui) = ( ε1 + ε2)Φ q (( nM/ 2) e1).
+
+Now ∥Φq (( nM/ 2) e1)∥ = √nM/ 2 and E|ε1 + ε2| = 1, so the complexity is B√M/ (2 n). For the upper endpoint, take u1 = nM e 1 and ui = 0 for i ≥ 2. The signed feature sum has deterministic norm √nM , hence the complexity is B√M/n . Both configurations have the required mass and attain the stated endpoints. 
+
+A.4 Rectangular ReLU propagation and the architecture-level bound Proposition A.2 (Propagation through rectangular ReLU layers) . For every x, x ′ and q ∈ { 1, 2},
+
+∥Φq (zL(x)) − Φq (zL(x′)) ∥2 
+
+> Hq
+
+≤
+
+( L∏
+
+> ℓ=1
+
+sℓ,q 
+
+)
+
+∥x − x′∥q . (33) 
+
+Moreover, 
+
+∥zL(x)∥q ≤
+
+( L∏
+
+> ℓ=1
+
+sℓ,q 
+
+)
+
+∥x∥q +
+
+> L
+
+∑
+
+> r=1
+
+∥br ∥qL∏
+
+> ℓ=r+1
+
+sℓ,q . (34) 
+
+Proof. Fix x, x ′ and a layer ℓ. For real numbers r, s , | ReLU( r) − ReLU( s)| ≤ | r − s|; summing the coordinate inequalities shows that coordinatewise ReLU is nonexpansive in both ℓ1 and ℓ2. With u = zℓ−1(x) and 
+
+v = zℓ−1(x′), the common bias cancels before this contraction, and therefore 
+
+∥zℓ(x) − zℓ(x′)∥q ≤ ∥ Wℓ(u − v)∥q ≤ sℓ,q ∥u − v∥q . (35) Induction on r gives 
+
+∥zr (x) − zr (x′)∥q ≤
+
+( r∏
+
+> ℓ=1
+
+sℓ,q 
+
+)
+
+∥x − x′∥q .
+
+At r = L, the second identity of Proposition 2.1 turns the left side into the squared terminal feature distance and proves (33). If a factor sℓ,q is zero, the same induction shows that all later realized differences are zero; no inverse or positive singular-value assumption is used. For L = 0, the assertion reduces to the canonical identity with the empty product equal to one. For the one-point estimate, ReLU(0) = 0 and ReLU nonexpansiveness imply ∥ ReLU( w)∥q ≤ ∥ w∥q . Hence 
+
+rℓ := ∥zℓ(x)∥q ≤ sℓ,q rℓ−1 + ∥bℓ∥q . (36) We prove the claimed formula by induction. For r = 1, it is exactly (36). If it holds at r − 1, then 
+
+rr ≤ sr,q 
+
+(r−1∏
+
+> ℓ=1
+
+sℓ,q 
+
+)
+
+r0 +
+
+> r−1
+
+∑
+
+> j=1
+
+∥bj ∥qr−1∏
+
+> ℓ=j+1
+
+sℓ,q 
+
+ + ∥br ∥q
+
+=
+
+( r∏
+
+> ℓ=1
+
+sℓ,q 
+
+)
+
+r0 +
+
+> r
+
+∑
+
+> j=1
+
+∥bj ∥qr∏
+
+> ℓ=j+1
+
+sℓ,q .
+
+Taking r = L and r0 = ∥x∥q proves (34), including zero biases, zero matrices, and empty products. Averaging (34) over x1, . . . , x n bounds ̂ Mq,S (zL) by the bracket in (8). The upper inequality in Theorem 2.2 then proves Proposition 2.3. 15 A.5 Proof of Lemma 3.1 
+
+Proof. Because ∅̸ = T ⊆ 2[n], the family is finite and every supremum below is a maximum. If T = {∅},then QT = 0 and ρn(T ) = 0, so the assertion holds. For T ⊆ [n], put ST (ε) = ∑ 
+
+> i∈T
+
+εi. The random vector 
+
+X(ε) = ( ST (ε)) T ∈T 
+
+is a well-defined Rademacher series in the finite-dimensional Banach space ℓ∞(T ), with ∥X(ε)∥∞ =sup T ∈T |ST (ε)|. Expanding the square gives, for each T ,
+
+ST (ε)2 = |T | + 2 ∑
+
+> 1≤i<j ≤n
+
+εiεj 1{i∈T }1{j∈T }, (37) and hence 
+
+QT (ε) = ST (ε)2 − | T |
+
+2n . (38) Therefore 
+
+Eε sup  
+
+> T∈T
+
+|QT (ε)| ≤ 12n
+
+(
+
+Eε sup  
+
+> T∈T
+
+ST (ε)2 + sup  
+
+> T∈T
+
+|T |
+
+)
+
+= 12n
+
+(
+
+Eε ∥X(ε)∥2 
+
+> ∞
+
++ sup  
+
+> T∈T
+
+|T |
+
+)
+
+. (39) For every fixed T , EεST (ε)2 = |T |. Thus sup  
+
+> T∈T
+
+|T | = sup  
+
+> T∈T
+
+ES2 
+
+> T
+
+≤ E sup  
+
+> T∈T
+
+S2 
+
+> T
+
+= E ∥X∥2 
+
+> ∞
+
+.
+
+Substituting this into (39) yields 
+
+Eε sup  
+
+> T∈T
+
+|QT (ε)| ≤ 1
+
+n Eε ∥X(ε)∥2 
+
+> ∞
+
+. (40) The p = 1, r = 2 Kahane–Khintchine inequality for a finite Rademacher series in an arbitrary Banach space states that a universal K1,2 < ∞ satisfies (Ledoux and Talagrand, 1991) 
+
+E
+
+∥∥∥∥∥∑
+
+> i
+
+εixi
+
+∥∥∥∥∥
+
+> 2
+
+
+
+> 1/2
+
+≤ K1,2E
+
+∥∥∥∥∥∑
+
+> i
+
+εixi
+
+∥∥∥∥∥
+
+for every finite vector family ( xi). Applying it in ℓ∞(T ) to the vectors xi = ( 1{i∈T })T ∈T gives 
+
+(
+
+E ∥X∥2
+
+> ∞
+
+)1/2
+
+≤ K1,2E ∥X∥∞ .
+
+By definition, E ∥X∥∞ = nρ n(T ). Squaring the Kahane–Khintchine estimate and inserting it into (40) proves 
+
+E sup 
+
+> T
+
+|QT | ≤ K21,2nρ n(T )2.
+
+A.6 Proof of Theorem 3.2 
+
+Proof. The representation family is conditioned on the observed sample before ε and, in the projected argument, before G are drawn. The trace systems are nonempty: choosing a threshold above every realized coordinate gives the empty trace in the additive case, while g = 0 gives the empty trace in the projected case. They are finite because they are subsets of 2 [n]. If the relevant envelope is zero, all realized states are zero on the sample and both sides of the corresponding bound vanish; the calculations below cover this case without division. 
+
+Additive Brownian head. For z ∈ Z , abbreviate zi = z(xi) and Kz (i, j ) = K1(zi, z j ). Because every zi is nonnegative, the scalar identity kB(s, t ) = ∫ ∞ 
+
+> 0
+
+1{s≥r}1{t≥r} dr on R+ and additivity of K1 give 
+
+Kz (i, j ) = 
+
+> m
+
+∑
+
+> r=1
+
+∫ ∞
+
+> 0
+
+1{zr (xi)≥t}1{zr (xj )≥t} dt. (41) 16 Define 
+
+Dz (ε) = 1
+
+n
+
+∑
+
+> 1≤i<j ≤n
+
+εiεj Kz (i, j )and, for each ( z, r, t ), let Tz,r,t = {i : zr (xi) ≥ t}. Substituting (41) and using the definition of QT yields the exact identity 
+
+Dz (ε) = 
+
+> m
+
+∑
+
+> r=1
+
+∫ ∞
+
+> 0
+
+QTz,r,t (ε) d t. (42) For fixed z and r, the trace is empty whenever t > max i zr (xi). Hence, for every sign vector, 
+
+|Dz (ε)| ≤ 
+
+> m
+
+∑
+
+> r=1
+
+max  
+
+> i
+
+zr (xi) sup   
+
+> T∈T 1,S (Z)
+
+|QT (ε)| (43) 
+
+≤̂ A1,S (Z) sup   
+
+> T∈T 1,S (Z)
+
+|QT (ε)| . (44) Taking first the supremum over z and then expectation, and applying Lemma 3.1, gives 
+
+Eε sup 
+
+> z∈Z
+
+|Dz (ε)| ≤ Cch ̂ A1,S (Z)nρ 1,S (Z)2. (45) For each z and ε, the RKHS norm expands as 
+
+∥∥∥∥∥
+
+> n
+
+∑
+
+> i=1
+
+εiΦ1,m (zi)
+
+∥∥∥∥∥
+
+> 2
+> H1,m
+
+=
+
+> n
+
+∑
+
+> i=1
+
+K1(zi, z i) + 2 ∑
+
+> i<j
+
+εiεj K1(zi, z j )=
+
+> n
+
+∑
+
+> i=1
+
+∥zi∥1 + 2 nD z (ε).
+
+(46) Hilbert duality followed by Jensen’s inequality now gives ̂
+
+RS (F(1)  
+
+> Z,B
+
+) = Bn Eε sup 
+
+> z∈Z
+
+∥∥∥∥∥∑
+
+> i
+
+εiΦ1,m (zi)
+
+∥∥∥∥∥ (47) 
+
+≤ Bn
+
+Eε sup 
+
+> z∈Z
+
+∥∥∥∥∥∑
+
+> i
+
+εiΦ1,m (zi)
+
+∥∥∥∥∥
+
+> 2
+
+
+
+> 1/2
+
+(48) 
+
+≤ B
+
+[̂ M ∗ 
+
+> 1,S
+
+(Z)
+
+n + 2
+
+n Eε sup 
+
+> z∈Z
+
+|Dz (ε)|
+
+]1/2
+
+. (49) Substitution of (45) proves the first inequality in (15) with C1 = 2 Cch .It remains to absorb the diagonal term into the threshold term. Let 
+
+k∗ = max    
+
+> T∈T 1,S (Z)
+
+|T | .
+
+Choose T∗ attaining this maximum. The sharp scalar Khintchine lower bound gives 
+
+nρ 1,S (Z) ≥ Eε
+
+∣∣∣∣∣∑
+
+> i∈T∗
+
+εi
+
+∣∣∣∣∣ ≥
+
+√ k∗
+
+2 , so k∗ ≤ 2n2ρ1,S (Z)2. (50) For any fixed z, the layer-cake formula gives 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+∥z(xi)∥1 = 1
+
+n
+
+> m
+
+∑
+
+> r=1
+
+∫ ∞
+
+> 0
+
+|Tz,r,t | dt (51) 
+
+≤ k∗
+
+n
+
+> m
+
+∑
+
+> r=1
+
+max  
+
+> i
+
+zr (xi) ≤ k∗
+
+n̂ A1,S (Z). (52) 17 Taking the supremum over z and using (50) yields ̂
+
+M ∗ 
+
+> 1,S
+
+(Z)
+
+n ≤ 2̂A1,S (Z)ρ1,S (Z)2. (53) Combining this with the first inequality proves the second one, for example with C′ 
+
+> 1
+
+= √2 + 2 Cch .
+
+Lévy–Brownian head. Fix z ∈ Z , write zi = z(xi), and define 
+
+Dz (ε) = 1
+
+n
+
+∑
+
+> 1≤i<j ≤n
+
+εiεj K2(zi, z j ).
+
+For G ∈ Rm, let ai(G, z ) = ⟨G, z i⟩ and define the two projected threshold traces 
+
+T + 
+
+> G,z,t
+
+= {i : ai(G, z ) ≥ t}, T − 
+
+> G,z,t
+
+= {i : −ai(G, z ) ≥ t}, t > 0.
+
+Both traces belong to T2,S (Z). For every threshold trace T ⊆ [n], |QT (ε)| ≤ n−1(|T |
+
+> 2
+
+) ≤ (n − 1) /2. Consequently, for fixed G, z, ε , ∫ ∞
+
+> 0
+
+(∣ ∣∣QT +
+
+> G,z,t
+
+(ε)
+
+∣∣∣ +
+
+∣∣∣QT −
+
+> G,z,t
+
+(ε)
+
+∣∣∣)
+
+dt (54) 
+
+≤ (n − 1) max  
+
+> i∈[n]
+
+|⟨ G, z i⟩| . (55) The right-hand side is Gaussian integrable because the sample is finite. For every s, t ∈ R, the signed scalar identity 
+
+kB(s, t ) = 
+
+∫ ∞
+
+> 0
+
+(1{s≥r}1{t≥r} + 1{s≤− r}1{t≤− r}
+
+) dr
+
+holds as follows. If st ≤ 0, both products vanish for every r > 0 and kB(s, t ) = 0. If s, t > 0, the first product integrates to min {s, t } and the second vanishes; if s, t < 0, the second integrates to min {| s|, |t|} and the first vanishes. Zero endpoints are included in the first case. In addition, the Gaussian projection calculation in (23) gives 
+
+K2(u, v ) = c0EG [kB(⟨G, u ⟩, ⟨G, v ⟩)] .
+
+These are the Gaussian projection and signed-threshold representations of the Lévy–Brownian kernel. Together with the preceding integrability estimate, they justify Fubini’s theorem and give 
+
+Dz (ε) = c0EG
+
+∫ ∞
+
+> 0
+
+(
+
+QT +
+
+> G,z,t
+
+(ε) + QT −
+
+> G,z,t
+
+(ε)
+
+)
+
+dt. (56) For fixed G, z , the positive integral vanishes above max i(ai)+ and the negative integral vanishes above max i(−ai)+. Therefore, for every ε,sup 
+
+> z∈Z
+
+|Dz (ε)| ≤ c0EG sup 
+
+> z∈Z
+
+∫ ∞
+
+> 0
+
+(∣ ∣∣QT +
+
+> G,z,t
+
+(ε)
+
+∣∣∣ +
+
+∣∣∣QT −
+
+> G,z,t
+
+(ε)
+
+∣∣∣)
+
+dt (57) 
+
+≤ 2c0EG sup 
+
+> z∈Z , i ∈[n]
+
+|⟨ G, z (xi)⟩| sup   
+
+> T∈T 2,S (Z)
+
+|QT (ε)| (58) = 2 ̂W2,S (Z) sup   
+
+> T∈T 2,S (Z)
+
+|QT (ε)| . (59) Taking expectation in ε and applying Lemma 3.1 gives 
+
+Eε sup 
+
+> z∈Z
+
+|Dz (ε)| ≤ 2Cch ̂ W2,S (Z)nρ 2,S (Z)2. (60) As in (46), the diagonal identity K2(zi, z i) = ∥zi∥2 gives 
+
+∥∥∥∥∥∑
+
+> i
+
+εiΦ2,m (zi)
+
+∥∥∥∥∥
+
+> 2
+> H2,m
+
+= ∑
+
+> i
+
+∥zi∥2 + 2 nD z (ε).
+
+Hilbert duality and Jensen’s inequality therefore imply ̂
+
+RS (F(2)  
+
+> Z,B
+
+) ≤ B
+
+[̂ M ∗ 
+
+> 2,S
+
+(Z)
+
+n + 2
+
+n Eε sup 
+
+> z∈Z
+
+|Dz (ε)|
+
+]1/2
+
+(61) 18 ≤ B
+
+[̂ M ∗ 
+
+> 2,S
+
+(Z)
+
+n + 4 Cch ̂ W2,S (Z)ρ2,S (Z)2
+
+]1/2
+
+, (62) which proves the first inequality in (16) with C2 = 4 Cch .To absorb the diagonal term, let k∗ = max T ∈T 2,S (Z) |T |. Choose T∗ ∈ T 2,S (Z) with |T∗| = k∗. The sharp scalar Khintchine inequality gives 
+
+nρ 2,S (Z) ≥ Eε
+
+∣∣∣∣∣∑
+
+> i∈T∗
+
+εi
+
+∣∣∣∣∣ ≥ √k∗/2.
+
+Squaring and rearranging yields 
+
+k∗ ≤ 2n2ρ2,S (Z)2. (63) The Gaussian identity ∥v∥2 = c0EG |⟨ G, v ⟩| gives ̂
+
+M ∗ 
+
+> 2,S
+
+(Z) = c0 sup 
+
+> z∈Z
+
+EG
+
+1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+|ai(G, z )| . (64) For fixed G, z , the signed layer-cake formula yields 
+
+> n
+
+∑
+
+> i=1
+
+|ai(G, z )| =
+
+∫ ∞
+
+> 0
+
+∣∣∣T +
+
+> G,z,t
+
+∣∣∣ dt +
+
+∫ ∞
+
+> 0
+
+∣∣∣T −
+
+> G,z,t
+
+∣∣∣ dt (65) 
+
+≤ k∗
+
+(
+
+max  
+
+> i
+
+(ai(G, z )) + + max  
+
+> i
+
+(−ai(G, z )) +
+
+)
+
+(66) 
+
+≤ 2k∗ max  
+
+> i
+
+|ai(G, z )| . (67) Taking the supremum over z outside the Gaussian expectation gives ̂
+
+M ∗ 
+
+> 2,S
+
+(Z) ≤ 2k∗
+
+n̂ W2,S (Z). (68) Combining (63) and (68), ̂
+
+M ∗ 
+
+> 2,S
+
+(Z)
+
+n ≤ 4̂W2,S (Z)ρ2,S (Z)2.
+
+This proves the second inequality in (16), for example with C′ 
+
+> 2
+
+= 2 √1 + Cch .
+
+A.7 Proof of Theorem 3.3 
+
+Proof. All logarithms in this proof may be taken in any fixed base, because changing the base only changes universal constants. 
+
+Cardinality upper bound. Let T̸ = ∅ be a trace family and write vT = ( 1{i∈T })ni=1 . The class {vT , −vT :
+
+T ∈ T } has cardinality at most 2 |T | and every vector has Euclidean norm at most √n. The finite-class exponential-moment argument (Massart’s lemma) gives 
+
+Eη max   
+
+> T∈T
+
+| ⟨ η, v T ⟩ | ≤ √2n log(2 |T | ).
+
+Indeed, for λ > 0, Eeλ⟨η,v T ⟩ ≤ eλ2∥vT ∥22/2 ≤ eλ2n/ 2; applying the log-sum-exp bound to the 2 |T | signed vectors and optimizing at λ = √2 log(2 |T | )/n gives the display. Division by n, together with the deterministic bound by one, yields 
+
+ρn(T ) ≤ min 
+
+{
+
+1,
+
+√ 2 log(2 |T | )
+
+n
+
+}
+
+. (69) When |T | ≤ N and N ≥ 2, log(2 N ) ≤ 2 log N after a universal adjustment of the logarithm base. Applying the absorbed form of Theorem 3.2 with ̂ A1,S (Z) ≤ A for q = 1, or ̂ W2,S (Z) ≤ A for q = 2, proves the cardinality upper direction. 19 VC upper bound. Every nonempty realized trace system in the theorem contains ∅. For a trace class of VC dimension at most V , Haussler’s packing theorem in the empirical symmetric-difference metric 
+
+dn(T, T ′) = ( |T △T ′|/n )1/2 gives universal constants c1, c 2 such that log N (u, T , d n) ≤ c1V log( c2/u ), 0 < u ≤ 1.
+
+The empirical Dudley bound for the centered Rademacher process indexed by the indicator vectors then gives 1
+
+n Eη sup  
+
+> T∈T
+
+∑
+
+> i∈T
+
+ηi ≤ c3
+
+√n
+
+∫ 10
+
+√V log( c2/u ) d u ≤ c4
+
+√V /n. 
+
+The integral is finite because the substitution u = e−s produces an exponentially weighted square-root moment. Since ∅ ∈ T , the one-sided supremum is nonnegative; symmetry of η bounds the absolute supremum by twice its expectation. Combining this estimate with the deterministic cap gives 
+
+ρn(T ) ≤ CVC min {1, √V /n }. (70) This is the Haussler–Dudley route recorded in Haussler (1995); Bartlett and Mendelson (2002). Substitution into Theorem 3.2 proves the VC upper direction. 
+
+Exact scalar Brownian reduction. Let ∅̸ = T ⊆ 2[n] and prescribe sample values zT (xi) = A1{i∈T }. The output dimension is one and the values are nonnegative. For q = 1 and q = 2 the scalar kernels coincide with 
+
+kB, while Φ q (0) = 0 and ∥Φq (A)∥ = √A. For every sign vector, Hilbert duality therefore gives sup  
+
+> T∈T
+
+sup 
+
+> ∥a∥≤ B
+
+1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+εi ⟨a, Φq (zT (xi)) ⟩ = B√An sup  
+
+> T∈T
+
+∣∣∣∣∣∑
+
+> i∈T
+
+εi
+
+∣∣∣∣∣ . (71) Taking expectation yields ̂
+
+RS
+
+( ⋃ 
+
+> T∈T
+
+F(q) 
+
+> zT,B
+
+)
+
+= B√A ρ n(T ). (72) If ∅ ∈ T and at least one member is nonempty, the induced positive-threshold trace family is exactly T :thresholds in (0 , A ] recover T and thresholds above A give ∅. In the projected scalar case the sign and projection scalar recover the same alternatives. The additive envelope is A. The projected envelope is also A,because c0E|G| = 1. Thus the lower construction belongs to precisely the admissible class used in the upper theorem. 
+
+Finite ReLU realization on pairwise-distinct inputs. Assume first n ≥ 2. The set of w ∈ Rd for which 
+
+⟨w, x i − xj ⟩ = 0 for some i̸ = j is a finite union of proper hyperplanes, hence does not cover Rd. Choose 
+
+w outside it and relabel the distinct knots τ1 < · · · < τ n, where τr = 〈w, x π(r)
+
+〉. For a fixed T , put 
+
+yr = A1{π(r)∈T }, define s0 = sn = 0, and for 1 ≤ r < n set sr = ( yr+1 − yr )/(τr+1 − τr ). Then 
+
+gT (t) = y1 +
+
+> n
+
+∑
+
+> r=1
+
+(sr − sr−1)( t − τr )+ (73) interpolates every ( τr , y r), is constant outside the extreme knots, and is affine between consecutive knots. Because each segment joins two values in [0 , A ], it satisfies 0 ≤ gT (t) ≤ A for every t ∈ R. The right side is an affine combination of n ReLU hinge units and an output bias. Appending a scalar terminal ReLU leaves it unchanged globally, so x 7 → ReLU( gT (⟨w, x ⟩)) is a finite ReLU representation with one hinge layer, a scalar terminal ReLU, and the required globally nonnegative sample values. For n = 1, the same conclusion follows from the constant scalar representation zT ≡ 0 or zT ≡ A. No network parameter depends on the auxiliary Rademacher signs; it may depend on the observed sample and on the trace index T , as permitted by the theorem. 
+
+Finite-cardinality lower bound. Fix 2 ≤ N ≤ 2n and set k = ⌊log 2 N ⌋. Then 1 ≤ k ≤ n. Put b = ⌊n/k ⌋; since 
+
+n/k ≥ 1, 
+
+b ≥ n
+
+2k . (74) 20 Choose k pairwise disjoint blocks B1, . . . , B k ⊆ [n], each of cardinality b, and set 
+
+Tblk =
+
+{ ⋃
+
+> r∈J
+
+Br : J ⊆ [k]
+
+}
+
+.
+
+Different choices of J give different unions, so |T blk | = 2 k ≤ N , and ∅ ∈ T blk . Write Sr = ∑ 
+
+> i∈Br
+
+εi. Selecting exactly those blocks for which Sr > 0 gives sup  
+
+> T∈T blk
+
+∑
+
+> i∈T
+
+εi =
+
+> k
+
+∑
+
+> r=1
+
+(Sr )+.
+
+By symmetry, E(Sr)+ = 12 E|Sr |, and the sharp scalar Khintchine lower bound gives E|Sr | ≥ √b/ 2. Conse-quently, 
+
+ρn(Tblk ) ≥ k√b
+
+2√2 n ≥ 14
+
+√k/n. (75) For x = log 2 N ≥ 1, ⌊x⌋ ≥ x/ 2; hence k ≥ (log 2 N )/2. The right side of (75) is therefore at least a universal constant times min {1, √log N/n }. The scalar ReLU family just constructed has trace cardinality 2 k ≤ N ,envelope exactly A, and complexity B√Aρ n(Tblk ), proving the cardinality lower direction, including the saturated regime k of order n.
+
+VC lower bound. Repeat the block construction with k = V ; then b = ⌊n/V ⌋ ≥ 1. Choosing one representative point from each block shows that all 2 V label patterns on those representatives are realized, so the VC dimension is at least V . Since the class has cardinality 2 V , its VC dimension is at most log 2(2 V ) = V . It is therefore exactly V . The same calculation gives ρn(Tblk ) ≥ c min {1, √V /n }. Equation (72) and the finite globally nonnegative ReLU realization prove the VC lower direction. The upper and lower constants used in the two directions are universal but are not equal. Thus ≍ in the theorem means matching universal-constant order, not exact equality of constants. 
+
+A.8 Proof of Corollary 3.4 
+
+Proof. Applying (34) with the uniform layer bounds and then taking the supremum over θ ∈ Θ and i ∈ [n]gives sup 
+
+> θ,i
+
+∥zθL(xi)∥q ≤ RΘ,q . (76) The final states are nonnegative because the last representation layer is a coordinatewise ReLU. For q = 1, every coordinate is nonnegative and no coordinate exceeds the ℓ1 norm. Hence 
+
+> m
+
+∑
+
+> j=1
+
+max  
+
+> i
+
+zθL,j (xi) ≤ mR Θ,1.
+
+Also, for each j, max i zθL,j (xi) ≤ ∑ 
+
+> i
+
+zθL,j (xi), so 
+
+> m
+
+∑
+
+> j=1
+
+max  
+
+> i
+
+zθL,j (xi) ≤
+
+> n
+
+∑
+
+> i=1
+
+∥zθL(xi)∥1 ≤ nR Θ,1.
+
+Taking the smaller bound and then the supremum over θ yields ̂
+
+A1,S (ZΘ) ≤ min {m, n }RΘ,1. (77) For q = 2, suppose all realized states lie in a common subspace E of dimension r. For G ∼ N (0 , I m), sup 
+
+> θ,i
+
+| 〈G, z θL(xi)〉 | = sup 
+
+> θ,i
+
+| 〈PE G, z θL(xi)〉 | ≤ RΘ,2∥PE G∥2.
+
+Jensen’s inequality and E∥PE G∥22 = r imply E∥PE G∥2 ≤ √r. Therefore ̂
+
+W2,S (ZΘ) ≤ c0RΘ,2
+
+√r. (78) Taking E = Rm gives the ambient-width estimate with r = m. The same argument covers r = 0, in which case every realized state is zero. 21 It remains to justify one VC bound for both trace systems. Adjoin to the fixed representation graph the scalar affine output 
+
+x 7 −→ 〈g, z θL(x)〉 − t, g ∈ Rm, t ∈ R.
+
+The augmented graph has WΘ = P + m + 1 trainable weights and biases and longest path at most L + 1. Because each noninput unit has a counted bias, its number of computation units is at most a universal multiple of WΘ. Every nonoutput activation is ReLU, a two-piece degree-one function, and the new output is the identity. The main upper-bound theorem of Bartlett et al. (2019) applies to a fixed directed acyclic computation graph of this form and gives VCdim 
+
+{
+
+x 7 → 1{⟨g,z θL(x)⟩−t≥0} : ( θ, g, t )
+
+}
+
+≤ Cnet WΘ(L + 1) log( eW Θ),
+
+after enlarging the universal constant to include the finitely many small-unit cases. The additive coordinate-threshold class is a subclass obtained by restricting g to coordinate vectors. The projected trace class is a subclass as well: the sign s is absorbed into g, and allowing every real t only enlarges the class relative to 
+
+t > 0. Thus the displayed VΘ bounds both realized trace systems with the exact sample, threshold, coordinate, and projection quantifiers used in the corollary. The VC trace estimate proved in the preceding theorem gives ρq,S (ZΘ) ≤ C min {1, √VΘ/n }. Substituting this estimate and (77) into the q = 1 line of Theorem 3.2 yields ̂
+
+RS (F(1)  
+
+> ZΘ,B
+
+) ≤ CB 
+
+√
+
+min {m, n }RΘ,1 min {1, √VΘ/n }.
+
+Substitution of (78) yields ̂
+
+RS (F(2)  
+
+> ZΘ,B
+
+) ≤ CB √RΘ,2 r1/4 min {1, √VΘ/n },
+
+where the fixed factor c1/20 is absorbed into the universal constant. Taking r = m gives the stated ambient-width term. Finally, (76) and Proposition 2.1 give ∥Φq (zθL(xi)) ∥ ≤ √RΘ,q . For every sign vector, sup 
+
+> θ
+
+∥∥∥∥∥
+
+> n
+
+∑
+
+> i=1
+
+εiΦq (zθL(xi)) 
+
+∥∥∥∥∥ ≤
+
+> n
+
+∑
+
+> i=1
+
+sup 
+
+> θ
+
+∥Φq (zθL(xi)) ∥ ≤ n√RΘ,q .
+
+Hilbert duality therefore gives the deterministic cap ̂ RS ≤ B√RΘ,q , including RΘ,q = 0. Taking the minimum of this cap and the corresponding VC estimate proves (19)–(20) and the common-rank replacement. 
+
+## B Additional Terminal-Head Results 
+
+This section collects supporting terminal-head refinements, not additional headline contributions. Fixed-representation Hilbert duality and the empirical-process tools used below are standard and are adapted here. Each statement is followed immediately by its proof; topics are Brownian identities, covariance, same-sample tools, finite realization, and consequences. 
+
+B.1 Scalar Brownian identities and kernel construction 
+
+The scalar Brownian kernel on R is 
+
+kB(s, t ) = |s| + |t| − | s − t|
+
+2 . (79) It has the signed-threshold representation 
+
+kB(s, t ) = 
+
+∫ ∞
+
+> 0
+
+(1{s≥r}1{t≥r} + 1{s≤− r}1{t≤− r}
+
+) dr. (80) On R+ this reduces to kB(s, t ) = min {s, t }, with canonical feature r 7 → 1[0 ,s ](r) in L2(R+). For the additive geometry, 
+
+K1(u, v ) = 
+
+> m
+
+∑
+
+> j=1
+
+kB(uj , v j ). (81) 22 Proposition B.1 (Positive definiteness and Gaussian projection) . The kernels K1 and K2 in (2) are positive definite. If G ∼ N (0 , I m) and c0 = √π/ 2, then 
+
+K2(u, v ) = c0 EG[kB(⟨G, u ⟩ , ⟨G, v ⟩)] . (82) 
+
+Proof. Let Ω := {+, −} × R+ with counting measure on {+, −} and Lebesgue measure on R+, and define 
+
+ϕ(s)(+ , r ) := 1{s≥r}, ϕ(s)( −, r ) := 1{s≤− r}.
+
+For every s ∈ R, ϕ(s) ∈ L2(Ω) and ∥ϕ(s)∥2 
+
+> L2(Ω)
+
+= |s|. The signed-threshold identity (80) gives 
+
+⟨ϕ(s), ϕ (t)⟩L2(Ω) = kB(s, t ).
+
+Thus kB is positive definite, including at s = 0 or t = 0. Taking the Hilbert direct sum of m copies of L2(Ω) shows that K1(u, v ) = ∑mj=1 kB(uj , v j ) is positive definite. For fixed g ∈ Rm, the map ( u, v ) 7 → kB(⟨g, u ⟩ , ⟨g, v ⟩) is the pullback of the positive-definite kernel kB through the linear functional u 7 → ⟨ g, u ⟩. Moreover, 0 ≤ kB(a, b ) ≤ |a| + |b|
+
+2 ,
+
+so the Gaussian integrand is integrable for every fixed u, v . Therefore a finite Gram quadratic form may be passed through the expectation, and the expectation is again positive definite. Finally, for every w ∈ Rm,
+
+⟨G, w ⟩ ∼ N (0 , ∥w∥22) and hence E| ⟨ G, w ⟩ | = √2/π ∥w∥2. Applying this identity to w = u, v, u − v gives 
+
+c0EkB(⟨G, u ⟩ , ⟨G, v ⟩) = ∥u∥2 + ∥v∥2 − ∥ u − v∥2
+
+2 = K2(u, v ).
+
+This proves both positive definiteness and (82). For u ∈ Rm 
+
+> +
+
+, the additive canonical map has the explicit realization Φ1(u)( j, t ) = 1[0 ,u j ](t) in L2([ m] × R+, # ⊗ dt). (83) Consequently, an additive Brownian readout can be written as 
+
+ha(u) = ⟨a, Φ1(u)⟩ =
+
+> m
+
+∑
+
+> j=1
+
+∫ uj
+
+> 0
+
+aj (t) d t =
+
+> m
+
+∑
+
+> j=1
+
+gj (uj ), (84) where gj (0) = 0, g′ 
+
+> j
+
+= aj , and ∥ha∥2 
+
+> H1
+
+= ∑
+
+> j
+
+∥∥g′
+
+> j
+
+∥∥2 
+
+> L2
+
+.
+
+B.2 Fixed-head refinements and localization 
+
+The next statements refine Theorem 2.2 when the realized Gram matrix, empirical centering, or spectral localization is available. 
+
+Proposition B.2 (Gram-sensitive lower endpoint) . Let KS = ( ⟨vi, v j ⟩) with vi = Φ q (z(xi)) , and set 
+
+TS = Tr KS and ∆2 
+
+> S
+
+= 2 ∑ 
+
+> i̸=j
+
+(KS )2 
+
+> ij
+
+. If TS > 0, then ̂
+
+RS (F(q) 
+
+> z,B
+
+) ≥ B√TS
+
+n max 
+
+{
+
+1
+
+√2 , 1
+
+√1 + ∆ 2 
+
+> S
+
+/T 2
+
+> S
+
+}
+
+. (85) 
+
+When KS is diagonal, the second term equals the trace upper bound. Proof. Write Xε = ∥∑ 
+
+> i
+
+εivi∥2 = ε⊤KS ε and Yε = √Xε. Independence of the signs gives 
+
+EXε = TS , EX2 
+
+> ε
+
+= T 2 
+
+> S
+
++ 2 ∑
+
+> i̸=j
+
+(KS )2 
+
+> ij
+
+= T 2 
+
+> S
+
++ ∆ 2 
+
+> S
+
+. (86) Interpolation between L1, L2, and L4 gives ∥Yε∥L2 ≤ ∥ Yε∥1/3 
+
+> L1
+
+∥Yε∥2/3 
+
+> L4
+
+, hence 
+
+EYε ≥ (EY 2 
+
+> ε
+
+)3/2
+
+(EY 4 
+
+> ε
+
+)1/2 = T 3/2
+
+> S
+
+(T 2 
+
+> S
+
++ ∆ 2 
+
+> S
+
+)1/2 .
+
+23 Multiply by B/n and combine with the universal lower bound in (7). If KS is diagonal, then ∆ S = 0 and this lower bound equals the Jensen upper bound. The assumption TS > 0 is used only to divide by √TS ;when TS = 0, positive semidefiniteness forces every vi = 0 and the complexity is zero. 
+
+Corollary B.3 (Centered fixed-head complexity) . Let vi = Φ q (z(xi)) and v = n−1 ∑ 
+
+> i
+
+vi. For the centered class F(q),◦ 
+
+> z,B
+
+= {x 7 → ⟨ a, Φq (z(x)) − v⟩ : ∥a∥ ≤ B}, define ̂
+
+V ◦ 
+
+> q,S
+
+(z) = 12n2
+
+> n
+
+∑
+
+> i,j =1
+
+∥z(xi) − z(xj )∥q . (87) 
+
+Then 
+
+B
+
+√2
+
+√̂ 
+
+V ◦ 
+
+> q,S
+
+(z)
+
+n ≤̂ RS (F(q),◦ 
+
+> z,B
+
+) ≤ B
+
+√̂ 
+
+V ◦ 
+
+> q,S
+
+(z)
+
+n . (88) 
+
+For a depth-L extractor, ̂ V ◦ 
+
+> q,S
+
+(zL) is at most (∏ Lℓ=1 sℓ,q 
+
+)(2 n2)−1 ∑ 
+
+> i,j
+
+∥xi − xj ∥q , with no bias term. Proof. Let wi = Φ q (z(xi)) and w = n−1 ∑ 
+
+> i
+
+wi, and set vi = wi − w. Hilbert-space duality gives ̂
+
+RS (F(q),◦ 
+
+> z,B
+
+) = Bn Eε
+
+∥∥∥∥∥∑
+
+> i
+
+εivi
+
+∥∥∥∥∥Hq
+
+.
+
+For arbitrary vectors w1, . . . , w n in a Hilbert space, expansion around their empirical mean gives 1
+
+n
+
+∑
+
+> i
+
+∥wi − w∥2 = 12n2
+
+∑
+
+> i,j
+
+∥wi − wj ∥2 . (89) Applying this identity to the Brownian features and using (3) yields 1
+
+n
+
+∑
+
+> i
+
+∥vi∥2 = 12n2
+
+∑
+
+> i,j
+
+∥z(xi) − z(xj )∥q =̂ V ◦ 
+
+> q,S
+
+(z).
+
+The two inequalities in (88) now follow from Lemma A.1. Finally, (33) bounds every pairwise term for a depth-L extractor; averaging over the ordered pairs gives the displayed bias-free product envelope. 
+
+Proposition B.4 (Localized spectral complexity) . Let vi = Φ q (z(xi)) , let CS = n−1 ∑ 
+
+> i
+
+vi ⊗ vi have nonzero eigenvalues (λj )rj=1 , and define F(q) 
+
+> z,B
+
+(ϱ) = {f ∈ F (q) 
+
+> z,B
+
+: n−1 ∑ 
+
+> i
+
+f (xi)2 ≤ ϱ2}. Then ̂
+
+RS (F(q) 
+
+> z,B
+
+(ϱ)) ≤ 1
+
+√n inf 
+
+> t≥0
+
+(B2 + tϱ 2)
+
+> r
+
+∑
+
+> j=1
+
+λj
+
+1 + tλ j
+
+
+
+> 1/2
+
+. (90) 
+
+In particular, ̂
+
+RS (F(q) 
+
+> z,B
+
+(ϱ)) ≤ min 
+
+B
+
+√̂ 
+
+Mq,S (z)
+
+n ,
+
+ 2
+
+n
+
+∑
+
+> j
+
+min {ϱ2, B 2λj }
+
+
+
+> 1/2
+
+ .
+
+Proof. Put gε = ∑ni=1 εivi. The component of a in ker CS is orthogonal to every vi, so it changes neither the sample predictions nor ⟨a, g ε⟩ and can be discarded. On (ker CS )⊥, membership in the localized class is exactly the pair of constraints 
+
+∥a∥2 ≤ B2, ⟨a, C S a⟩ = 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+⟨a, v i⟩2 ≤ ϱ2.
+
+For t ≥ 0, the operator I + tC S is strictly positive and invertible. Its Cauchy–Schwarz inequality gives, for every admissible a,
+
+⟨a, g ε⟩ =
+
+〈
+
+(I + tC S )1/2a, (I + tC S )−1/2gε
+
+〉
+
+24 ≤ (∥a∥2 + t ⟨a, C S a⟩)1/2 〈gε, (I + tC S )−1gε
+
+〉1/2
+
+≤ (B2 + tϱ 2)1/2 〈gε, (I + tC S )−1gε
+
+〉1/2 .
+
+After taking the supremum, expectation, and applying Jensen’s inequality, independence of the signs yields 1
+
+n Eε sup 
+
+> a
+
+⟨a, g ε⟩ ≤ (B2 + tϱ 2)1/2
+
+n
+
+[Eε
+
+〈gε, (I + tC S )−1gε
+
+〉] 1/2
+
+= 1
+
+√n
+
+[(B2 + tϱ 2) Tr {CS (I + tC S )−1}]1/2 ,
+
+because E(gε ⊗ gε) = ∑ 
+
+> i
+
+vi ⊗ vi = nC S . Diagonalizing CS gives Tr {CS (I + tC S )−1} = ∑rj=1 λj /(1 + tλ j ), and taking the infimum over t ≥ 0 proves (90). At t = 0, the eigenvalue sum is Tr CS =̂ Mq,S (z), which gives the global trace bound. If B > 0 and ϱ > 0, choose t = B2/ϱ 2. Then B2 + tϱ 2 = 2 B2 and, for each λ ≥ 0, 
+
+λ
+
+1 + ( B2/ϱ 2)λ ≤ min 
+
+{
+
+λ, ϱ2
+
+B2
+
+}
+
+.
+
+Substitution gives [2 n−1 ∑ 
+
+> j
+
+min {B2λj , ϱ 2}]1/2. If B = 0, the class contains only zero. If ϱ = 0, every admissible a satisfies C1/2 
+
+> S
+
+a = 0, so all sample predictions and the empirical Rademacher complexity are zero. If r = 0, the same conclusion holds. Thus the displayed particular bounds cover all singular and endpoint cases. 
+
+B.3 Covariance-shaped terminal heads 
+
+For Σ ⪰ 0, write ∥u∥Σ = ∥Σ1/2u∥2 and KΣ(u, v ) = 12 (∥u∥Σ + ∥v∥Σ − ∥ u − v∥Σ). The first proposition identifies this geometry as a Euclidean Brownian pullback and records the exact same-sample reduction; the subsequent results quantify perturbations and anisotropic refinements. 
+
+Proposition B.5 (Covariance pullback and same-sample reduction) . If GΣ ∼ N (0 , Σ) and c0 = √π/ 2, then 
+
+KΣ(u, v ) = K2(Σ 1/2u, Σ1/2v) = c0 E kB(⟨GΣ, u ⟩, ⟨GΣ, v ⟩). (91) 
+
+Hence ∥ΦΣ(u)∥2 = ∥u∥Σ and ∥ΦΣ(u) − ΦΣ(v)∥2 = ∥u − v∥Σ. If Σ is selected on the same sample from a family 
+
+S, the resulting union of heads is isometric to the Euclidean q = 2 class generated by S1/2Z = {x 7 → Σ1/2z(x)},and its projected-threshold traces form a subset of those already generated by arbitrary linear projections of Z.Proof. The pullback identity in (91) follows by inserting ∥u∥Σ = ∥Σ1/2u∥2 into the definition of KΣ. Positive definiteness is therefore inherited from K2. For every w ∈ Rm, the scalar ⟨GΣ, w ⟩ is centered Gaussian with variance w⊤Σw, and hence 
+
+E |⟨ GΣ, w ⟩| = √2/π ∥w∥Σ.
+
+Applying this identity to w = u, v, u − v in the scalar Brownian kernel proves the Gaussian-mixture equality in (91). The canonical RKHS identities follow from ∥ΦΣ(u)∥2 = KΣ(u, u ) and from expanding ∥ΦΣ(u) − ΦΣ(v)∥2.For same-sample covariance selection, replace each pair (Σ , z ) by the transformed representation x 7 →
+
+Σ1/2z(x). The preceding pullback identity is an isometry between the corresponding head classes. Moreover, 
+
+⟨g, Σ1/2z(x)⟩ = ⟨Σ1/2g, z (x)⟩, so every threshold trace of the transformed class is already generated by an arbitrary linear projection of the original representation family. 
+
+Proposition B.6 (Deterministic stability under covariance perturbations) . Let Σ, Γ ⪰ 0 and set η := 
+
+∥Σ − Γ∥1/2op . Then, for all r, u, v ∈ Rm,
+
+|∥ r∥Σ − ∥ r∥Γ| ≤ η ∥r∥2 , (92) 
+
+|KΣ(u, v ) − KΓ(u, v )| ≤ η
+
+2
+
+(∥u∥2 + ∥v∥2 + ∥u − v∥2
+
+). (93) 
+
+For a sample S = ( xi)ni=1 and a fixed representation z, write ̂
+
+MΣ,S (z) := 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+∥z(xi)∥Σ .
+
+25 Then ∣∣∣̂ MΣ,S (z) −̂ MΓ,S (z)
+
+∣∣∣ ≤ η 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+∥z(xi)∥2 . (94) 
+
+If max i ∥z(xi)∥2 ≤ R and KΣ,S , KΓ,S are the two sample Gram matrices, then 
+
+∥∥∥∥
+
+1
+
+n (KΣ,S − KΓ,S )
+
+∥∥∥∥op 
+
+≤ 2Rη. (95) 
+
+Consequently, if the eigenvalues of the normalized Gram matrices are ordered nonincreasingly and counted with multiplicity, each corresponding pair differs by at most 2Rη .Proof. For a, b ≥ 0, 
+
+∣∣∣√a − √b
+
+∣∣∣ ≤ √|a − b|; hence 
+
+|∥ r∥Σ − ∥ r∥Γ| ≤ 
+
+√
+
+|r⊤(Σ − Γ) r| ≤ η ∥r∥2 .
+
+The kernel and mass bounds follow by applying this inequality to the defining terms. Under the radius assumption, every Gram entry changes by at most 2 Rη , so ∥KΣ,S − KΓ,S ∥op ≤ ∥ KΣ,S − KΓ,S ∥F ≤ 2nRη .After division by n, Weyl’s eigenvalue perturbation inequality for real symmetric matrices gives the final eigenvalue assertion, including repeated and zero eigenvalues. The explicit norm formula also yields a general finite-dimensional expansion for covariance deformation. 
+
+Proposition B.7 (Second-order covariance-deformation expansion) . Let Σ, Γ ≻ 0, put H := Γ − Σ, and define 
+
+h := ∥H∥op , a∗ := min {λmin (Σ) , λ min (Γ) } > 0.
+
+For r ∈ Rm, set 
+
+qΣ,H (r) := 
+
+
+
+r⊤Hr 
+
+∥r∥Σ
+
+, r̸ = 0 ,
+
+0, r = 0 ,
+
+DΣ,H (u, v ) := 14
+
+[qΣ,H (u) + qΣ,H (v) − qΣ,H (u − v)]. (96) 
+
+Then 
+
+KΓ(u, v ) = KΣ(u, v ) + DΣ,H (u, v ) + RΣ,H (u, v ), (97) 
+
+where 
+
+|RΣ,H (u, v )| ≤ h2
+
+16 a3/2
+
+> ∗
+
+(∥u∥2 + ∥v∥2 + ∥u − v∥2
+
+). (98) 
+
+Thus the Fréchet derivative is explicit and the remainder is quadratic in the covariance perturbation, with no distributional or high-dimensional assumption. Proof. For fixed r, let gr(t) = √r⊤(Σ + tH )r, t ∈ [0 , 1]. If r = 0, then gr(t) = 0, qΣ,H (0) = 0, and the expansion and remainder bound both read 0 = 0. Assume henceforth that r̸ = 0. Then 
+
+g′ 
+
+> r
+
+(0) = r⊤Hr 
+
+2 ∥r∥Σ
+
+, g′′  
+
+> r
+
+(t) = − (r⊤Hr )2
+
+4{r⊤(Σ + tH )r}3/2 .
+
+Because Σ + tH = (1 − t)Σ + tΓ ⪰ a∗Im and ∣∣r⊤Hr ∣∣ ≤ h ∥r∥22, Taylor’s theorem gives 
+
+|gr (1) − gr (0) − g′ 
+
+> r
+
+(0) | ≤ h2
+
+8a3/2
+
+> ∗
+
+∥r∥2 .
+
+Apply this estimate to r = u, v, u − v and combine the three norm expansions in the definition of KΓ.
+
+Corollary B.8 (Two-sided nonasymptotic spiked Brownian expansion) . Fix a > 0, δ > −a, and w ∈ Rm
+
+with ∥w∥2 = 1 , and set Σa,δ,w = aI m + δww ⊤ and aδ := a + min {δ, 0} > 0. For 
+
+ϑw(r) := 
+
+
+
+⟨w, r ⟩2
+
+∥r∥2
+
+, r̸ = 0 ,
+
+0, r = 0 ,Dw(u, v ) := ϑw(u) + ϑw(v) − ϑw(u − v), (99) 26 we have 
+
+KΣa,δ,w (u, v ) = √a K 2(u, v ) + δ
+
+4√a Dw(u, v ) + Ra,δ,w (u, v ), (100) 
+
+with 
+
+|Ra,δ,w (u, v )| ≤ δ2
+
+16 a3/2
+
+> δ
+
+(∥u∥2 + ∥v∥2 + ∥u − v∥2
+
+). (101) 
+
+The same formula therefore covers directional amplification ( δ > 0) and suppression ( −a < δ < 0). Proof. Apply Proposition B.7 with Σ = aI m, H = δww ⊤, and Γ = Σ a,δ,w . The condition δ > −a makes both matrices positive definite. Moreover, 
+
+∥H∥op = |δ|, min {λmin (aI m), λ min (aI m + δww ⊤)} = aδ .
+
+For r̸ = 0, 
+
+qaI m,δww ⊤ (r) = δ ⟨w, r ⟩2
+
+√a ∥r∥2
+
+= δ
+
+√a ϑw(r),
+
+and both sides are zero at r = 0 by definition. Hence DaI m,H (u, v ) = δD w(u, v )/(4 √a). The base kernel is 
+
+KaI m = √a K 2, and the general remainder bound becomes exactly (101) because ∥H∥2op = δ2. This proves the asserted expansion for both signs of δ.
+
+Remark B.9 (Scope of anisotropic propagation) . The feature identities and fixed-representation complexity statements hold for every supplied Σ ⪰ 0. If Σ is selected on the same sample, Proposition B.5 reduces the resulting class to the transformed Euclidean representation family S1/2Z. Coordinatewise ReLU is automatically nonexpansive for diagonal weighted Euclidean seminorms, but not for a general nondiagonal Σ. Accordingly, Proposition A.2 is stated for the additive and isotropic Euclidean geometries; a general anisotropic head is controlled by its realized Σ-activation mass rather than by an unsupported layerwise contraction. 
+
+Corollary B.10 (Anisotropic activation-mass characterization) . Fix z : X → Rm, S = ( xi)ni=1 , B ≥ 0, and 
+
+Σ ⪰ 0. Define 
+
+F(Σ)  
+
+> z,B
+
+:= {x 7 → ⟨ a, ΦΣ(z(x)) ⟩HΣ
+
+∣∣ ∥a∥HΣ ≤ B} ,̂ MΣ,S (z) := 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+∥z(xi)∥Σ . (102) 
+
+Then ̂
+
+RS (F(Σ)  
+
+> z,B
+
+) = Bn Eε
+
+∥∥∥∥∥
+
+> n
+
+∑
+
+> i=1
+
+εiΦΣ(z(xi)) 
+
+∥∥∥∥∥HΣ
+
+, (103) 
+
+B
+
+√2
+
+√̂ 
+
+MΣ,S (z)
+
+n ≤̂ RS (F(Σ)  
+
+> z,B
+
+) ≤ B
+
+√̂ 
+
+MΣ,S (z)
+
+n . (104) 
+
+If Σ̸ = 0 and n ≥ 2, both constants are attained by canonical features along any direction h with h⊤Σh > 0.For n = 1 , the complexity equals the upper endpoint for every nonzero realized feature. For Σ = 0 , the class is identically zero. Moreover, for c > 0, KcΣ = √c K Σ and 
+
+∥f ∥HcΣ
+
+√̂ 
+
+McΣ,S (z) = ∥f ∥HΣ
+
+√̂ 
+
+MΣ,S (z) (105) 
+
+for every function f in the common RKHS function set. Proof. By Proposition B.5, the anisotropic feature configuration is the Euclidean Brownian configuration generated by Σ 1/2z(xi). Applying Theorem 2.2 gives (103)–(104). When Σ ̸ = 0, choose h with ∥h∥Σ =(h⊤Σh)1/2 > 0 and normalize it to ¯h = h/ ∥h∥Σ. For n ≥ 2, the configurations z(x1) = nM ¯h, z(xi) = 0 for 
+
+i > 1, and z(x1) = z(x2) = ( nM/ 2) ¯h, z(xi) = 0 for i > 2, have anisotropic activation mass M and reproduce respectively the upper and lower endpoint computations in Theorem 2.2. For n = 1, Hilbert duality gives the exact value B√M . Finally, multiplying a kernel by α > 0 leaves its function set unchanged and multiplies squared RKHS norms by α−1. Here α = √c and ̂ McΣ,S = √ĉ MΣ,S , which proves (105). 27 B.4 Auxiliary tools for same-sample selection 
+
+These results give a threshold-free cap, realized-width reductions, standard trace upper bounds, and the finite scalar ReLU realization used by the lower constructions. 
+
+Proposition B.11 (Same-sample root-mass cap) . Let ∅̸ = Z and use outer expectation when the displayed supremum is not measurable. For either Brownian geometry, ̂
+
+RS (F(q) 
+
+> Z,B
+
+) ≤ Bn sup 
+
+> z∈Z
+> n
+
+∑
+
+> i=1
+
+√
+
+∥z(xi)∥q ≤ B
+
+√̂ 
+
+M ∗ 
+
+> q,S
+
+(Z). (106) 
+
+Proof. For every realization of the Rademacher signs, Hilbert-space duality gives sup 
+
+> z∈Z
+
+sup 
+
+> ∥a∥≤ Bn
+
+∑
+
+> i=1
+
+εi⟨a, Φq (z(xi)) ⟩ = B sup 
+
+> z∈Z
+
+∥∥∥∥∥
+
+> n
+
+∑
+
+> i=1
+
+εiΦq (z(xi)) 
+
+∥∥∥∥∥ .
+
+The triangle inequality and the canonical energy identity imply 
+
+∥∥∥∥∥∑
+
+> i
+
+εiΦq (z(xi)) 
+
+∥∥∥∥∥ ≤ ∑
+
+> i
+
+∥Φq (z(xi)) ∥ = ∑
+
+> i
+
+√
+
+∥z(xi)∥q .
+
+Taking the supremum, expectation, and the factor 1 /n proves the first inequality. For every fixed z,Cauchy–Schwarz gives 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+√
+
+∥z(xi)∥q ≤
+
+(
+
+1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+∥z(xi)∥q
+
+)1/2
+
+.
+
+Taking the supremum over z ∈ Z and using monotonicity of the square root gives 
+
+√̂ 
+
+M ∗ 
+
+> q,S
+
+(Z), which proves the second inequality. 
+
+Proposition B.12 (Projected width on realized states) . Let ∅̸ = VS (Z) = {z(xi) : z ∈ Z , i ∈ [n]} and assume sup v∈V S (Z) ∥v∥2 ≤ Rz . If VS (Z) lies in a common r-dimensional subspace, then ̂ W2,S (Z) ≤ c0Rz
+
+√r.If |V S (Z)| ≤ M for an integer M ≥ 1, then ̂ W2,S (Z) ≤ c0Rz
+
+√2 log(2 M ).Proof. Let E be a common r-dimensional subspace and let PE denote the orthogonal projection onto E. For every v ∈ E, ⟨G, v ⟩ = ⟨PE G, v ⟩, so Cauchy–Schwarz gives sup  
+
+> v∈V S(Z)
+
+|⟨ G, v ⟩| ≤ Rz ∥PE G∥2 .
+
+Because PE G is a standard Gaussian vector in E,
+
+E ∥PE G∥2 ≤
+
+(
+
+E ∥PE G∥22
+
+)1/2
+
+= √r. 
+
+Multiplication by c0 proves the common-subspace assertion. For the finite-set bound, let M0 := |V S (Z)| ≤ M and enumerate its distinct points as v1, . . . , v M0 . For λ > 0, Jensen’s inequality followed by the Gaussian moment-generating function gives exp 
+
+{
+
+λE max 
+
+> j≤M0
+
+| ⟨ G, v j ⟩ | 
+
+}
+
+≤ E exp 
+
+{
+
+λ max 
+
+> j≤M0
+
+| ⟨ G, v j ⟩ | 
+
+}
+
+≤
+
+> M0
+
+∑
+
+> j=1
+
+[
+
+Eeλ⟨G,v j ⟩ + Ee−λ⟨G,v j ⟩]
+
+≤ 2M0 exp {λ2R2 
+
+> z
+
+/2}.
+
+Thus 
+
+E max 
+
+> j≤M0
+
+| ⟨ G, v j ⟩ | ≤ log(2 M0)
+
+λ + λR 2
+
+> z
+
+2 .
+
+If Rz = 0, the left side is zero. Otherwise, minimizing at λ = √2 log(2 M0)/R z yields Rz
+
+√2 log(2 M0) ≤
+
+Rz
+
+√2 log(2 M ). Multiplication by c0 proves the assertion. 28 Corollary B.13 (Finite-trace and VC upper bounds) . For every nonempty trace family ∅̸ = T ⊆ 2[n],
+
+ρn(T ) ≤ min 
+
+{
+
+1,
+
+√ 2 log(2 |T | )
+
+n
+
+}
+
+. (107) 
+
+If ∅ ∈ T and VCdim( T ) ≤ V , then ρn(T ) ≤ CVC min {1, √V /n }.Proof. Associate each T ∈ T with its indicator vector vT = ( 1{i∈T })ni=1 ∈ { 0, 1}n. Let V := {vT : T ∈T } ∪ {− vT : T ∈ T } ; it is nonempty, has at most 2 |T | elements, and every v ∈ V satisfies ∥v∥2 ≤ √n. For 
+
+λ > 0, Jensen’s inequality and Eeλ⟨η,v ⟩ = ∏ 
+
+> i
+
+cosh( λv i) ≤ eλ2∥v∥22/2 imply 
+
+E max  
+
+> v∈V
+
+⟨η, v ⟩ ≤ 1
+
+λ log ∑
+
+> v∈V
+
+Eeλ⟨η,v ⟩
+
+≤ log(2 |T | )
+
+λ + λn 
+
+2 .
+
+Minimizing over λ gives E sup T ∈T | ⟨ η, v T ⟩ | ≤ √2n log(2 |T | ). Division by n proves the logarithmic bound. The deterministic estimate sup T
+
+∣∣∑ 
+
+> i∈T
+
+ηi
+
+∣∣ ≤ n gives the additional cap by one. For the VC bound, define the one-sided empirical Rademacher average 
+
+r+ 
+
+> n
+
+(T ) = 1
+
+n Eη sup  
+
+> T∈T
+
+∑
+
+> i∈T
+
+ηi.
+
+Because ∅ ∈ T , the supremum is nonnegative. By symmetry of η and the elementary inequality max {a, b } ≤ 
+
+a + b for a, b ≥ 0, 
+
+ρn(T ) = 1
+
+n E max 
+
+{
+
+sup 
+
+> T
+
+∑
+
+> i∈T
+
+ηi, sup 
+
+> T
+
+∑
+
+> i∈T
+
+(−ηi)
+
+}
+
+≤ 2r+ 
+
+> n
+
+(T ).
+
+If V = 0, the presence of ∅ forces T = {∅} : any nonempty T together with ∅ would shatter a singleton. Hence 
+
+ρn(T ) = 0. Assume now V ≥ 1. Equip T with the empirical L2 pseudometric 
+
+dn(T, T ′) = 
+
+( |T △T ′|
+
+n
+
+)1/2
+
+.
+
+Haussler’s packing theorem for a binary class of VC dimension at most V implies, after the packing-to-covering conversion, that for 0 < u ≤ 1, log N (u, T , d n
+
+) ≤ C0V log 
+
+( C1
+
+u
+
+)
+
+with universal constants C0, C 1 (Haussler, 1995). The finite process XT = n−1 ∑ 
+
+> i
+
+ηi1{i∈T } has increments satisfying 
+
+Eη exp {λ(XT − XT ′ )} ≤ exp 
+
+{ λ2dn(T, T ′)2
+
+2n
+
+}
+
+(λ ∈ R),
+
+by cosh x ≤ ex2/2. Dudley’s entropy bound for a finite centered subgaussian process, applied with increment metric dn/√n, therefore gives 
+
+r+ 
+
+> n
+
+(T ) = E sup  
+
+> T∈T
+
+(XT − X∅)
+
+≤ C
+
+√n
+
+∫ 10
+
+√log N (u, T , d n) d u
+
+≤ C′
+
+√ Vn
+
+∫ 10
+
+√log( C1/u ) d u ≤ C′′ 
+
+√ Vn ,
+
+where the last integral is finite; this is the empirical-process form used in Bartlett and Mendelson (2002). Combining the result with ρn ≤ 1 proves the VC assertion. 29 Proposition B.14 (Scalar ReLU realization of threshold traces) . Let x1, . . . , x n be distinct and let ∅̸ = T ⊆ 
+
+2[n]. For every A > 0 there is a family of globally nonnegative scalar one-hidden-layer ReLU representations satisfying zT (xi) = A1{i∈T } and ̂
+
+RS (F(q)   
+
+> {zT:T∈T } ,B
+
+) = B√A ρ n(T ), q ∈ { 1, 2}. (108) 
+
+Proof. Define the sample values by zT (xi) = A1{i∈T }. For either scalar Brownian geometry, Kq (0 , ·) = 0, Φq, 1(0) = 0, and ∥Φq, 1(A)∥Hq, 1 = √A. For a fixed sign vector, Hilbert duality therefore gives sup  
+
+> T∈T
+
+sup 
+
+> ∥a∥≤ B
+
+1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+εi ⟨a, Φq, 1(zT (xi)) ⟩ = Bn sup  
+
+> T∈T
+
+∥∥∥∥∥∑
+
+> i∈T
+
+εiΦq, 1(A)
+
+∥∥∥∥∥
+
+= B√An sup  
+
+> T∈T
+
+∣∣∣∣∣∑
+
+> i∈T
+
+εi
+
+∣∣∣∣∣ .
+
+Taking expectation proves (108). For q = 1, a positive scalar threshold of zT is equal to T whenever 0 < t ≤ A and is empty when t > A . For 
+
+q = 2, a signed scalar projection has the form sgA 1T ; when sg > 0, its positive thresholds are again T or ∅,and when sg ≤ 0 they are empty. Thus both sample trace families are T ∪ {∅} . This is exactly T when ∅ ∈ T ,and adjoining ∅ does not change ρn(T ). If T contains a nonempty trace, the additive envelope equals A
+
+and, because c0E |G| = 1, the Euclidean projected-width envelope also equals A. If T = {∅} , equation (108) remains valid trivially, with both sides equal to zero. It remains to construct the ReLU extensions. The set of vectors w ∈ Rd for which ⟨w, x i⟩ = ⟨w, x j ⟩ for some 
+
+i̸ = j is a finite union of proper hyperplanes. Choose w outside that union and write ti = ⟨w, x i⟩; these values are pairwise distinct. Relabel the sample so that t1 < · · · < t n, set yr = A1{ir ∈T }, and define slopes 
+
+d0 := 0 , dr := yr+1 − yr
+
+tr+1 − tr
+
+(1 ≤ r < n ), dn := 0 .
+
+The explicit hinge formula 
+
+gT (t) := y1 +
+
+> n
+
+∑
+
+> r=1
+
+(dr − dr−1)( t − tr )+ (109) has slope zero on ( −∞ , t 1), slope dr on ( tr , t r+1 ), and slope zero on ( tn, ∞). It therefore interpolates ( tr , y r )and is constant outside [ t1, t n]. On each interval its value is a convex combination of the endpoint values 
+
+yr , y r+1 ∈ { 0, A }; hence 0 ≤ gT (t) ≤ A for every t ∈ R. Formula (109) is exactly a one-hidden-layer ReLU network with n hinge units, scalar hidden weights and biases ( w, −tr ), output weights dr − dr−1, and output bias y1. Thus zT (x) := gT (⟨w, x ⟩) is globally nonnegative and has the required sample values. Finally, for the full power set, let I+(ε) = {i : εi = 1 } and I−(ε) = {i : εi = −1}. Both belong to 2 [n], and sup  
+
+> T⊆[n]
+
+∣∣∣∣∣∑
+
+> i∈T
+
+εi
+
+∣∣∣∣∣ ≥ max {| I+(ε)| , |I−(ε)|} ≥ n
+
+2 .
+
+Thus ρn(2 [n]) ≥ 1/2, which gives the high-capacity lower statement quoted after Proposition B.14. 
+
+B.5 Optimization and finite realization 
+
+For a fixed representation, the Brownian head is an ordinary kernel problem. The results below record a singular-safe representer form, the ridge-capacity path, finite additive-profile approximation, and a vector-valued extension. 
+
+Proposition B.15 (Representer form for a terminal Brownian head) . Assume t 7 → ℓ(y, t ) is lower semicon-tinuous and bounded below, and let λ > 0. The problem 
+
+min 
+
+> a∈H q
+
+1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+ℓ(yi, ⟨a, Φq (z(xi)) ⟩) + λ∥a∥2 
+
+> Hq
+
+(110) 30 attains its minimum, and every minimizer lies in span {Φq (z(xi)) : i ∈ [n]}. For squared loss, ̂
+
+f (x) = 
+
+> n
+
+∑
+
+> i=1
+
+αiKq (z(xi), z (x)) , α = ( K + nλI )−1y. (111) 
+
+Proof. Write vi := Φ q (z(xi)) ∈ H q and let HS := span {v1, . . . , v n}. This subspace is finite-dimensional and therefore closed. Every a ∈ H q has a unique orthogonal decomposition a = aS + a⊥ with aS ∈ HS and 
+
+a⊥ ⊥ HS . For every training point, 
+
+⟨a, v i⟩ = ⟨aS , v i⟩ , ∥a∥2 = ∥aS ∥2 + ∥a⊥∥2 .
+
+Thus replacing a by aS leaves all empirical losses unchanged and reduces the regularizer by λ∥a⊥∥2. Every minimizer must therefore lie in HS .We next prove existence without assuming convexity of the loss. Define m0 := n−1 ∑ni=1 inf t∈R ℓ(yi, t ) > −∞ .The objective is at least m0 + λ∥a∥2, so every minimizing sequence is norm bounded. A real Hilbert space is reflexive; hence a bounded sequence has a weakly convergent subsequence ak ⇀ a . Each coordinate map 
+
+a 7 → ⟨ a, v i⟩ is weakly continuous, so ⟨ak, v i⟩ → ⟨ a, v i⟩. Lower semicontinuity of each scalar loss and weak lower semicontinuity of the squared norm give 1
+
+n
+
+∑
+
+> i
+
+ℓ(yi, ⟨a, v i⟩) + λ∥a∥2 ≤ lim inf 
+
+> k
+
+[
+
+1
+
+n
+
+∑
+
+> i
+
+ℓ(yi, ⟨ak, v i⟩) + λ∥ak∥2
+
+]
+
+.
+
+The weak limit is therefore a minimizer, and the preceding orthogonal argument places every minimizer in 
+
+HS . Writing a = ∑ 
+
+> i
+
+αivi and using ⟨vi, Φq (z(x)) ⟩ = Kq (z(xi), z (x)) gives the representer form. For squared loss, define the bounded sampling operator T : Hq → Rn by ( T a )i = ⟨a, v i⟩. Its adjoint is 
+
+T ∗c = ∑ 
+
+> i
+
+civi and T T ∗ = K. Differentiating the quadratic objective gives the normal equation (T ∗T + nλI )a = T ∗y. 
+
+Because λ > 0, K + nλI n is positive definite even when K is singular. Set α = ( K + nλI n)−1y and a = T ∗α.The identity ( T ∗T + nλI )T ∗ = T ∗(T T ∗ + nλI n) shows that this a satisfies the normal equation. The quadratic objective is strictly convex because of λ∥a∥2, so this solution is unique and yields (111). 
+
+Proposition B.16 (Ridge-capacity path) . Let λ > 0, let K = U diag( κ1, . . . , κ n)U ⊤ ⪰ 0, set ˜y = U ⊤y, and let αλ = ( K + nλI )−1y. Then 
+
+∥̂fλ∥2 
+
+> HK
+
+=
+
+> n
+
+∑
+
+> j=1
+
+κj ˜y2
+
+> j
+
+(κj + nλ )2 ,
+
+(−1) r dr
+
+dλr ∥̂fλ∥2 
+
+> HK
+
+= ( r + 1)! nrn∑
+
+> j=1
+
+κj ˜y2
+
+> j
+
+(κj + nλ )r+2 ≥ 0, r ≥ 0. (112) 
+
+Hence the fitted Brownian capacity ∥̂ fλ∥HK
+
+√̂ 
+
+Mq,S (z)/n is nonincreasing in λ for a fixed representation. No monotonicity of test risk is implied. Proof. By Proposition B.15, ̂ fλ = ∑
+
+> i
+
+(αλ)iK(xi, ·) and hence 
+
+∥̂ fλ∥2 
+
+> HK
+
+= α⊤ 
+
+> λ
+
+Kα λ =
+
+> n
+
+∑
+
+> j=1
+
+κj ˜y2
+
+> j
+
+(κj + nλ )2 .
+
+For every integer r ≥ 0 and every j,dr
+
+dλr
+
+κj ˜y2
+
+> j
+
+(κj + nλ )2 = ( −1) r (r + 1)! nr κj ˜y2
+
+> j
+
+(κj + nλ )r+2 .
+
+The sum is finite, so termwise differentiation is valid and proves (112), including zero eigenvalues. The case r = 1 shows that the squared norm is nonincreasing in λ; taking square roots preserves this order. Multiplication by the fixed nonnegative factor 
+
+√̂ 
+
+Mq,S (z)/n proves the capacity claim. No statement about test risk follows from this algebraic monotonicity. 31 Proposition B.17 (Finite additive-profile realization) . Suppose Aj > 0, 0 ≤ uj ≤ Aj , and h(u) = ∑ 
+
+> j
+
+gj (uj ),where each gj ∈ H1(0 , A j ) is represented by its absolutely continuous version, gj (0) = 0 , and ∑ 
+
+> j
+
+∥g′ 
+
+> j
+
+∥2  
+
+> L2(0 ,A j)
+
+≤
+
+B2. If Ij gj is the piecewise-linear interpolant on a finite grid containing 0 and Aj , with maximum spacing 
+
+hj , then 
+
+sup 
+
+> u∈
+
+∏  
+
+> j[0 ,A j]
+
+∣∣∣∣∣∣h(u) − ∑
+
+> j
+
+(Ij gj )( uj )
+
+∣∣∣∣∣∣ ≤ B
+
+2
+
+∑
+
+> j
+
+hj
+
+
+
+> 1/2
+
+. (113) 
+
+On a uniform Gj -cell grid with integer Gj ≥ 1, hj = Aj /G j .Proof. Fix j ∈ [m] and one grid cell [ a, b ] = [ tj,r −1, t j,r ]. For t ∈ [a, b ], the affine interpolation formula and absolute continuity give 
+
+gj (t) − (Ij gj )( t) = gj (t) − gj (a) − t − ab − a
+
+(gj (b) − gj (a))
+
+=
+
+∫ ba
+
+qt(s)g′ 
+
+> j
+
+(s) d s, (114) where 
+
+qt(s) := 1[a,t ](s) − t − ab − a , s ∈ [a, b ]. (115) Writing α = ( t − a)/(b − a) and separating the intervals [ a, t ] and ( t, b ] yields 
+
+∥qt∥2 
+
+> L2(a,b )
+
+= ( t − a)(1 − α)2 + ( b − t)α2
+
+= (t − a)( b − t)
+
+b − a ≤ b − a
+
+4 ≤ hj
+
+4 . (116) Cauchy–Schwarz in (114) therefore gives 
+
+|gj (t) − (Ij gj )( t)| ≤ 
+
+√hj
+
+2
+
+∥∥g′
+
+> j
+
+∥∥L2(a,b ) ≤
+
+√hj
+
+2
+
+∥∥g′
+
+> j
+
+∥∥L2(0 ,A j ) . (117) Because the cell and t were arbitrary, (117) holds uniformly on [0 , A j ]. Consequently, for every u ∈ ∏mj=1 [0 , A j ], 
+
+∣∣∣h(u) − ˜h(u)
+
+∣∣∣ ≤
+
+> m
+
+∑
+
+> j=1
+
+|gj (uj ) − (Ij gj )( uj )|≤ 12
+
+> m
+
+∑
+
+> j=1
+
+√hj
+
+∥∥g′
+
+> j
+
+∥∥L2(0 ,A j )
+
+≤ 12
+
+
+
+> m
+
+∑
+
+> j=1
+
+hj
+
+ 
+
+> 1/2
+
+
+
+> m
+
+∑
+
+> j=1
+
+∥∥g′
+
+> j
+
+∥∥2 
+
+> L2(0 ,A j)
+
+
+
+> 1/2
+
+≤ B
+
+2
+
+
+
+> m
+
+∑
+
+> j=1
+
+hj
+
+
+
+> 1/2
+
+, (118) where the last two steps use Cauchy–Schwarz across coordinates and the Sobolev budget assumed in Proposition B.17. Taking the supremum over u proves (113); the uniform-grid statement follows by substitution. 
+
+Proposition B.18 (Vector-valued fixed head) . For an integer C ≥ 1, define F(q,C ) 
+
+> z,B
+
+= {x 7 → AΦq (z(x)) : A :
+
+Hq → RC , ∥A∥HS ≤ B} and ̂
+
+Rvec  
+
+> S
+
+(G) = 1
+
+n Eσ sup 
+
+> g∈G
+> n
+
+∑
+
+> i=1
+
+⟨σi, g (xi)⟩,
+
+32 where σi ∈ {− 1, +1 }C have mutually independent coordinates. Then ̂
+
+Rvec  
+
+> S
+
+(F(q,C ) 
+
+> z,B
+
+) = Bn Eσ
+
+∥∥∥∥∥
+
+> n
+
+∑
+
+> i=1
+
+σi ⊗ Φq (z(xi)) 
+
+∥∥∥∥∥HS 
+
+≤ B
+
+√
+
+Ĉ Mq,S (z)
+
+n . (119) 
+
+Proof. Write vi = Φ q (z(xi)) ∈ H q . The Hilbert–Schmidt inner product on operators from Hq to RC satisfies 
+
+⟨σi, Av i⟩RC = ⟨A, σ i ⊗ vi⟩HS . (120) Hence Hilbert-space duality gives, for every realization of the signs, sup 
+
+> ∥A∥HS ≤Bn
+
+∑
+
+> i=1
+
+⟨σi, Av i⟩RC = sup 
+
+> ∥A∥HS ≤B
+
+〈
+
+A, 
+
+> n
+
+∑
+
+> i=1
+
+σi ⊗ vi
+
+〉
+
+> HS
+
+= B
+
+∥∥∥∥∥
+
+> n
+
+∑
+
+> i=1
+
+σi ⊗ vi
+
+∥∥∥∥∥HS 
+
+. (121) Taking expectation and dividing by n proves (119). For the upper bound, Jensen’s inequality and independence imply 
+
+Eσ
+
+∥∥∥∥∥
+
+> n
+
+∑
+
+> i=1
+
+σi ⊗ vi
+
+∥∥∥∥∥HS 
+
+≤
+
+Eσ
+
+∥∥∥∥∥
+
+> n
+
+∑
+
+> i=1
+
+σi ⊗ vi
+
+∥∥∥∥∥
+
+> 2HS
+
+
+
+> 1/2
+
+=
+
+
+
+> n
+
+∑
+
+> i,j =1
+
+E ⟨σi, σ j ⟩RC ⟨vi, v j ⟩Hq
+
+
+
+> 1/2
+
+=
+
+(
+
+C
+
+> n
+
+∑
+
+> i=1
+
+∥vi∥2
+
+> Hq
+
+)1/2
+
+. (122) The feature-energy identity (3) gives ∥vi∥2 = ∥z(xi)∥q ; consequently, ∑ 
+
+> i
+
+∥vi∥2 = n̂ Mq,S (z). Substitution into the exact duality identity and division by n proves the stated upper bound, including B = 0, C = 1, and zero feature configurations. 
+
+B.6 Consequences for propagation, generalization, and rescaling Corollary B.19 (Brownian Hölder stability) . Let q ∈ { 1, 2} and fa(x) = ⟨a, Φq (zL(x)) ⟩ with ∥a∥ ≤ B. Then 
+
+|fa(x) − fa(x′)| ≤ B
+
+( L∏
+
+> ℓ=1
+
+sℓ,q 
+
+)1/2
+
+∥x − x′∥1/2 
+
+> q
+
+. (123) 
+
+Proof. For every x, x ′, Cauchy–Schwarz and the canonical feature isometry give 
+
+|fa(x) − fa(x′)| ≤ ∥ a∥ ∥ Φq (zL(x)) − Φq (zL(x′)) ∥≤ B ∥zL(x) − zL(x′)∥1/2 
+
+> q
+
+.
+
+By (33), ∥zL(x) − zL(x′)∥q ≤ (∏Lℓ=1 sℓ,q )∥x − x′∥q . Taking the square root proves (123); if a factor or the input distance is zero, both sides remain well defined and the same argument applies. 
+
+Corollary B.20 (Architecture-level norm-product envelope) . Let ̂ M (0)  
+
+> q,S
+
+= n−1 ∑ 
+
+> i
+
+∥xi∥q . For the fixed depth-L representation in Section 2, ̂
+
+RS (F(q) 
+
+> zL,B
+
+) ≤ B
+
+√n
+
+[( L∏
+
+> ℓ=1
+
+sℓ,q 
+
+)̂ 
+
+M (0)  
+
+> q,S
+
++
+
+> L
+
+∑
+
+> r=1
+
+∥br ∥qL∏
+
+> ℓ=r+1
+
+sℓ,q 
+
+]1/2
+
+. (124) 
+
+In the bias-free case, ̂
+
+RS (F(q) 
+
+> zL,B
+
+) ≤ B
+
+√̂ 
+
+M (0) 
+
+> q,S
+
+n
+
+> L
+
+∏
+
+> ℓ=1
+
+s1/2 
+
+> ℓ,q
+
+. (125) 33 Proof. Average (34) over the sample and substitute the resulting upper bound on ̂ Mq,S (zL) into the upper endpoint of (7). When every bias vanishes, only the first term remains. The realized activation mass in Theorem 2.2 can be much smaller than this architecture-level envelope. The following construction shows that no converse based only on a product of layer norms is possible. 
+
+Proposition B.21 (No lower characterization by layer-norm products alone) . Fix q ∈ { 1, 2} and consider a bias-free ReLU network with input dimension d0 ≥ 1 and at least two affine–ReLU layers. Assume that the first hidden width satisfies d1 ≥ 2 and that the second layer has at least one output coordinate. For every prescribed s1, s 2 > 0, there exist matrices W1 ∈ Rd1×d0 and W2 ∈ Rd2×d1 such that 
+
+∥W1∥q→q = s1, ∥W2∥q→q = s2, ReLU (W2 ReLU( W1x)) = 0 for every x ∈ Rd0 .
+
+Thus a network may have an arbitrary positive product ∥W1∥q→q ∥W2∥q→q = s1s2 while its final representation, and hence every anchored Brownian-head class built on it, is identically zero. Consequently, no strictly positive lower bound on Brownian-head complexity can depend only on a product of layer operator norms. Proof. Let q∗ be the Hölder conjugate of q and choose v ∈ Rd0 with ∥v∥q∗ = 1. Set 
+
+W1 = s1e1v⊤.
+
+The induced norm of a rank-one operator satisfies ∥∥uv ⊤∥∥q→q = ∥u∥q ∥v∥q∗ ; hence ∥W1∥q→q = s1. Moreover, for every x, W1x lies in span {e1}, and therefore ReLU( W1x) lies in the nonnegative ray R+e1.Because d1 ≥ 2, define 
+
+W2 = s2e1e⊤ 
+
+> 2
+
+,
+
+where the first e1 is an output basis vector in Rd2 and e2 is the second input basis vector in Rd1 . Again the rank-one norm formula gives ∥W2∥q→q = s2, while W2e1 = 0. It follows that W2 ReLU( W1x) = 0 for every x,and applying the second ReLU leaves zero unchanged. Any additional bias-free layers also map zero to zero, regardless of their positive operator norms. Finally, Φ q,m (0) = Kq (·, 0) = 0, so the corresponding anchored Brownian-head class contains only the zero function. 
+
+Corollary B.22 (Generalization for a fixed or independently learned representation) . Let S = (( Xi, Y i)) ni=1 ∼
+
+P n, let δ ∈ (0 , 1) , and suppose z is deterministic or random independently of S. If ℓ : Y × R → [0 , 1] is 
+
+Lℓ-Lipschitz in its second argument, then, with probability at least 1 − δ, simultaneously for all f ∈ F (q) 
+
+> z,B
+
+,
+
+R(f ) ≤̂ RS (f ) + 2 LℓB
+
+√̂ 
+
+Mq,S (z)
+
+n + 3 
+
+√ log(2 /δ )2n . (126) 
+
+Here R(f ) = EP ℓ(Y, f (X)) and ̂ RS (f ) = n−1 ∑ 
+
+> i
+
+ℓ(Yi, f (Xi)) .Proof. First suppose z is deterministic. The empirical-Rademacher deviation theorem for a fixed class G of functions with values in [0 , 1] states that, with probability at least 1 − δ, simultaneously for all g ∈ G ,
+
+Eg ≤ 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+g(Xi, Y i) + 2 ̂ RS (G) + 3 
+
+√ log(2 /δ )2n ;we use the empirical form recorded in Mohri et al. (2018). Apply it to G = {(x, y ) 7 → ℓ(y, f (x)) : f ∈ F (q) 
+
+> z,B
+
+}.For the realized sample define ψi(t) = ℓ(Yi, t ) − ℓ(Yi, 0). Then ψi(0) = 0 and each ψi is Lℓ-Lipschitz. The scalar contraction inequality gives ̂
+
+RS (G) = 1
+
+n Eε sup 
+
+> f
+
+∑
+
+> i
+
+εiψi(f (Xi)) 
+
+≤ Lℓ̂ RS (F(q) 
+
+> z,B
+
+),
+
+because the removed term ∑ 
+
+> i
+
+εiℓ(Yi, 0) is independent of f and has expectation zero. The upper endpoint of (7) is ̂ RS (F(q) 
+
+> z,B
+
+) ≤ B
+
+√̂ 
+
+Mq,S (z)/n , which proves (126). 34 If z is random independently of S, condition on its value. The preceding probability statement holds with conditional probability at least 1 − δ for every fixed value of z. Integrating this conditional bound over the law of z gives the same unconditional probability, without moving a sample-dependent representation choice through a Rademacher expectation. 
+
+Proposition B.23 (Scale-balanced terminal rescaling) . Fix q ∈ { 1, 2}. Let z : X → Rm, let c > 0, and define 
+
+Hz = span {Φq,m (z(x)) : x ∈ X } ,Hcz = span {Φq,m (cz (x)) : x ∈ X } .
+
+Because Kq (cu, cv ) = cK q (u, v ), there is a unique surjective isometry Jc : Hz → Hcz satisfying 
+
+JcΦq,m (z(x)) = c−1/2Φq,m (cz (x)) (x ∈ X ). (127) 
+
+For every a ∈ Hz , define ac = c−1/2Jca. Then 
+
+⟨ac, Φq,m (cz (x)) ⟩ = ⟨a, Φq,m (z(x)) ⟩ for all x, ∥ac∥ = c−1/2 ∥a∥ . (128) 
+
+Consequently, under this compensating terminal rescaling, 
+
+∥ac∥2̂ Mq,S (cz ) = ∥a∥2̂ Mq,S (z). (129) 
+
+Proof. The one-homogeneity of the norm gives Kq (cu, cv ) = cK q (u, v ). Hence, for every x, x ′ ∈ X ,
+
+〈
+
+c−1/2Φq,m (cz (x)) , c −1/2Φq,m (cz (x′)) 
+
+〉
+
+> Hq,m
+
+= c−1Kq (cz (x), cz (x′)) = Kq (z(x), z (x′)) = ⟨Φq,m (z(x)) , Φq,m (z(x′)) ⟩ .
+
+Therefore the rule in (127) preserves inner products on the algebraic span. It extends uniquely by continuity to an isometry Jc : Hz → Hcz , and its range contains a dense spanning set of Hcz , so the range is all of Hcz .Since (127) is equivalent to Φ q,m (cz (x)) = √c J cΦq,m (z(x)), 
+
+⟨ac, Φq,m (cz (x)) ⟩ =
+
+〈
+
+c−1/2Jca, √c J cΦq,m (z(x)) 
+
+〉
+
+= ⟨a, Φq,m (z(x)) ⟩ .
+
+The norm identity follows from the isometry. Finally, ̂ Mq,S (cz ) = ĉ Mq,S (z), and substitution proves (129). 
+
+## C Supplementary Experiments and Reproducibility 
+
+This section expands the controlled evidence summarized in Section 4. The three principal protocols are parallel: exact finite-sample constructions, same-sample representation-family experiments, and frozen-transfer experiments. The earlier digits study is retained only as an auxiliary mechanism diagnostic for the fixed-head quantities. None of these protocols is used to claim an end-to-end state-of-the-art system. The experiments are designed to check the quantities appearing in the theory rather than to establish a new benchmark. The protocols and results are documented below; experimental code and machine-readable outputs are separate from this manuscript project. We use the handwritten-digits data distributed with scikit-learn (Pe-dregosa et al., 2011), normalize pixels to [0 , 1], and form disjoint stratified source/probe/validation/test splits containing approximately 50 /25 /12 .5/12 .5 percent of the data. For each of three seeds, a 64–128–64–32 ReLU feature extractor with a linear 10-class head is trained for 60 epochs on the source split only, using Adam in PyTorch (Paszke et al., 2019). We then freeze the 32-dimensional representation and use only the disjoint target splits for all downstream fits. The logistic linear probe is fitted on the union of the probe and validation splits. For each additive or Lévy–Brownian kernel-ridge head, the probe split is used for fitting candidate models, the validation split selects the regularization parameter, and the selected model is refitted on probe plus validation data. The test split is untouched until final evaluation. 35 C.1 Sharpness of the trace characterization 
+
+On 400 frozen downstream-fit features per seed, sampled without replacement from the union of the probe and validation representations, we estimate 1
+
+n Eε
+
+√ε⊤Kε 
+
+using 600 Rademacher draws and compare it with the universal lower and upper bounds from Theorem 2.2 for B = 1. As shown in Figure 4, the Monte Carlo value lies well inside the guaranteed interval and is close to the trace upper bound for both kernels. The mean ratios of Monte Carlo complexity to the upper bound are approximately 0 .93 for q = 1 and 0 .92 for q = 2. The Gram-sensitive lower bound from Proposition B.2 is also reported; it adapts to the realized off-diagonal Gram energy and strictly improves the worst-case universal lower endpoint and moves toward the Monte Carlo value. q = 1 q = 2 0.0 0.1 0.2 0.3 0.4 0.5 empirical Rademacher complexity ( B = 1) universal lower bound Gram-sensitive lower bound Monte Carlo complexity trace upper bound 
+
+Figure 4: Monte Carlo empirical Rademacher complexity of frozen Brownian feature heads compared with the universal lower endpoint, the Gram-sensitive refinement in Proposition B.2, and the trace upper endpoint. Bars show means over three seeds. 
+
+C.2 Activation mass versus layer-norm envelopes 
+
+At every fifth epoch, we record the empirical final-layer activation mass and the bias-free product envelope from (125). The network contains biases, so this product is displayed only as a diagnostic proxy; the exact affine envelope is given by (124). At the final epoch, the ℓ1 product proxy is on average about 110 times the observed ℓ1 activation mass, while the spectral proxy is about 4 .0 times the observed ℓ2 mass. The centered Euclidean dispersion is about 38% of the uncentered mass, and its bias-free product envelope is approximately 4 .1 times the observed dispersion. Figures 5a, 5b and 6 illustrate that the empirical quantities characterized by Theorem 2.2 and Corollary B.3 can be substantially more informative than worst-case layerwise propagation estimates. 
+
+C.3 Predictive performance of Brownian heads 
+
+For each fitted C-output kernel head, let ̂ Aq be its Hilbert–Schmidt output operator, let Sfit be the union of the probe and validation splits, let nfit = |Sfit |, and set ̂
+
+Mq, fit := 1
+
+nfit 
+
+∑
+
+> x∈Sfit
+
+∥z(x)∥q , Πq := 
+
+∥∥∥̂ Aq
+
+∥∥∥HS 
+
+√̂ 
+
+Mq, fit 
+
+nfit 
+
+. (130) The Lévy–Brownian head obtains the highest mean accuracy in this small experiment, with the additive head also exceeding the two linear-head baselines on average. These results do not establish superiority on large-scale tasks; they show that the proposed terminal hypothesis spaces are computationally usable and need not sacrifice predictive performance in a frozen-feature setting. 36 0 10 20 30 40 50 60 epoch 10 0  
+
+> 10 1
+> 10 2
+> 10 3
+> 10 4
+> mass / envelope
+> empirical ℓ1activation mass layer-norm envelope
+
+(a) ℓ1 activation mass and induced-ℓ1 proxy. 0 10 20 30 40 50 60 epoch 10 0   
+
+> 10 1
+> 10 2
+> mass / envelope
+> empirical ℓ2activation mass layer-norm envelope
+
+(b) ℓ2 activation mass and spectral proxy. 
+
+Figure 5: Empirical activation mass and layer-norm product proxies during training. Both vertical axes are logarithmic; ribbons show one standard deviation over three seeds. 0 10 20 30 40 50 60 epoch 10 −1 
+
+> 10 0
+> 10 1
+> Euclidean Brownian geometry
+> activation mass centered pairwise dispersion bias-free product envelope
+
+Figure 6: Euclidean activation mass, centered pairwise Brownian dispersion, and the bias-free centered product envelope from Corollary B.3. The feature extractor is evaluated on a probe split independent of its training data. Table 3: Digits test accuracy and the fitted scalarized head-scale diagnostic Π q from (130), reported as mean ±
+
+standard deviation over three seeds. The diagnostic is shown only for the kernel heads and is not directly comparable across different output parameterizations. Because the experiment has C = 10 outputs, the vector-valued upper bound in Proposition B.18 contains the additional fixed factor √10; Π q is therefore not itself a certified multiclass bound. 
+
+Method Test accuracy (%) Πq
+
+Source-trained neural head 92 .74 ± 2.68 –Frozen-feature linear probe 92 .89 ± 3.36 –Additive Brownian head ( q = 1) 94 .22 ± 2.35 0.662 ± 0.162 Lévy–Brownian head ( q = 2) 94 .81 ± 2.82 0.964 ± 0.246 
+
+C.4 Regularization paths and spectral tails 
+
+For each frozen representation and each q ∈ { 1, 2}, we refit the multiclass Brownian kernel-ridge head over the predetermined regularization grid and record the Hilbert–Schmidt capacity 
+
+Cq,S (λ) := 
+
+∥∥∥̂ Aq,λ 
+
+∥∥∥HS 
+
+√̂ 
+
+Mq,S 
+
+n . (131) The probe and validation observations are used for fitting, and the held-out test split is used only to evaluate the displayed path. As guaranteed by Proposition B.16, the capacity is nonincreasing in λ for every seed and both Brownian geometries. Figure 7a plots test error against this exact complexity coordinate rather than parameter count; the curves are diagnostic and are not claimed to satisfy a universal deterministic-equivalent law. The same fitted Gram matrices provide a direct spectral diagnostic for Proposition B.4 and Proposition D.11. 37 Figure 7b reports the normalized residual trace ∑ 
+
+> j>r
+
+λj / ∑ 
+
+> j
+
+λj . Its decay quantifies the approximation available to a rank-r feature projection; the experiment concerns terminal Brownian features and does not simulate the distinct recursive-chain architecture. 0.0 0.5 1.0 1.5 2.0 fitted Brownian capacity 0.02 0.04 0.06 0.08 0.10 0.12 held-out test error     
+
+> Brownian q= 1 Brownian q= 2
+
+(a) Held-out error along the fitted-capacity path. 0 20 40 60 80 100 120 140 160 retained empirical rank 10 −1      
+
+> 10 0
+> normalized residual trace Brownian q= 1 Brownian q= 2
+
+(b) Normalized empirical Brownian Gram tails. 
+
+Figure 7: Regularization-path and spectral diagnostics. In (a), points correspond to the predetermined regularization grid; markers show means over three seeds and ribbons show one standard deviation. In (b), faster residual-trace decay yields smaller localized complexity and smaller rank-truncation error. 
+
+C.5 Digits reproducibility details 
+
+The reproducible script experiments/run_digits.py uses only sklearn.datasets.load_digits . A 64 →
+
+128 → 64 → 32 → 10 ReLU network is trained for 60 source-half epochs with Adam (learning rate 10 −3,weight decay 10 −4, batch size 128). The disjoint target half is split 1 /2, 1 /4, 1 /4 into probe, validation, and test sets. Brownian kernel-ridge regularization is selected on the validation split from {10 −5, 10 −4.5, . . . , 10 1}
+
+and refit on probe plus validation; test observations never enter fitting or selection. Seeds 0 , 1, 2, raw results, spectral diagnostics, figures, histories, and exact package versions are included in the archive. 
+
+C.6 Exact finite-sample constructions 
+
+All quantities in this subsection are deterministic evaluations of proved finite-sample formulas. No optimizer, train/test split, or selected random seed enters the calculations. For Sm = ∑mi=1 εi, the block-union class with k equal blocks satisfies 
+
+ρn(Tk) = k E|Sn/k | + E|Sn|
+
+2n , |T k| = 2 k, VCdim( Tk) = k. (132) The common term E|Sn|/(2 n) does not depend on k; subtracting it isolates the representation-selection growth. 
+
+quantity fitted slope R2 deterministic check finite traces vs. √log N/n 0.9785 0.99982 slope in [0 .95 , 1.02] VC traces vs. √V /n 0.9804 0.99981 slope in [0 .95 , 1.02] Table 4: Deterministic theorem-diagnostic summary. 
+
+For the mass-only counterexample, T is the class of all n/ 2-subsets. Every representation zT (xi) = A1{i∈T }
+
+has mass A/ 2, while for every Rademacher vector one can choose a subset containing n/ 2 signs of one majority value. Hence the family complexity is exactly B√A/ 2 for every even n, whereas a fixed member has trace upper B√A/ (2 n). The ratio is √n/ 2. The exact summaries and vector figures are reported here; the underlying machine-readable tables are separate from this manuscript project. 38 0.0 0.2 0.4 0.6 0.8 1.0 shared-coordinate coherence 0.70 0.75 0.80 0.85 0.90 0.95 1.00 complexity / trace upper 
+
+(a) Fixed-feature sharpness   
+
+> exact ratio Gram lower universal lower trace upper
+> 10 −1
+> √log N/n
+> 10 −1
+> selection excess
+
+(b) Finite-trace scaling     
+
+> exact block-union excess reference √log N/n
+> 10 −1
+> √V/n
+> 10 −2
+> 10 −1
+> selection excess
+
+(c) VC data collapse    
+
+> n=128 n=256 n=512 n=1024 n=2048 n=4096
+> √V/nreference
+> 10 210 3
+> sample size n 10 −1
+> Brownian-head complexity (B=A=1)
+
+(d) Fixed mass does not control selection 
+
+> same-sample family any fixed member upper
+
+Figure 8: Complete deterministic diagnostics. The panels show the optimal fixed-feature endpoints, finite-trace √log N/n scaling, VC √V /n scaling, and the equal-mass failure under same-sample selection. 1 2 3 4 5 6depth 010 20 30 40 realized mass / envelope 
+
+Positive norm products can coexist with zero realized mass 
+
+> aligned dead relu sample nullspace common norm-product envelope
+
+Figure 9: Rank-deficiency construction. The aligned, sample-nullspace, and dead-ReLU networks have the same positive product of operator norms, while the latter two have zero realized sample mass. Thus the norm product is a worst-case envelope and has no universal realized converse. 
+
+C.7 Same-sample representation-family experiments 
+
+This controlled experiment complements the exact trace constructions with label-dependent representation families on frozen ImageNet-pretrained ResNet-18 features. Each CIFAR context uses the official training/test split; each EuroSAT seed uses a stratified 80/20 split. From the training pool we draw a balanced sample of exactly n = 500, evaluate on a balanced held-out subset of 2000 examples, corrupt 20% of the training labels only, and never expose clean held-out labels to adapter generation or family selection. Training features are standardized coordinatewise using training means and standard deviations (with a deterministic variance floor), and every sample is then normalized to unit Euclidean norm; the same training transformation is applied to held-out features. For candidate c, a class-contrast vector vc ∈ RC is sampled from a standard Gaussian, centered, and normalized. With corrupted labels ˜yi, the scalar targets are tc,i = ( vc)˜yi , centered over the training sample, 39 and the label-dependent direction is 
+
+sc = X⊤tc
+
+∥X⊤tc∥2
+
+.
+
+A width-12 adapter is then 
+
+zc(x) = ReLU(( W0,c + ηcacs⊤ 
+
+> c
+
+)x + bc),
+
+where the entries of W0,c are independent N (0 , 1/d ) variables, bc ∼ N (0 , 0.08 2I), and ac is an independent normalized Gaussian width-12 direction. The predeclared strengths cycle through ηc ∈ { 0.5, 1, 2, 4} in candidate order. The 32 candidates are generated in that deterministic order from the context seed, and the nested families consist of the first K ∈ { 1, 2, 4, 8, 16 , 32 } candidates. Positive homogeneity rescales every adapter so that its empirical additive-Brownian activation mass is exactly one before any complexity comparison. For each dataset-seed context, the same 128 Rademacher sign vectors are reused for every candidate and every nested family. The union complexity is the draw-average of the largest additive-Brownian canonical-feature norm over the first K candidates, divided by n; the strongest fixed-member complexity is the largest corresponding candidatewise draw-average. Their difference is the selection excess. The threshold statistic is the draw-average of the largest absolute coordinate-threshold Rademacher sum over candidates and thresholds, divided by n. Scalar Brownian layer-cake quantities are evaluated exactly; only the secondary predictive head discretizes each coordinate into 6 equal-width threshold cells. Each candidate head chooses ridge regularization by training-set GCV over {0.0001 , 0.001 , 0.01 , 0.1}, while family selection chooses the candidate with the smallest corrupted-training MSE among the first K candidates. All random seeds, split hashes, and corruption hashes are stored in the machine-readable records. The largest family has mean union-to-fixed ratio 1.396 and minimum ratio 1.338. At fixed n = 500, the stored selection excess and √log K predictor are each divided separately by their own contextwise maximum; pooling these normalized curves gives a descriptive zero-intercept slope 0.8621 and R2 = 0 .8795. This is a curve-shape comparison only: it neither tests the dependence on n nor estimates a universal theorem constant. The global union–threshold Spearman value is 0.977, but the within-context correlation equals one in all 15 nested contexts because both quantities are monotone in K; it is therefore retained only as a confounded diagnostic and not as independent evidence beyond family size. 20 21 22 23 24 25 
+
+> nested learned family size K
+> 10 20 30 40 50 selected clean test accuracy (%)
+> CIFAR-10 CIFAR-100 EuroSAT
+> Figure 10: Secondary predictive diagnostic: clean held-out accuracy of the candidate selected by corrupted-training MSE within each nested family. Clean test labels are used only for final evaluation.
+
+Complete candidate-level, family-level, and within-context monotonicity records are separate from this manuscript project. 
+
+C.8 Frozen-transfer experiments 
+
+We freeze the penultimate 512-dimensional representation of an ImageNet-pretrained ResNet-18 (He et al., 2016) and fit five heads on identical balanced labeled subsets: linear ridge, RBF and Laplace kernel ridge, and the additive and Lévy–Brownian heads. CIFAR-10 and CIFAR-100 (Krizhevsky, 2009) use their official 40 test sets. EuroSAT (Helber et al., 2019) uses a new stratified 80/20 split for each seed, with all methods paired on that split. The label budgets 500 and 1000 are nested, the representation never uses target labels, ridge regularization is selected by training-set generalized cross-validation, and clean test labels are accessed only for final evaluation. The q = 2 head is the rotation-invariant Euclidean Brownian geometry emphasized by the projected-threshold theory; q = 1 is retained as the coordinatewise alternative. Figure 3 and Table 1 in the main text summarize paired accuracy differences across all six settings and the nlab = 1000 results, respectively. 500 600 700 800 900 1000 labeled training examples 77 78 79 80 81 test accuracy (%)           
+
+> CIFAR-10
+> 500 600 700 800 900 1000 labeled training examples 38 40 42 44 46 48 test accuracy (%)
+> CIFAR-100
+> 500 600 700 800 900 1000 labeled training examples 89.0 89.5 90.0 90.5 91.0 91.5 92.0 test accuracy (%)
+> EuroSAT
+> Linear ridge RBF KRR Laplace KRR Brownian q=1 Brownian q=2
+
+Figure 11: Frozen-feature learning curves. Markers show five-seed means and error bars show one standard deviation. Table 5: Complete frozen-transfer results for both labeled-data budgets. Values are mean ± standard deviation over five paired seeds. 
+
+Dataset Method nlab Accuracy (%) Macro-F1 (%) Fit (s) Predict (s) CIFAR-10 Brownian q = 1 500 76 .92 ± 0.40 76 .68 ± 0.39 0.01 0.01 CIFAR-10 Brownian q = 2 500 77 .82 ± 0.44 77 .62 ± 0.44 0.01 0.01 CIFAR-10 Laplace KRR 500 77 .88 ± 0.45 77 .65 ± 0.45 0.01 0.01 CIFAR-10 Linear ridge 500 77 .17 ± 0.57 76 .84 ± 0.57 0.01 0.01 CIFAR-10 RBF KRR 500 77 .64 ± 0.54 77 .47 ± 0.54 0.01 0.02 CIFAR-10 Brownian q = 1 1000 79 .67 ± 0.53 79 .49 ± 0.54 0.05 0.03 CIFAR-10 Brownian q = 2 1000 80 .67 ± 0.23 80 .54 ± 0.23 0.05 0.02 CIFAR-10 Laplace KRR 1000 80 .68 ± 0.45 80 .53 ± 0.46 0.05 0.03 CIFAR-10 Linear ridge 1000 79 .63 ± 0.33 79 .43 ± 0.34 0.04 0.01 CIFAR-10 RBF KRR 1000 80 .53 ± 0.37 80 .38 ± 0.38 0.05 0.03 CIFAR-100 Brownian q = 1 500 38 .74 ± 0.61 36 .06 ± 0.62 0.01 0.02 CIFAR-100 Brownian q = 2 500 39 .93 ± 0.70 37 .56 ± 0.65 0.01 0.02 CIFAR-100 Laplace KRR 500 39 .58 ± 0.83 37 .55 ± 0.79 0.01 0.02 CIFAR-100 Linear ridge 500 38 .64 ± 0.33 35 .49 ± 0.46 0.01 0.01 CIFAR-100 RBF KRR 500 39 .23 ± 0.50 36 .52 ± 0.51 0.01 0.02 CIFAR-100 Brownian q = 1 1000 45 .68 ± 0.54 43 .20 ± 0.60 0.05 0.03 CIFAR-100 Brownian q = 2 1000 47 .31 ± 0.48 45 .22 ± 0.51 0.05 0.03 CIFAR-100 Laplace KRR 1000 47 .10 ± 0.43 45 .23 ± 0.50 0.05 0.03 CIFAR-100 Linear ridge 1000 45 .41 ± 0.75 42 .57 ± 0.92 0.04 0.01 CIFAR-100 RBF KRR 1000 46 .55 ± 0.56 44 .09 ± 0.68 0.05 0.03 EuroSAT Brownian q = 1 500 89 .35 ± 0.07 88 .82 ± 0.07 0.01 0.01 EuroSAT Brownian q = 2 500 90 .52 ± 0.27 90 .09 ± 0.29 0.01 0.01 EuroSAT Laplace KRR 500 90 .14 ± 0.31 89 .68 ± 0.34 0.01 0.01 EuroSAT Linear ridge 500 89 .29 ± 0.25 88 .83 ± 0.29 0.01 0.00 EuroSAT RBF KRR 500 89 .34 ± 0.42 88 .83 ± 0.46 0.01 0.01 EuroSAT Brownian q = 1 1000 90 .58 ± 0.57 90 .15 ± 0.58 0.05 0.01 EuroSAT Brownian q = 2 1000 91 .90 ± 0.30 91 .56 ± 0.32 0.05 0.01 EuroSAT Laplace KRR 1000 91 .71 ± 0.30 91 .34 ± 0.32 0.05 0.01 EuroSAT Linear ridge 1000 90 .58 ± 0.42 90 .20 ± 0.42 0.04 0.00 EuroSAT RBF KRR 1000 91 .49 ± 0.33 91 .12 ± 0.34 0.05 0.02 
+
+All predefined completeness, split-pairing, finite-value, and Brownian positive-semidefiniteness checks passed. The fixed Lévy–Brownian head has average rank 1.333, mean gap to the best head 0.011 percentage points, and a positive mean gain over linear ridge in all six settings. Complete records include split hashes, selected ridge parameters, accuracy, macro-F1, balanced accuracy, fit time, and prediction time. 
+
+Paired differences. Intervals below are descriptive paired percentile-bootstrap summaries over five seeds; no multiplicity-corrected significance claim is made. 41 0.4 0.6 0.8 1.0 1.2 fitted head scale Π q
+
+> 0.1 0.2 0.3 0.4 0.5 0.6 test error
+
+(a) Capacity diagnostic      
+
+> Brownian q=1 Brownian q=2
+> 0.76 0.77 0.78 0.79 0.80 0.81 Gram-sensitive lower ratio 0.4 0.5 0.6 0.7 0.8 0.9 test accuracy
+
+(b) Realized Gram geometry 
+
+> Brownian q=1 Brownian q=2
+
+Figure 12: Brownian fitted-head and realized-Gram diagnostics. These are finite-sample mechanism diagnostics, not deterministic-equivalent test-risk curves. Table 6: Paired gains of the Brownian heads over linear ridge. Intervals are descriptive paired percentile-bootstrap summaries over five seeds; no multiplicity-corrected significance claim is made. 
+
+Dataset Brownian head nlab Gain over linear (pp) Interval (pp) CIFAR-10 Brownian q = 1 500 -0.25 [-0.48, -0.05] CIFAR-10 Brownian q = 2 500 0.65 [0.49, 0.82] CIFAR-10 Brownian q = 1 1000 0.04 [-0.20, 0.25] CIFAR-10 Brownian q = 2 1000 1.03 [0.92, 1.13] CIFAR-100 Brownian q = 1 500 0.10 [-0.26, 0.54] CIFAR-100 Brownian q = 2 500 1.29 [0.90, 1.69] CIFAR-100 Brownian q = 1 1000 0.27 [0.02, 0.53] CIFAR-100 Brownian q = 2 1000 1.90 [1.53, 2.18] EuroSAT Brownian q = 1 500 0.06 [-0.13, 0.30] EuroSAT Brownian q = 2 500 1.23 [1.01, 1.44] EuroSAT Brownian q = 1 1000 -0.00 [-0.27, 0.30] EuroSAT Brownian q = 2 1000 1.32 [1.12, 1.53] 
+
+Table 7: Lévy–Brownian q = 2 paired differences against the two principal non-Brownian baselines. 
+
+Dataset Comparator nlab Difference (pp) Interval (pp) CIFAR-10 Laplace KRR 500 -0.06 [-0.13, 0.06] CIFAR-10 Linear ridge 500 0.65 [0.49, 0.82] CIFAR-10 Laplace KRR 1000 -0.01 [-0.25, 0.22] CIFAR-10 Linear ridge 1000 1.03 [0.92, 1.13] CIFAR-100 Laplace KRR 500 0.35 [0.18, 0.61] CIFAR-100 Linear ridge 500 1.29 [0.90, 1.69] CIFAR-100 Laplace KRR 1000 0.21 [0.05, 0.36] CIFAR-100 Linear ridge 1000 1.90 [1.53, 2.18] EuroSAT Laplace KRR 500 0.38 [0.30, 0.46] EuroSAT Linear ridge 500 1.23 [1.01, 1.44] EuroSAT Laplace KRR 1000 0.20 [0.10, 0.27] EuroSAT Linear ridge 1000 1.32 [1.12, 1.53] 
+
+## D Supporting Recursive Brownian-Chain Material 
+
+This appendix records material substantially related to BKL, not a separate contribution. It is not used in the terminal-head theorem proofs. We relate fixed-measure BKL recursions to Hilbertian kernel chains and record recursive Brownian lifts, dyadic propagation, affine energy, and sample compression in the present notation. 
+
+D.1 Fixed-measure BKL recursions are Hilbertian kernel chains 
+
+Let G be an RKHS on X with kernel k, and write kx := k(·, x ) ∈ G . Let U ⊆ G be Borel and let μ be a finite positive Borel measure on U satisfying ∫
+
+U
+
+∥u∥G dμ(u) < ∞. (133) 42 Define the Brownian link kernel on G by 
+
+˜kμ(h, h ′) := 
+
+∫
+
+> U
+
+kB
+
+(⟨u, h ⟩G , ⟨u, h ′⟩G
+
+) dμ(u), h, h ′ ∈ G , (134) and pull it back to X through the canonical feature map x 7 → kx:
+
+k+ 
+
+> μ
+
+(x, x ′) := ˜kμ(kx, k x′ ). (135) This is the Hilbert-space specialization of the kernel-chaining operation of Heeringa et al. (2025). 
+
+Proposition D.1 (Fixed-measure BKL–kernel-chain correspondence) . Under (133) , the integral in (134) is finite for every h, h ′ ∈ G , and ˜kμ is a positive-definite kernel on G. Consequently, k+ 
+
+> μ
+
+is a positive-definite kernel on X and satisfies 
+
+k+ 
+
+> μ
+
+(x, x ′) = 
+
+∫
+
+> U
+
+kB
+
+(u(x), u (x′)) dμ(u). (136) 
+
+Thus every fixed admissible sequence of BKL measures generates, link by link, a Hilbertian reproducing-kernel chain with Brownian link kernels. In the indexing of an L-level BKL, the initial RKHS is followed by L − 1
+
+such links. Proof. The scalar Brownian kernel obeys 0 ≤ kB(s, t ) ≤ min {| s| , |t|} (s, t ∈ R). (137) If st ≤ 0, then |s − t| = |s| + |t| and hence kB(s, t ) = 0. If st > 0, then |s − t| = ∣∣|s| − | t|∣∣, so kB(s, t ) = min {| s| , |t|} . By Cauchy–Schwarz and (137), 0 ≤ kB
+
+(⟨u, h ⟩G , ⟨u, h ′⟩G
+
+) (138) 
+
+≤ ∥ u∥G min {∥ h∥G , ∥h′∥G }. (139) The right-hand side is μ-integrable by (133), so the link kernel is finite. The integrand is Borel measurable because u 7 → ⟨ u, h ⟩G is continuous and kB is continuous. To prove positive definiteness, fix h1, . . . , h N ∈ G and c1, . . . , c N ∈ R. The finite sum below is integrable by (139), and therefore 
+
+> N
+
+∑
+
+> r,s =1
+
+cr cs˜kμ(hr , h s) = 
+
+∫
+
+> U
+> N
+
+∑
+
+> r,s =1
+
+cr cskB
+
+(⟨u, h r ⟩G , ⟨u, h s⟩G
+
+) dμ(u)
+
+≥ 0.
+
+For each fixed u, the inner sum is nonnegative because it is a Gram quadratic form for the pullback of the positive-definite kernel kB through the bounded functional h 7 → ⟨ u, h ⟩G . Hence ˜kμ is positive definite. Its pullback k+ 
+
+> μ
+
+through x 7 → kx is therefore positive definite as well. Finally, the reproducing property gives 
+
+⟨u, k x⟩G = u(x), ⟨u, k x′ ⟩G = u(x′),
+
+and substitution into (135) proves (136). Iteration proves the final assertion. 
+
+Proposition D.2 (Directional-moment propagation for fixed BKL links) . Under the assumptions of Proposi-tion D.1, define the L1(μ) analysis norm 
+
+χG (μ) := sup  
+
+> ∥h∥G≤1
+
+∫
+
+> U
+
+∣∣⟨u, h ⟩G
+
+∣∣ dμ(u). (140) 
+
+Then 
+
+χG (μ) ≤
+
+∫
+
+> U
+
+∥u∥G dμ(u). (141) 
+
+Let d0(x, x ′) := ∥kx − kx′ ∥G and let d+ 
+
+> μ
+
+be the canonical feature distance of k+ 
+
+> μ
+
+. Then 
+
+d+ 
+
+> μ
+
+(x, x ′)2 =
+
+∫
+
+> U
+
+|u(x) − u(x′)| dμ(u) ≤ χG (μ)d0(x, x ′). (142) 
+
+Consequently, after r fixed BKL links with directional moments χ1, . . . , χ r , the induced distances satisfy 
+
+dr (x, x ′) ≤ d0(x, x ′)2−r
+
+> r
+
+∏
+
+> ℓ=1
+
+χ2−(r−ℓ+1)  
+
+> ℓ
+
+. (143) 43 The directional factor can be strictly smaller than the usual first moment: if μ is uniform on s orthonormal unit vectors, then the right-hand side of (141) equals one whereas χG (μ) = s−1/2.Proof. For every h with ∥h∥G ≤ 1, | ⟨ u, h ⟩ | ≤ ∥ u∥G pointwise. Integrating and then taking the supremum over such h proves (141), including the case in which the right-hand side is zero. Using the Brownian identity 
+
+kB(a, a ) + kB(b, b ) − 2kB(a, b ) = |a − b| and the reproducing property, 
+
+d+ 
+
+> μ
+
+(x, x ′)2 =
+
+∫
+
+> U
+
+|u(x) − u(x′)| dμ(u)=
+
+∫
+
+> U
+
+∣∣⟨u, k x − kx′ ⟩G
+
+∣∣ dμ(u)
+
+≤ χG (μ) ∥kx − kx′ ∥G ,
+
+which proves (142). At link ℓ, the same argument gives d2 
+
+> ℓ
+
+≤ χℓdℓ−1. We prove the closed form by induction without dividing by any distance or directional moment. For r = 1 it reads d1 ≤ d1/20 χ1/21 . If it holds at level 
+
+r − 1, then 
+
+dr ≤ χ1/2 
+
+> r
+
+d1/2
+
+> r−1
+
+≤ d2−r
+
+> 0
+> r−1
+
+∏
+
+> ℓ=1
+
+χ2−(r−ℓ+1)  
+
+> ℓ
+
+χ1/2 
+
+> r
+
+,
+
+which is (143). If d0 = 0 or some χℓ = 0, the one-step inequality forces all subsequent relevant distances to be zero, so the same formula remains valid at the endpoints. For the final claim, if μ = s−1 ∑sj=1 δuj with (uj )sj=1 orthonormal, then 
+
+χG (μ) = 1
+
+s sup 
+
+> ∥h∥≤ 1
+> s
+
+∑
+
+> j=1
+
+|⟨ uj , h ⟩| = 1
+
+√s ,
+
+by Cauchy–Schwarz, with equality at h = s−1/2 ∑sj=1 uj .
+
+Corollary D.3 (Gaussian covariance links and dimension-free directional control) . Let Σ ⪰ 0 on Rm and let 
+
+μΣ = N (0 , Σ) . With c0 = √π/ 2,
+
+c−10 KΣ(h, h ′) = 
+
+∫
+
+> Rm
+
+kB
+
+(⟨g, h ⟩ , ⟨g, h ′⟩) dμΣ(g), (144) 
+
+and 
+
+χRm (μΣ) = 
+
+√ 2
+
+π
+
+∥∥∥Σ1/2
+
+∥∥∥2→2
+
+. (145) 
+
+Consequently, after restoring the normalization c0, the one-link metric factor is exactly ∥∥Σ1/2∥∥2→2:
+
+∥ΦΣ(h) − ΦΣ(h′)∥2 
+
+> HΣ
+
+= ∥h − h′∥Σ ≤
+
+∥∥∥Σ1/2
+
+∥∥∥2→2
+
+∥h − h′∥2 . (146) 
+
+For a sequence of normalized Gaussian covariance links Σ1, . . . , Σr , the corresponding chain therefore satisfies 
+
+dr ≤ d2−r
+
+> 0
+> r
+
+∏
+
+> ℓ=1
+
+∥∥∥Σ1/2
+
+> ℓ
+
+∥∥∥2−(r−ℓ+1) 
+
+> 2→2
+
+. (147) 
+
+For Σ = Im and G ∼ N (0 , I m), the normalized directional factor equals one, whereas the normalized first-moment factor is c0E ∥G∥2 > 1 for m ≥ 2. Thus the directional sharpening removes an otherwise dimension-dependent Gaussian first-moment loss. Proof. Equation (144) is (91). Moreover, 
+
+χRm (μΣ) = sup 
+
+> ∥h∥2≤1
+
+E |⟨ GΣ, h ⟩| 
+
+=
+
+√ 2
+
+π sup 
+
+> ∥h∥2≤1
+
+√h⊤Σh =
+
+√ 2
+
+π
+
+∥∥∥Σ1/2
+
+∥∥∥2→2
+
+,
+
+which proves (145). Multiplication of the link kernel by c0 multiplies its squared canonical feature distance by c0; hence (146) follows from Proposition D.2 and is also the direct identity in Proposition B.5. Iteration proves (147). For Σ = Im, strict inequality E ∥G∥2 > E |G1| = √2/π holds for m ≥ 2. 44 Remark D.4 (One fixed chain versus the canonical BKL space) . Proposition D.1 identifies a fixed BKL measure sequence with one chain of RKHSs. The canonical BKL space of Mohammadigohari et al. (2026) is instead the union of the terminal RKHSs over all normalized admissible ladders, and its complexity is the infimum of the corresponding terminal RKHS norms over all ladders that realize the same function. It is therefore a variational union of Brownian kernel-chain RKHSs, not one fixed RKHS. Conversely, the terminal-head model studied in Section 2 is an ordinary finite ReLU representation followed by only one terminal Brownian lift. These three objects—a terminal Brownian head, a fixed Brownian kernel chain, and the BKL variational union over chains—should not be conflated. 
+
+D.2 Recursive Brownian canonical-feature chains 
+
+The correspondence above suggests a separate architecture that feeds a Brownian canonical feature into the next link. Fix a depth L ≥ 1, an index q ∈ { 1, 2}, a real Hilbert space E0, and an input feature map Ψ0 : X → E 0. For clarity, write Kq,m for the kernel Kq on Rm and retain the notation Φ q,m for its canonical feature map. For ℓ = 1 , . . . , L , fix a width mℓ ≥ 1 and let 
+
+Tℓ : Eℓ−1 → Rmℓ
+
+be a bounded linear operator when Rmℓ carries its ℓq norm, let bℓ ∈ Rmℓ , and set Eℓ := Hq,m ℓ . Define recursively 
+
+uℓ(x) := ReLU (TℓΨℓ−1(x) + bℓ
+
+), Ψℓ(x) := Φ q,m ℓ
+
+(uℓ(x)). (148) For later use, introduce the induced kernels 
+
+κ0(x, x ′) := ⟨Ψ0(x), Ψ0(x′)⟩E0 , κℓ(x, x ′) := Kq,m ℓ
+
+(uℓ(x), u ℓ(x′)). (149) 
+
+Proposition D.5 (The recursive lift is a Hilbert kernel chain) . For every ℓ ∈ { 0, . . . , L }, κℓ is positive definite and Ψℓ is a feature map for κℓ. Let Gℓ be the RKHS of κℓ. There is a unique isometry 
+
+Jℓ : Gℓ −→ span {Ψℓ(x) : x ∈ X } ⊆ E ℓ such that Jℓκℓ,x = Ψ ℓ(x). (150) 
+
+For ℓ ≥ 1, the function 
+
+˜κℓ(g, g ′) := Kq,m ℓ (ReLU( TℓJℓ−1g + bℓ), ReLU( TℓJℓ−1g′ + bℓ)) (151) 
+
+forms a positive-definite link kernel on Gℓ−1 and satisfies 
+
+κℓ(x, x ′) = ˜κℓ
+
+(κℓ−1,x , κ ℓ−1,x ′
+
+). (152) 
+
+Hence (148) is a fixed Hilbertian reproducing-kernel chain. Proof. The kernel κ0 is positive definite by its feature representation. For ℓ ≥ 1, (149) is the pullback of the positive-definite kernel Kq,m ℓ through uℓ, and 
+
+κℓ(x, x ′) = ⟨Ψℓ(x), Ψℓ(x′)⟩Eℓ .
+
+Define first on the algebraic span of kernel sections 
+
+Uℓ
+
+( N∑
+
+> i=1
+
+ciκℓ,x i
+
+)
+
+:= 
+
+> N
+
+∑
+
+> i=1
+
+ciΨℓ(xi).
+
+For every finite coefficient family, 
+
+∥∥∥∥∥∑
+
+> i
+
+ciΨℓ(xi)
+
+∥∥∥∥∥
+
+> 2
+> Eℓ
+
+= ∑
+
+> i,j
+
+cicj ⟨Ψℓ(xi), Ψℓ(xj )⟩Eℓ
+
+= ∑
+
+> i,j
+
+cicj κℓ(xi, x j )=
+
+∥∥∥∥∥∑
+
+> i
+
+ciκℓ,x i
+
+∥∥∥∥∥
+
+> 2
+> Gℓ
+
+.
+
+Consequently the rule is well defined: any two section representations of the same RKHS vector have difference of norm zero and therefore images with difference of norm zero. It is an isometry on a dense subspace of Gℓ,45 so it extends uniquely by continuity to an isometry Jℓ. Its range is the closure of the span of the vectors Ψℓ(x), exactly as displayed in (150). For fixed ℓ ≥ 1, the map g 7 → ReLU( TℓJℓ−1g + bℓ) is a well-defined map from Gℓ−1 to Rmℓ . Thus (151) is a pullback of Kq,m ℓ and is positive definite. Using Jℓ−1κℓ−1,x = Ψ ℓ−1(x) and (148) gives 
+
+˜κℓ
+
+(κℓ−1,x , κ ℓ−1,x ′
+
+) = Kq,m ℓ
+
+(uℓ(x), u ℓ(x′))
+
+= κℓ(x, x ′),
+
+which proves (152). Write 
+
+τℓ := ∥Tℓ∥Eℓ−1→ℓq , βℓ := ∥bℓ∥q , (153) and define 
+
+dℓ(x, x ′) := ∥Ψℓ(x) − Ψℓ(x′)∥Eℓ , eℓ(x) := ∥Ψℓ(x)∥2 
+
+> Eℓ
+
+. (154) The first result gives the metric law for the recursive architecture. It is distinct from the one-shot terminal Brownian head studied in the main paper. 
+
+Proposition D.6 (Dyadic metric propagation in a recursive Brownian chain) . For a depth-L recursive Brownian canonical-feature chain, 
+
+dL(x, x ′) ≤ d0(x, x ′)2−L
+
+> L
+
+∏
+
+> ℓ=1
+
+τ 2−(L−ℓ+1)  
+
+> ℓ
+
+. (155) 
+
+Scalar-width chains attain equality at every level, so the displayed exponents are forced among uniform monomial bounds over all positive scales. Proof. By the Brownian feature identity (3), coordinatewise nonexpansiveness of ReLU in ℓq , and the definition of τℓ,
+
+dℓ(x, x ′)2 = ∥uℓ(x) − uℓ(x′)∥q
+
+≤ ∥ Tℓ(Ψ ℓ−1(x) − Ψℓ−1(x′)) ∥q
+
+≤ τℓdℓ−1(x, x ′). (156) The common bias cancels before the ReLU contraction. If dℓ−1(x, x ′) = 0 or τℓ = 0, the right-hand side of (156) is zero and hence so is dℓ(x, x ′). In all cases, taking the nonnegative square root gives 
+
+dℓ(x, x ′) ≤ τ 1/2 
+
+> ℓ
+
+dℓ−1(x, x ′)1/2.
+
+Induction on r now yields 
+
+dr (x, x ′) ≤ d0(x, x ′)2−r
+
+> r
+
+∏
+
+> ℓ=1
+
+τ 2−(r−ℓ+1)  
+
+> ℓ
+
+,
+
+and the case r = L is (155). It remains to verify attainment and necessity of the exponents. Take scalar width at every level. Suppose Ψℓ−1(x)̸ = Ψ ℓ−1(x′) and set 
+
+vℓ−1 = Ψℓ−1(x) − Ψℓ−1(x′)
+
+dℓ−1(x, x ′) , Tℓh = τℓ⟨vℓ−1, h ⟩.
+
+Writing a = TℓΨℓ−1(x) and a′ = TℓΨℓ−1(x′), choose explicitly bℓ := max {0, −a, −a′}. Then both scalar preactivations are nonnegative. ReLU is then the identity at those two values, and 
+
+|uℓ(x) − uℓ(x′)| = τℓdℓ−1(x, x ′).
+
+The Brownian feature identity therefore makes (156) an equality. Starting with two base features at prescribed positive distance d0 and iterating this construction gives equality in (155) for every prescribed positive τ1, . . . , τ L. At zero base distance or a zero link norm, both the bound and every subsequent distance are zero, but those endpoint cases are not used to identify exponents by scaling. 46 Finally, suppose a uniform monomial estimate 
+
+dL ≤ Cd γ
+
+> 0
+> L
+
+∏
+
+> ℓ=1
+
+τ αℓ
+
+> ℓ
+
+holds at all positive scales. Substituting the equality construction, fixing all τℓ = 1, and sending d0 first to infinity and then to zero forces γ = 2 −L. Next fix d0 = 1 and all link norms except τj equal to one. Letting τj
+
+tend to infinity and then to zero forces αj = 2 −(L−j+1) . Thus every exponent displayed in (155) is necessary in the stated uniform monomial sense. For r ≥ 1, set 
+
+Ar := 
+
+> r
+
+∏
+
+> ℓ=1
+
+τ 2−(r−ℓ+1)  
+
+> ℓ
+
+, A0 := 1 . (157) Equivalently, Ar = ( τr Ar−1)1/2. For r ≥ 1, also define the accumulated affine contribution 
+
+Cr := 
+
+> r
+
+∑
+
+> s=1
+
+β2−(r−s)
+
+> sr
+
+∏
+
+> ℓ=s+1
+
+τ 2−(r−ℓ) 
+
+> ℓ
+
+, C0 := 0 , (158) where an empty product equals one. For t ≥ 0, define the nested affine envelope 
+
+R0(t) := t, Rr (t) := τr Rr−1(t)1/2 + βr (r ≥ 1) . (159) 
+
+Proposition D.7 (Affine energy recursion for recursive Brownian chains) . For every x ∈ X and ℓ ∈ [L],
+
+eℓ(x) ≤ τℓeℓ−1(x)1/2 + βℓ. (160) 
+
+Consequently, 
+
+eL(x) ≤ R L(e0(x)) ≤ A2
+
+> L
+
+e0(x)2−L
+
++ CL. (161) 
+
+If every bias vanishes, then RL(t) = A2
+
+> L
+
+t2−L
+
+. Conversely, for every t ≥ 0, every τ1, . . . , τ L > 0, and every 
+
+β1, . . . , β L ≥ 0, there is a one-point scalar-width chain satisfying e0 = t, ∥Tℓ∥ = τℓ, ∥bℓ∥q = βℓ, and 
+
+eℓ = Rℓ(t), ℓ = 1 , . . . , L. (162) 
+
+Thus the nested affine envelope is exact in the worst case for the prescribed base energy and link parameters. Proof. The feature-energy identity and ∥ReLU( v)∥q ≤ ∥ v∥q give 
+
+eℓ(x) = ∥uℓ(x)∥q ≤ ∥ TℓΨℓ−1(x) + bℓ∥q ≤ τℓeℓ−1(x)1/2 + βℓ,
+
+which is (160). Since every Rℓ is nondecreasing, induction gives eℓ(x) ≤ R ℓ(e0(x)). For the closed form, the case r = 0 is equality. Assume inductively that Rr−1(t) ≤ A2
+
+> r−1
+
+t2−(r−1) 
+
++ Cr−1.Every term is nonnegative, so repeated use of √x + y ≤ √x + √y and the explicit sum defining Cr−1 yields 
+
+Rr (t) ≤ τr Ar−1t2−r
+
++ τrr−1∑
+
+> s=1
+
+β2−(r−s)
+
+> sr−1
+
+∏
+
+> ℓ=s+1
+
+τ 2−(r−ℓ) 
+
+> ℓ
+
++ βr
+
+= A2 
+
+> r
+
+t2−r
+
++ Cr .
+
+This proves (161); when all βr vanish, the recursion gives equality in the displayed bias-free formula. For the one-point construction, take E0 = R and Ψ 0(x) = √t. At level ℓ, if Ψ ℓ−1(x)̸ = 0, let vℓ−1 =Ψℓ−1(x)/∥Ψℓ−1(x)∥ and set Tℓh = τℓ ⟨vℓ−1, h ⟩. If the current feature is zero, choose any unit vector vℓ−1 in 
+
+Eℓ−1 and use the same formula; then TℓΨℓ−1(x) = 0. In both cases ∥Tℓ∥ = τℓ. Take scalar width and bias 
+
+bℓ = βℓ ≥ 0. The preactivation is exactly τℓe1/2 
+
+> ℓ−1
+
++ βℓ ≥ 0, so ReLU does not alter it and the Brownian energy identity gives eℓ = τℓe1/2 
+
+> ℓ−1
+
++ βℓ = Rℓ(t). Induction proves (162), including t = 0 and zero biases. 
+
+Corollary D.8 (Fixed-chain complexity and dyadic envelopes) . Fix a head radius B ≥ 0, an input sample 
+
+S = ( x1, . . . , x n) with n ≥ 1, and the recursive chain (148) . Define 
+
+Fchain ,B := {x 7 → ⟨ a, ΨL(x)⟩EL
+
+∣∣ ∥a∥EL ≤ B} (163) 47 and its final activation mass ̂
+
+M chain  
+
+> L,S
+
+:= 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+∥uL(xi)∥q = 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+eL(xi). (164) 
+
+Then ̂
+
+RS (Fchain ,B ) = Bn Eε
+
+∥∥∥∥∥
+
+> n
+
+∑
+
+> i=1
+
+εiΨL(xi)
+
+∥∥∥∥∥EL
+
+, (165) 
+
+and 
+
+B
+
+√2
+
+√̂ 
+
+M chain 
+
+> L,S
+
+n ≤̂ RS (Fchain ,B ) ≤ B
+
+√̂ 
+
+M chain 
+
+> L,S
+
+n . (166) 
+
+The numerical constants 1/√2 and 1 are best possible uniformly over all sample sizes and Brownian canonical feature configurations. For arbitrary biases, ̂
+
+RS (Fchain ,B ) ≤ B
+
+√n
+
+[
+
+1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+RL
+
+(
+
+∥Ψ0(xi)∥2
+
+> E0
+
+)]1/2
+
+(167) 
+
+≤ B
+
+√n
+
+[
+
+A2
+
+> L
+
+(
+
+1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+∥Ψ0(xi)∥21−L
+
+> E0
+
+)
+
++ CL
+
+]1/2
+
+. (168) 
+
+If bℓ = 0 for every ℓ, then CL = 0 and ̂
+
+RS (Fchain ,B ) ≤ BA L
+
+√n
+
+(
+
+1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+∥Ψ0(xi)∥21−L
+
+> E0
+
+)1/2
+
+. (169) 
+
+For the empirically centered class 
+
+F◦ 
+
+> chain ,B,S
+
+:= 
+
+{
+
+x 7 → 〈a, ΨL(x) − ΨL,S 
+
+〉
+
+> EL
+
+∣∣∣ ∥a∥EL ≤ B
+
+}
+
+, ΨL,S := 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+ΨL(xi), (170) 
+
+define ̂
+
+V chain  
+
+> L,S
+
+:= 12n2
+
+> n
+
+∑
+
+> i,j =1
+
+dL(xi, x j )2. (171) 
+
+Then, without any restriction on the biases, 
+
+B
+
+√2
+
+√̂ 
+
+V chain 
+
+> L,S
+
+n ≤̂ RS (F◦ 
+
+> chain ,B,S
+
+) ≤ B
+
+√̂ 
+
+V chain 
+
+> L,S
+
+n , (172) ̂
+
+RS (F◦ 
+
+> chain ,B,S
+
+) ≤ BA L
+
+√n
+
+ 12n2
+
+> n
+
+∑
+
+> i,j =1
+
+d0(xi, x j )21−L
+
+
+
+> 1/2
+
+. (173) 
+
+Under 0 ≤ τℓ ≤ Λ, the factor AL in (169) and (173) is at most Λ1−2−L
+
+.Proof. Apply Theorem 2.2 to the fixed representation x 7 → uL(x) and its canonical feature map Φ q,m L (uL(x)) = Ψ L(x). Hilbert duality gives (165), and Lemma A.1 with ∑ 
+
+> i
+
+∥ΨL(xi)∥2 = n̂ M chain  
+
+> L,S
+
+gives (166). If B = 0 or the final mass is zero, all terms vanish. For n = 1 and nonzero final mass, the signed feature norm is deterministic and the upper endpoint is the exact value. Uniform optimality of the upper constant follows already from this one-point case, while uniform optimality of 1 /√2 follows from the two-equal-feature configuration at n = 2 in Theorem 2.2. Average the two estimates in Proposition D.7 and substitute them into the upper bound in (166): ̂
+
+RS (Fchain ,B ) ≤ B
+
+√n
+
+(
+
+1
+
+n
+
+∑
+
+> i
+
+eL(xi)
+
+)1/2
+
+≤ B
+
+√n
+
+[
+
+1
+
+n
+
+∑
+
+> i
+
+RL(e0(xi)) 
+
+]1/2
+
+≤ B
+
+√n
+
+[
+
+A2
+
+> L
+
+(
+
+1
+
+n
+
+∑
+
+> i
+
+e0(xi)2−L
+
+)
+
++ CL
+
+]1/2
+
+.
+
+48 Since e0(x) = ∥Ψ0(x)∥2 
+
+> E0
+
+, this proves (167)–(168). When all biases vanish, Proposition D.7 gives the envelope 
+
+A2
+
+> L
+
+e2−L 
+
+> 0
+
+, giving (169). Next apply Corollary B.3 to the same final feature configuration. The Hilbert variance identity and (154) give exactly (171), and hence (172). Squaring (155) yields 
+
+dL(xi, x j )2 ≤ A2
+
+> L
+
+d0(xi, x j )21−L
+
+.
+
+Average over the ordered pairs and insert the result into the upper bound in (172) to obtain (173). The final assertion follows because the exponents in AL sum to 1 − 2−L.
+
+Remark D.9 (Empirical centering) . The centered statements in (172)–(173) are exact empirical complexity statements and expose the bias-free pairwise geometry of the chain. For an i.i.d. risk bound, the center should be fixed, learned independently, or handled together with its data dependence, as discussed after Corollary B.3. 
+
+Proposition D.10 (Finite-sample compression without link-norm inflation) . Fix the chain (148) and a finite input sample S = ( x1, . . . , x n) with n ≥ 1. For ℓ = 0 , . . . , L − 1, let 
+
+Vℓ := span {Ψℓ(xi) : i ∈ [n]} ⊆ E ℓ, Pℓ : Eℓ → Vℓ (174) 
+
+be the orthogonal projection. Choose an index set Iℓ ⊆ [n] such that {Ψℓ(xi) : i ∈ Iℓ} is a basis of Vℓ; when 
+
+Vℓ = {0}, take Iℓ = ∅. Define 
+
+˜Tℓ+1 := Tℓ+1 Pℓ. (175) 
+
+Let (˜uℓ, ˜Ψℓ)Lℓ=1 be the recursive chain obtained by replacing every Tℓ with ˜Tℓ, while keeping the biases and the base map unchanged; thus ˜Ψ0 := Ψ 0. Then, for every i ∈ [n],
+
+˜Ψ0(xi) = Ψ 0(xi), (176) 
+
+˜uℓ(xi) = uℓ(xi), ˜Ψℓ(xi) = Ψ ℓ(xi), ℓ = 1 , . . . , L. (177) 
+
+Moreover, ∥∥∥ ˜Tℓ
+
+∥∥∥Eℓ−1→ℓq
+
+≤ τℓ, ℓ = 1 , . . . , L, (178) 
+
+and, for every ℓ ∈ [L], there exist vectors cℓ,i ∈ Rmℓ , i ∈ Iℓ−1, such that 
+
+˜Tℓh = ∑
+
+> i∈Iℓ−1
+
+cℓ,i ⟨Ψℓ−1(xi), h ⟩Eℓ−1 (h ∈ E ℓ−1). (179) 
+
+Thus every link has an exact representation using |Iℓ−1| = dim Vℓ−1 ≤ n linearly independent sample features, without increasing its operator norm. Equivalently, the projected chain can be evaluated recursively through finite kernel expansions, 
+
+˜uℓ(x) = ReLU 
+
+ ∑
+
+> i∈Iℓ−1
+
+cℓ,i κSℓ−1(xi, x ) + bℓ
+
+ , (180) 
+
+where, for r = 0 , . . . , L ,
+
+κSr (x, x ′) := 
+
+〈 ˜Ψr (x), ˜Ψr (x′)
+
+〉
+
+> Er
+
+. (181) 
+
+On the sample, these kernels preserve every original Gram matrix: 
+
+κSℓ (xi, x j ) = κℓ(xi, x j ) (i, j ∈ [n], ℓ = 0 , . . . , L ). (182) 
+
+Proof. Because Pℓ is an orthogonal projection, ∥Pℓ∥Eℓ→E ℓ ≤ 1. Therefore 
+
+∥∥∥ ˜Tℓ+1 
+
+∥∥∥Eℓ→ℓq
+
+= ∥Tℓ+1 Pℓ∥Eℓ→ℓq ≤ ∥ Tℓ+1 ∥Eℓ→ℓq ,
+
+which is (178). Equations (176)–(177) follow by induction on ℓ. The base identity holds because the base feature map is unchanged. Assume ˜Ψℓ−1(xi) = Ψ ℓ−1(xi) for all i. Since each sample feature belongs to Vℓ−1, Pℓ−1Ψℓ−1(xi) = Ψℓ−1(xi), and hence 
+
+˜Tℓ ˜Ψℓ−1(xi) = TℓPℓ−1Ψℓ−1(xi)= TℓΨℓ−1(xi).
+
+49 Adding the same bias, applying ReLU, and then applying the same canonical Brownian feature map proves equality of both ˜uℓ(xi) and ˜Ψℓ(xi). For the finite expansion, fix ℓ and a coordinate j ∈ [mℓ]. The map h 7 → [ ˜Tℓh]j is a bounded linear functional on the Hilbert space Eℓ−1, so there is a unique representer vℓ,j ∈ E ℓ−1 such that [ ˜Tℓh]j = ⟨vℓ,j , h ⟩. Because 
+
+˜Tℓ = ˜TℓPℓ−1,
+
+⟨vℓ,j , h ⟩ = ⟨vℓ,j , P ℓ−1h⟩ = ⟨Pℓ−1vℓ,j , h ⟩ (h ∈ E ℓ−1),
+
+so uniqueness of the Riesz representer implies vℓ,j = Pℓ−1vℓ,j ∈ Vℓ−1. Because the features indexed by Iℓ−1
+
+form a basis of Vℓ−1, there are unique coefficients γℓ,i,j , i ∈ Iℓ−1, such that 
+
+vℓ,j = ∑
+
+> i∈Iℓ−1
+
+γℓ,i,j Ψℓ−1(xi).
+
+Set cℓ,i := ( γℓ,i, 1, . . . , γ ℓ,i,m ℓ ). Collecting the coordinate identities yields (179). Substituting h = ˜Ψℓ−1(x) and using sample exactness at the centers gives (180). Finally, (176)–(177) and the feature representations of κℓ
+
+and κSℓ imply (182). 
+
+Proposition D.11 (Spectral-tail rank compression with recursive error control) . Fix the recursive chain 
+
+(148) and a sample S = ( x1, . . . , x n). For ℓ = 0 , . . . , L − 1, define the empirical feature covariance 
+
+Cℓ,S := 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+Ψℓ(xi) ⊗ Ψℓ(xi) on Eℓ, (183) 
+
+let λℓ, 1 ≥ λℓ, 2 ≥ · · · ≥ 0 be its eigenvalues, and let Pℓ,r project onto a top-r eigenspace. Set 
+
+δℓ,r := 
+
+∑
+
+> j>r
+
+λℓ,j 
+
+
+
+> 1/2
+
+=
+
+[
+
+1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+∥(I − Pℓ,r )Ψ ℓ(xi)∥2
+
+> Eℓ
+
+]1/2
+
+. (184) 
+
+Choose integer ranks r0, . . . , r L−1 with 0 ≤ rℓ ≤ n; in the presence of an eigenvalue tie, any orthogonal top-rℓ
+
+eigenspace may be used. Define the rank-compressed chain by ˜Ψ0 = Ψ 0 and 
+
+˜uℓ(x) := ReLU (TℓPℓ−1,r ℓ−1
+
+˜Ψℓ−1(x) + bℓ
+
+), ˜Ψℓ(x) := Φ q,m ℓ (˜uℓ(x)) . (185) 
+
+Then every compressed link factors through a space of dimension at most rℓ−1 and 
+
+∥∥TℓPℓ−1,r ℓ−1
+
+∥∥ ≤ τℓ. (186) 
+
+If 
+
+E0 := 0 , Eℓ := 1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+∥∥∥Ψℓ(xi) − ˜Ψℓ(xi)
+
+∥∥∥2
+
+> Eℓ
+
+, (187) 
+
+then the errors obey the recursive spectral-tail bound 
+
+Eℓ ≤ τℓ
+
+(
+
+δℓ−1,r ℓ−1 + √Eℓ−1
+
+)
+
+, ℓ = 1 , . . . , L. (188) 
+
+Writing aℓ := τℓδℓ−1,r ℓ−1 , this gives the explicit closed envelope 
+
+EL ≤
+
+> L
+
+∑
+
+> s=1
+
+a 2−(L−s)
+
+> sL
+
+∏
+
+> ℓ=s+1
+
+τ 2−(L−ℓ) 
+
+> ℓ
+
+. (189) 
+
+For every a ∈ E L with ∥a∥ ≤ B, the original and compressed heads satisfy 
+
+[
+
+1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+∣∣∣〈
+
+a, ΨL(xi) − ˜ΨL(xi)
+
+〉∣ ∣∣2
+
+]1/2
+
+≤ B√EL. (190) 
+
+If ˜Fchain ,B denotes the radius-B head class generated by ˜ΨL, then 
+
+∣∣∣̂ RS (Fchain ,B ) −̂ RS ( ˜Fchain ,B )
+
+∣∣∣ ≤ B
+
+√ EL
+
+n . (191) 50 If only level s ∈ { 0, . . . , L − 1} is truncated and all other projections contain the corresponding full sample spans, then 
+
+EL ≤ (τs+1 δs,r s )2−(L−s−1) 
+
+> L
+
+∏
+
+> ℓ=s+2
+
+τ 2−(L−ℓ) 
+
+> ℓ
+
+. (192) 
+
+In particular, zero spectral tails recover the exact sample compression of Proposition D.10. Proof. Orthogonal projection is contractive, which proves (186) and the rank-factorization statement. For each sample point, the Brownian feature identity, ReLU contraction, and the operator norm give 
+
+∥∥∥Ψℓ(xi) − ˜Ψℓ(xi)
+
+∥∥∥2
+
+= ∥uℓ(xi) − ˜uℓ(xi)∥q
+
+≤ τℓ
+
+∥∥∥Ψℓ−1(xi) − Pℓ−1,r ℓ−1
+
+˜Ψℓ−1(xi)
+
+∥∥∥
+
+≤ τℓ
+
+[∥∥(I − Pℓ−1,r ℓ−1 )Ψ ℓ−1(xi)∥∥ +
+
+∥∥∥Ψℓ−1(xi) − ˜Ψℓ−1(xi)
+
+∥∥∥]
+
+.
+
+Average over i and apply Cauchy–Schwarz separately to the two sums. The first becomes δℓ−1,r ℓ−1 by the PCA residual identity, and the second is at most √Eℓ−1, proving (188). Equation (190) is Cauchy–Schwarz in EL followed by averaging. By the reverse triangle inequality and Jensen, 
+
+∣∣∣̂ RS (Fchain ,B ) −̂ RS ( ˜Fchain ,B )
+
+∣∣∣ ≤ Bn Eε
+
+∥∥∥∥∥∑
+
+> i
+
+εi(Ψ L(xi) − ˜ΨL(xi)) 
+
+∥∥∥∥∥
+
+≤ Bn
+
+(∑
+
+> i
+
+∥∥∥ΨL(xi) − ˜ΨL(xi)
+
+∥∥∥2
+
+)1/2
+
+,
+
+which is (191). For a single truncation, exact projection at the earlier levels gives Es = 0 and hence 
+
+Es+1 ≤ τs+1 δs,r s . For the general multi-level statement, write the recurrence as Eℓ ≤ aℓ + τℓ
+
+√Eℓ−1. We prove (189) by induction on ℓ. It is E1 ≤ a1 at the first level. If 
+
+Eℓ−1 ≤
+
+> ℓ−1
+
+∑
+
+> s=1
+
+a2−(ℓ−1−s)
+
+> sℓ−1
+
+∏
+
+> j=s+1
+
+τ 2−(ℓ−1−j) 
+
+> j
+
+,
+
+then square-root subadditivity gives 
+
+Eℓ ≤ aℓ + τℓℓ−1∑
+
+> s=1
+
+a2−(ℓ−s)
+
+> sℓ−1
+
+∏
+
+> j=s+1
+
+τ 2−(ℓ−j)
+
+> j
+
+=
+
+> ℓ
+
+∑
+
+> s=1
+
+a2−(ℓ−s)
+
+> sℓ
+
+∏
+
+> j=s+1
+
+τ 2−(ℓ−j) 
+
+> j
+
+,
+
+where the s = ℓ term is aℓ and empty products equal one. Taking ℓ = L proves (189). At every later level after a single truncation the tail term vanishes and Eℓ ≤ τℓ
+
+√Eℓ−1; iteration yields (192). 
+
+Remark D.12 (Compression-localized factors and scope) . Let Qcmp  
+
+> ℓ−1,S
+
+project onto the span of Ψ ℓ−1(xi) −
+
+Pℓ−1,r ℓ−1
+
+˜Ψℓ−1(xi), i ∈ [n], and set τ cmp  
+
+> ℓ,S
+
+:= 
+
+∥∥∥TℓQcmp 
+
+> ℓ−1,S
+
+∥∥∥Eℓ−1→ℓq
+
+. Because the compression proof uses Tℓ only on this discrepancy span, all bounds remain valid after the recursive replacement τℓ 7 → τ cmp  
+
+> ℓ,S
+
+≤ τℓ. This localizes the low-rank spectral-tail control suggested by adaptive-kernel work (Liu et al., 2020): unlike a training-only Hadamard deformation, the projection acts on a globally defined canonical chain, does not increase link norms, and supplies an explicit sample-dependent approximation error. It does not assert an off-sample Euclidean realization. 51 Corollary D.13 (Sample-adaptive link and secant sharpening) . In the setting of Proposition D.10, let 
+
+Qℓ−1,S project onto the span of sample-feature differences and define 
+
+τℓ,S := ∥TℓPℓ−1∥Eℓ−1→ℓq , AL,S := 
+
+> L
+
+∏
+
+> ℓ=1
+
+τ 2−(L−ℓ+1)  
+
+> ℓ,S
+
+, (193) 
+
+Dℓ−1,S := span {Ψℓ−1(xi) − Ψℓ−1(xj ) : i, j ∈ [n]}, (194) 
+
+τ ∆ 
+
+> ℓ,S
+
+:= ∥TℓQℓ−1,S ∥Eℓ−1→ℓq ,σℓ,S := max  
+
+> i,j ∈[n]
+> dℓ−1(xi,x j)>0
+
+∥uℓ(xi) − uℓ(xj )∥q
+
+dℓ−1(xi, x j ) , Asec  
+
+> L,S
+
+:= 
+
+> L
+
+∏
+
+> ℓ=1
+
+σ2−(L−ℓ+1)  
+
+> ℓ,S
+
+. (195) 
+
+The maximum over an empty set is zero. Set R0,S (t) := t and Rr,S (t) := τr,S Rr−1,S (t)1/2 + βr . Then 
+
+σℓ,S ≤ τ ∆ 
+
+> ℓ,S
+
+≤ τℓ,S ≤ τℓ, Asec  
+
+> L,S
+
+≤ AL,S ≤ AL, RL,S (t) ≤ R L(t). (196) 
+
+Moreover, ̂
+
+RS (Fchain ,B ) ≤ B
+
+√n
+
+[
+
+1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+RL,S 
+
+(
+
+∥Ψ0(xi)∥2
+
+> E0
+
+)]1/2
+
+, (197) ̂
+
+RS (Fchain ,B ) ≤ BA L,S 
+
+√n
+
+(
+
+1
+
+n
+
+> n
+
+∑
+
+> i=1
+
+∥Ψ0(xi)∥21−L
+
+> E0
+
+)1/2
+
+if the chain is bias free , (198) ̂
+
+RS (F◦ 
+
+> chain ,B,S
+
+) ≤ BA sec 
+
+> L,S
+
+√n
+
+ 12n2
+
+> n
+
+∑
+
+> i,j =1
+
+d0(xi, x j )21−L
+
+
+
+> 1/2
+
+. (199) 
+
+The uncentered bounds discard link mass outside the sample-feature spans; the centered bound retains only contraction realized on sample secants. Proof. The projected chain of Proposition D.10 has link norms τℓ,S and agrees with the original chain at every sample point and every level. Applying Corollary D.8 to that chain proves (197)–(198). Because 
+
+Dℓ−1,S ⊆ Vℓ−1, TℓQℓ−1,S = ( TℓPℓ−1)Qℓ−1,S , so τ ∆ 
+
+> ℓ,S
+
+≤ τℓ,S . On each sample difference, ReLU contraction gives ∥uℓ(xi) − uℓ(xj )∥q ≤ ∥ TℓQℓ−1,S (Ψ ℓ−1(xi) − Ψℓ−1(xj )) ∥q . If dℓ−1(xi, x j ) > 0, division by that distance and the operator norm give the ratio bound by τ ∆ 
+
+> ℓ,S
+
+. If the denominator is zero, then Ψ ℓ−1(xi) = Ψ ℓ−1(xj ), so the two affine preactivations, ReLU states, and numerator are also identical. If no pair has positive denominator (in particular when n = 1), the defining maximum is zero. Therefore σℓ,S ≤ τ ∆ 
+
+> ℓ,S
+
+in all cases. For each sample pair, induction in exactly the same way as in Proposition D.6 gives 
+
+dL(xi, x j )2 ≤ (Asec  
+
+> L,S
+
+)2d0(xi, x j )21−L
+
+.
+
+This remains true when a secant factor is zero, because the corresponding one-step distance and all subsequent distances are zero. Averaging this inequality over ordered pairs and substituting it into the centered upper bound in (172) proves (199). The remaining inequalities follow from the product and recursive definitions. 52
