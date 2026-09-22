@@ -25,5 +25,78 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
-  intent_profiles: []
-source_backends: {}
+  intent_profiles:
+    - tag: ml
+      description: 机器学习、深度学习、生成式人工智能、多模态学习、自然语言处理、计算生物学、计算机视觉、强化学习
+      enabled: true
+      paper_sources:
+        - arxiv
+        - biorxiv
+      keywords:
+        - keyword: machine learning
+          keyword_cn: 机器学习
+          query: fundamentals of machine learning theory and algorithms
+        - keyword: deep learning
+          keyword_cn: 深度学习
+          query: deep neural network architectures and training methods
+        - keyword: multimodal learning
+          keyword_cn: 多模态学习
+          query: integrating multiple modalities like text and images in learning systems
+        - keyword: natural language processing
+          keyword_cn: 自然语言处理
+          query: computational techniques for understanding and generating human language
+        - keyword: computational biology
+          keyword_cn: 计算生物学
+          query: machine learning applications in biological data analysis
+        - keyword: computer vision
+          keyword_cn: 计算机视觉
+          query: algorithms for image and video understanding
+      intent_queries:
+        - query: How can deep learning models be applied to computer vision tasks?
+          query_cn: 深度学习模型如何应用于计算机视觉任务？
+          enabled: true
+          source: manual
+          note: ''
+        - query: What are the key advances in generative artificial intelligence for multimodal content generation?
+          query_cn: 生成式人工智能在多模态内容生成方面的关键进展是什么？
+          enabled: true
+          source: manual
+          note: ''
+        - query: How is reinforcement learning used in computational biology and drug discovery?
+          query_cn: 强化学习如何应用于计算生物学和药物发现？
+          enabled: true
+          source: manual
+          note: ''
+        - query: What methods in natural language processing leverage large language models?
+          query_cn: 自然语言处理中哪些方法利用了大语言模型？
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-09-22T16:25:03.528Z'
+source_backends:
+  arxiv:
+    papers_table: arxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_arxiv_papers
+    vector_rpc_exact: match_arxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_arxiv_papers_bm25
+    sync_table: arxiv_sync_status
+    sync_success_value: success
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
+  biorxiv:
+    papers_table: biorxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_biorxiv_papers_exact
+    vector_rpc_exact: match_biorxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_biorxiv_papers_bm25
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
