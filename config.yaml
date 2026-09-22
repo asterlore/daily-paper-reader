@@ -26,7 +26,7 @@ subscriptions:
     diff_threshold_pct: 15
   keyword_recall_mode: or
   intent_profiles:
-    - tag: ml
+    - tag: demo
       description: 机器学习、深度学习、生成式人工智能、多模态学习、自然语言处理、计算生物学、计算机视觉、强化学习
       enabled: true
       paper_sources:
@@ -72,7 +72,7 @@ subscriptions:
           enabled: true
           source: manual
           note: ''
-      updated_at: '2026-09-22T16:25:03.528Z'
+      updated_at: '2026-09-22T16:26:35.743Z'
 source_backends:
   arxiv:
     papers_table: arxiv_papers
