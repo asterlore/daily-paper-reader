@@ -1,0 +1,687 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-22T16:32:06.381807+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 44,
+    "deep_cap": 6,
+    "deep_selected": 6,
+    "quick_candidates": 92,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2609.14421v1",
+      "source": "arxiv",
+      "title": "Dependency, Compression, and Synergy: A Unified Information-Theoretic View of Multimodal Learning",
+      "abstract": "Recent advances in multimodal foundation models have intensified the need to understand how different modalities share, preserve, and complement information. Mutual Information (MI), the Information Bottleneck (IB), and Partial Information Decomposition (PID) provide complementary perspectives, yet existing studies often treat them as isolated tools. This survey presents an information-theoretic perspective connecting these principles as progressively refined views of multimodal information processing: MI characterizes inter-modal dependency, IB explains task-oriented information preservation under compression, and PID decomposes preserved information into redundancy, uniqueness, and synergy. We review 170 recent studies (2018--2026) and 12 foundational works, organizing multimodal learning around four challenges: cross-modal alignment, information-efficient fusion, interaction-type characterization, and scaling to multimodal foundation models. Rather than using application domains as primary taxonomy axes, we interpret healthcare, robotics, recommendation systems, affective computing, and wireless communications as empirical validations of these information principles. Beyond taxonomy, we organize existing multimodal paradigms within a single information-theoretic coordinate system -- the Generalized Multimodal Information Lagrangian -- in which they occupy exact or approximate parameter corners, and whose unoccupied regions name candidate method families the literature has not yet built. We further discuss how emerging multimodal foundation models instantiate these principles at scale and identify open challenges including scalable information estimation in high-dimensional settings, standardized evaluation across information-theoretic methods, combinatorial complexity of multimodal PID, and the transition from post-hoc information analysis toward information-aware multimodal learning.",
+      "authors": [
+        "Liangjian Wen",
+        "Linjie Li",
+        "Jiang Duan",
+        "Yong Dai",
+        "Jianzhuang Liu",
+        "Zhao Kang"
+      ],
+      "primary_category": "cs.IT",
+      "categories": [
+        "cs.IT"
+      ],
+      "published": "2026-09-13T10:43:11+00:00",
+      "link": "https://arxiv.org/pdf/2609.14421v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "information-theoretic survey of multimodal learning",
+      "llm_evidence_cn": "多模态学习的信息论综述",
+      "llm_evidence": "多模态学习的信息论综述",
+      "canonical_evidence": "多模态学习的信息论综述",
+      "llm_tldr_en": "A survey linking mutual information, information bottleneck and partial information decomposition as progressively refined views of multimodal learning, reviewing 170 studies on dependency, compression and synergy.",
+      "llm_tldr_cn": "多模态基础模型快速发展，但不同模态间如何共享、保留与互补信息仍缺乏统一理解。本文从信息论视角梳理互信息、信息瓶颈与部分信息分解三类工具，分别刻画模态间依赖、任务导向的信息压缩保留，以及冗余、独有与协同信息的分解。作者综述约170项近期研究，将其组织为逐步细化的多模态信息处理框架，为多模态表示学习与模型设计提供统一理论参考。",
+      "llm_tldr": "多模态基础模型快速发展，但不同模态间如何共享、保留与互补信息仍缺乏统一理解。本文从信息论视角梳理互信息、信息瓶颈与部分信息分解三类工具，分别刻画模态间依赖、任务导向的信息压缩保留，以及冗余、独有与协同信息的分解。作者综述约170项近期研究，将其组织为逐步细化的多模态信息处理框架，为多模态表示学习与模型设计提供统一理论参考。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "integrating multiple modalities like text and images in learning systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.19970v1",
+      "source": "arxiv",
+      "title": "CellRFT: Reinforcement Fine-Tuning for Single-Cell Perturbation Modeling",
+      "abstract": "Predicting cellular responses to perturbations supports the study of gene function, disease mechanisms, and therapeutic strategies. Despite advances in single-cell perturbation modeling, existing models typically optimize surrogate losses that do not directly reflect the biological criteria used for evaluation, so better data fitting need not yield better biological predictions. To address this mismatch, we introduce \\textbf{CellRFT}, a reinforcement fine-tuning framework that uses biological evaluation as direct training feedback. CellRFT uses policy-gradient optimization to learn from non-differentiable evaluations of generated cell populations and integrates multiple biological rewards through hierarchical reward aggregation. Comprehensive experiments demonstrate CellRFT's applicability across different pretrained models and effectiveness in improving perturbation prediction, reveal that optimizing one biological criterion can help or hinder others, and show that complementary rewards can improve criteria beyond those directly optimized, offering a way to probe how biological metrics shape model behavior, with the potential to inform evaluation design. Code will be made available.",
+      "authors": [
+        "Jie Yan",
+        "Li Liu",
+        "Hanze Guo",
+        "Jiaxin Hu",
+        "Houxin He",
+        "Xiaoning Qi",
+        "Haoran Wang",
+        "Cong Li",
+        "Zhong-Yuan Zhang",
+        "Yong Wang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-17T09:43:12+00:00",
+      "link": "https://arxiv.org/pdf/2609.19970v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Reinforcement fine-tuning for single-cell perturbation modeling",
+      "llm_evidence_cn": "面向单细胞扰动建模的强化微调",
+      "llm_evidence": "面向单细胞扰动建模的强化微调",
+      "canonical_evidence": "面向单细胞扰动建模的强化微调",
+      "llm_tldr_en": "CellRFT uses reinforcement fine-tuning with policy-gradient optimization and hierarchical reward aggregation to align single-cell perturbation models with biological evaluation criteria.",
+      "llm_tldr_cn": "预测细胞对扰动的响应有助于基因功能、疾病机制与治疗策略研究，但现有单细胞扰动模型优化的是代理损失，与评估所用的生物学标准不一致，数据拟合更好未必预测更准。本文提出CellRFT强化微调框架，以生物学评估作为直接训练反馈，采用策略梯度优化从不可微的生成细胞群评估中学习，并通过分层奖励聚合整合多种生物学奖励。实验表明该框架能更好地对齐生物学预测目标，为计算生物学建模提供强化学习驱动的对齐范式。",
+      "llm_tldr": "预测细胞对扰动的响应有助于基因功能、疾病机制与治疗策略研究，但现有单细胞扰动模型优化的是代理损失，与评估所用的生物学标准不一致，数据拟合更好未必预测更准。本文提出CellRFT强化微调框架，以生物学评估作为直接训练反馈，采用策略梯度优化从不可微的生成细胞群评估中学习，并通过分层奖励聚合整合多种生物学奖励。实验表明该框架能更好地对齐生物学预测目标，为计算生物学建模提供强化学习驱动的对齐范式。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "How is reinforcement learning used in computational biology and drug discovery?",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.20792v1",
+      "source": "arxiv",
+      "title": "A Framework for Supervised and Unsupervised Learning via Reproducing Kernel Hilbert Spaces",
+      "abstract": "We introduce a unified framework for supervised and unsupervised learning based on reproducing kernel Hilbert spaces (RKHSs). We introduce the notion of a nested RKHS, namely an increasing sequence of RKHSs whose union is dense in an ambient $L^2$-space. This construction makes it possible to exploit the computational structure of RKHS methods at each finite approximation level while retaining the approximation power of the full $L^2$-space.   We first study statistical learning in a fixed RKHS. In both unsupervised and supervised settings, we establish strong convergence results for empirical averages of random elements taking values in an RKHS continuously embedded in $L^2$. We then use the nested RKHS structure to combine these statistical convergence results with the density of the union of the RKHSs in the ambient $L^2$-space. We apply this construction to probability density estimation and binary Bayesian classification. For density estimation, we construct explicit empirical estimators of the orthogonal projections of the target density onto the RKHSs and establish their almost sure convergence. A diagonal selection procedure then yields a sequence of estimators converging almost surely to the target density in $L^2$.   For binary Bayesian classification, we formulate the approximation of the Bayes target as the minimization of suitable population and empirical risk functionals. We prove consistency of the empirical minimizers and use the nested structure to obtain convergence towards the Bayes target in $L^2$. We further provide a geometric interpretation in terms of hyperplanes and weighted distances in the ambient $L^2$-space. Finally, we show that the population risk admits a direct probabilistic interpretation in terms of the probability of misclassification.",
+      "authors": [
+        "Frédéric Protin"
+      ],
+      "primary_category": "math.FA",
+      "categories": [
+        "math.FA"
+      ],
+      "published": "2026-09-17T17:53:53+00:00",
+      "link": "https://arxiv.org/pdf/2609.20792v1",
+      "tags": [
+        "keyword:demo"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "unified supervised and unsupervised learning framework via RKHS theory",
+      "llm_evidence_cn": "基于RKHS理论的有监督与无监督学习统一框架",
+      "llm_evidence": "基于RKHS理论的有监督与无监督学习统一框架",
+      "canonical_evidence": "基于RKHS理论的有监督与无监督学习统一框架",
+      "llm_tldr_en": "This work introduces nested reproducing kernel Hilbert spaces to unify supervised and unsupervised learning, proving strong convergence of empirical averages while retaining L2 approximation power.",
+      "llm_tldr_cn": "针对有监督与无监督学习缺乏统一理论框架的问题，本文基于再生核希尔伯特空间提出统一框架，引入嵌套RKHS结构，即一列递增且并集在L2空间稠密的RKHS，从而在每一有限逼近层利用核方法的计算结构，同时保留完整L2空间的逼近能力。作者在固定RKHS下证明了无监督与有监督经验平均的强收敛结果，并利用嵌套结构加以组合。该工作为核方法统计学习提供了统一的理论基础。",
+      "llm_tldr": "针对有监督与无监督学习缺乏统一理论框架的问题，本文基于再生核希尔伯特空间提出统一框架，引入嵌套RKHS结构，即一列递增且并集在L2空间稠密的RKHS，从而在每一有限逼近层利用核方法的计算结构，同时保留完整L2空间的逼近能力。作者在固定RKHS下证明了无监督与有监督经验平均的强收敛结果，并利用嵌套结构加以组合。该工作为核方法统计学习提供了统一的理论基础。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "fundamentals of machine learning theory and algorithms",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.14790v1",
+      "source": "arxiv",
+      "title": "Zero-shot video highlight detection based on text descriptions and synthetic images",
+      "abstract": "Detecting video highlights, the most informative or engaging moments in a video, is important for applications such as video summarization and content recommendation. We propose a zero-shot framework that combines CLIP, large language models (LLMs), and diffusion models. Given lightweight video metadata, such as a title or category, an LLM generates textual descriptions of likely highlight events. These descriptions are further converted into synthetic visual prototypes using a diffusion model. Textual and visual representations are matched to video frames using CLIP, enabling frame-level highlight detection without highlight annotations or dataset-specific training. Experiments on TVSum and SumMe demonstrate strong zero-shot performance, with particularly favorable results on TVSum. The proposed approach provides an effective framework for metadata-conditioned zero-shot video highlight detection.",
+      "authors": [
+        "Michal Byra",
+        "Alberto Presta",
+        "Grzegorz Stefanski",
+        "Krzysztof Arendt"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-13T21:03:57+00:00",
+      "link": "https://arxiv.org/pdf/2609.14790v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "zero-shot video highlight detection using CLIP, LLMs and diffusion models",
+      "llm_evidence_cn": "结合CLIP、大模型与扩散模型的零样本视频精彩片段检测",
+      "llm_evidence": "结合CLIP、大模型与扩散模型的零样本视频精彩片段检测",
+      "canonical_evidence": "结合CLIP、大模型与扩散模型的零样本视频精彩片段检测",
+      "llm_tldr_en": "Video highlight detection usually needs annotations. This zero-shot framework uses an LLM to generate textual descriptions of likely highlights, converts them into synthetic visual prototypes via diffusion, and matches them to frames with CLIP, performing well on TVSum and SumMe.",
+      "llm_tldr_cn": "视频精彩片段检测对视频摘要与内容推荐很重要，但通常依赖大量标注数据。本文提出零样本框架，结合CLIP、大语言模型与扩散模型：由LLM根据标题或类别生成可能的高光事件文本描述，扩散模型再将其转为合成视觉原型，最后用CLIP将文本与视觉表示同视频帧匹配。在TVSum与SumMe数据集上取得较强零样本性能，无需高光标注或数据集特定训练，展示了视频理解的新可能。",
+      "llm_tldr": "视频精彩片段检测对视频摘要与内容推荐很重要，但通常依赖大量标注数据。本文提出零样本框架，结合CLIP、大语言模型与扩散模型：由LLM根据标题或类别生成可能的高光事件文本描述，扩散模型再将其转为合成视觉原型，最后用CLIP将文本与视觉表示同视频帧匹配。在TVSum与SumMe数据集上取得较强零样本性能，无需高光标注或数据集特定训练，展示了视频理解的新可能。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "algorithms for image and video understanding",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.14882v1",
+      "source": "arxiv",
+      "title": "SeqMaestro: From nucleotide sequences to biological hypotheses through interpretable machine learning",
+      "abstract": "Nucleotide sequence analysis is central to problems spanning regulatory genomics, evolutionary biology, and phenotype prediction. Classical bioinformatics methods extract interpretable sequence properties such as motifs and k-mer composition, but their flexibility is limited. In contrast, modern deep learning models can learn powerful predictive representations directly from raw sequences, yet their internal representations and decision mechanisms are difficult to inspect. Interpretable machine learning methods (e.g., sparse linear models and decision trees) provide human-understandable representations of predictive relationships but are not designed to operate directly on nucleotide sequences. Here, we introduce SeqMaestro, a machine learning framework that proposes biological hypotheses from nucleotide sequences using interpretable models. Our solution is centered around a two-layer interface that connects nucleotide sequences with the broader ecosystem of interpretable machine learning. SeqMaestro uses this interface to fit diverse combinations of interpretable models, feature representations, and extraction strategies, leveraging variability across transparent models to identify robust biological signals and richer predictive relationships than feature importance alone can provide. The system also supports data transformation and cleaning, model fitting, hyperparameter tuning, reliability analysis, and synthesis of results into a contextualized written report. By providing these capabilities through a no-code workflow, SeqMaestro is designed to make interpretable sequence analysis accessible to researchers without requiring extensive programming or machine learning expertise. SeqMaestro thereby provides an accessible route from nucleotide sequences to biological hypotheses.",
+      "authors": [
+        "Evgeny S. Saveliev",
+        "Krzysztof Kacprzyk",
+        "Charlotte Capitanchik",
+        "Neelanjan Mukherjee",
+        "Kate Matlin",
+        "Ryan Sheridan",
+        "Srinivas Ramachandran",
+        "Jernej Ule",
+        "David L. Bentley",
+        "Mihaela van der Schaar"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-14T01:04:09+00:00",
+      "link": "https://arxiv.org/pdf/2609.14882v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "interpretable machine learning on nucleotide sequences for biological hypotheses",
+      "llm_evidence_cn": "面向核苷酸序列的可解释机器学习与生物学假设生成",
+      "llm_evidence": "面向核苷酸序列的可解释机器学习与生物学假设生成",
+      "canonical_evidence": "面向核苷酸序列的可解释机器学习与生物学假设生成",
+      "llm_tldr_en": "Nucleotide sequence analysis spans regulatory genomics and phenotype prediction, but deep models are opaque while classical methods are inflexible. SeqMaestro applies interpretable machine learning directly to sequences, yielding human-understandable representations for biological hypothesis generation.",
+      "llm_tldr_cn": "核苷酸序列分析在调控基因组学、演化生物学与表型预测中至关重要。传统生物信息方法可提取基序、k-mer等可解释特征但灵活性有限，而深度模型虽预测能力强却难以检查其内部机制。本文提出SeqMaestro，将稀疏线性模型、决策树等可解释机器学习方法直接作用于核苷酸序列，在保持预测能力的同时生成人类可理解的表示，从而支持从序列到生物学假设的推断，为计算生物学提供了兼顾性能与可解释性的工具。",
+      "llm_tldr": "核苷酸序列分析在调控基因组学、演化生物学与表型预测中至关重要。传统生物信息方法可提取基序、k-mer等可解释特征但灵活性有限，而深度模型虽预测能力强却难以检查其内部机制。本文提出SeqMaestro，将稀疏线性模型、决策树等可解释机器学习方法直接作用于核苷酸序列，在保持预测能力的同时生成人类可理解的表示，从而支持从序列到生物学假设的推断，为计算生物学提供了兼顾性能与可解释性的工具。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "machine learning applications in biological data analysis",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.15638v1",
+      "source": "arxiv",
+      "title": "Potential of Artificial Intelligence Algorithms for Identification of Relevant Diagnostic and Prognostic Biomarkers of Early-Stage Liver Cancer",
+      "abstract": "This study explores the use of deep learning and explainable artificial intelligence to diagnose hepatocellular carcinoma (HCC) and define effective biomarkers across five different stages of disease development using a transcriptomic biomarker HCC dataset constructed via semi-supervised learning from three source datasets. Several deep learning experiments were conducted with different feature extraction techniques and gene sets to identify the most effective features for training high-accuracy models with minimal loss. The best-performing model, using 15 selected genes with the SelectKBest algorithm, achieved 90.74% accuracy, while the model with the lowest recorded loss of 0.3187 was obtained using 20 selected genes. To address the issue of class imbalance in the dataset, a weighted training approach was conducted, and for model transparency and interpretability a SHAP-based XAI analysis provided insights into the model's decision-making, consistently finding DNAJB14 as the most influential gene. Functional validation in this study has provided compelling evidence that DNAJB14 plays an important role in the adverse properties of HCC and that its inhibition effectively reverses tumour cell migration, invasion, colony and sphere formation. The main limitation of this study is the dataset's class imbalance, and while weighted training helped mitigate this, further research and additional data are needed to guarantee model generalizability. Future studies should also explore the influence of genetic variations, environmental factors, and clinical differences on model performance across diverse populations.",
+      "authors": [
+        "Ali Bou Nassif",
+        "Darko Castven",
+        "Manar Abu Talib",
+        "Jibran Sualeh Muhammad",
+        "Ahmed Ammar Kubba",
+        "Jens Marquardt",
+        "Abdalla Sayed Ali"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-14T14:26:00+00:00",
+      "link": "https://arxiv.org/pdf/2609.15638v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "deep learning and explainable AI for liver cancer biomarker identification",
+      "llm_evidence_cn": "用深度学习与可解释AI识别肝癌生物标志物",
+      "llm_evidence": "用深度学习与可解释AI识别肝癌生物标志物",
+      "canonical_evidence": "用深度学习与可解释AI识别肝癌生物标志物",
+      "llm_tldr_en": "This study applies deep learning and explainable AI to diagnose hepatocellular carcinoma and identify biomarkers across five disease stages, building a transcriptomic dataset via semi-supervised learning and reaching 90.74% accuracy with 15 selected genes.",
+      "llm_tldr_cn": "本研究针对早期肝细胞癌诊断与生物标志物识别问题，利用半监督学习从三个来源数据集构建转录组生物标志物数据集，并采用深度学习与可解释人工智能展开分析。通过比较不同特征提取技术与基因集，作者用SelectKBest筛选出15个基因，使模型达到90.74%的准确率。结果表明AI可辅助识别跨疾病阶段的诊断与预后标志物，为肝癌早期检测提供思路。",
+      "llm_tldr": "本研究针对早期肝细胞癌诊断与生物标志物识别问题，利用半监督学习从三个来源数据集构建转录组生物标志物数据集，并采用深度学习与可解释人工智能展开分析。通过比较不同特征提取技术与基因集，作者用SelectKBest筛选出15个基因，使模型达到90.74%的准确率。结果表明AI可辅助识别跨疾病阶段的诊断与预后标志物，为肝癌早期检测提供思路。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "machine learning applications in biological data analysis",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.15640v1",
+      "source": "arxiv",
+      "title": "Human-Grounded Calibration for Long-Text Image-Text Congruence in Vision-Language Models",
+      "abstract": "Long-text image--text congruence scoring is increasingly important for vision-language systems that must evaluate whether detailed textual descriptions match visual content. However, raw similarity scores from dual-encoder models are difficult to interpret as calibrated congruence measures, especially under the modality gap between image and text embeddings. This paper proposes Congruency Score (CS), a lightweight calibration layer that maps image--text similarity evidence into a bounded score. Using DOCCI and Urban1k, we evaluate four frozen vision-language backbones and show that observed reductions in post-projection centroid distance do not uniformly improve image--text retrieval performance. Human-grounded evaluations on DOCCI further reveal a trade-off: direct post-hoc calibration preserves high association with human judgments, whereas selected projection-based configurations can reduce threshold-relevant slope and intercept distortions at the cost of retrieval performance and association strength. These results establish long-text image--text congruence scoring as a calibrated score-estimation problem, where retrieval performance, human association, and threshold calibration must be evaluated as distinct objectives. CS provides a lightweight way to expose and operationalize this separation.",
+      "authors": [
+        "Alessandro Gambetti",
+        "Qiwei Han"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.CL"
+      ],
+      "published": "2026-09-14T14:26:53+00:00",
+      "link": "https://arxiv.org/pdf/2609.15640v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Calibrating image-text congruence in vision-language models",
+      "llm_evidence_cn": "视觉语言模型中图文一致性的校准",
+      "llm_evidence": "视觉语言模型中图文一致性的校准",
+      "canonical_evidence": "视觉语言模型中图文一致性的校准",
+      "llm_tldr_en": "The paper proposes Congruency Score, a lightweight calibration layer mapping image-text similarity into bounded scores, addressing the modality gap in long-text image-text congruence for VLMs.",
+      "llm_tldr_cn": "长文本图文一致性评分对视觉语言系统日益重要，但双编码器原始相似度难以解释为校准后的一致性度量，尤其存在图像与文本嵌入的模态鸿沟。本文提出一致性分数，一种将图文相似度证据映射为有界分数的轻量校准层。在DOCCI与Urban1k上评估四个冻结骨干模型，发现投影后质心距离的降低并不一致地提升图文检索性能，人类评估进一步揭示了这一差异。",
+      "llm_tldr": "长文本图文一致性评分对视觉语言系统日益重要，但双编码器原始相似度难以解释为校准后的一致性度量，尤其存在图像与文本嵌入的模态鸿沟。本文提出一致性分数，一种将图文相似度证据映射为有界分数的轻量校准层。在DOCCI与Urban1k上评估四个冻结骨干模型，发现投影后质心距离的降低并不一致地提升图文检索性能，人类评估进一步揭示了这一差异。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "integrating multiple modalities like text and images in learning systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.14657v1",
+      "source": "arxiv",
+      "title": "Compositional SVG Generation via VLM-Driven Hierarchical Semantic Parsing",
+      "abstract": "While Vision-Language Models (VLMs) excel at visual reasoning, generating structured, editable Scalable Vector Graphics (SVG) remains a fundamental challenge. Existing pipelines predominantly yield flat, semantically agnostic collections of paths, where editing a single object requires manually identifying its constituent paths. To address this, we propose a VLM-driven agentic framework for semantic compositional SVG generation. Our pipeline recursively parses visual scenes into semantic and geometric hierarchies via top-down decomposition, visual grounding, and prompt-driven amodal occlusion recovery, ensuring each component is geometrically complete. Furthermore, we introduce the Semantic SVG Benchmark with human-annotated semantic groups and novel sub-component metrics (Semantic Recall/Precision, PERE) to explicitly evaluate structural compositionality and functional editability. Experiments show that our natively predicted structures surpass the upper bounds of existing flat-generation methods in both grouping quality and editability, while maintaining state-of-the-art visual fidelity.",
+      "authors": [
+        "Sehwan Park",
+        "Taehoon Kim",
+        "Geonhee Han",
+        "Dohyun Kim",
+        "Seung Wook Kim",
+        "Paul Hongsuck Seo"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-09-13T16:50:07+00:00",
+      "link": "https://arxiv.org/pdf/2609.14657v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "VLM-driven agentic framework for generative SVG content",
+      "llm_evidence_cn": "VLM驱动的生成式SVG内容",
+      "llm_evidence": "VLM驱动的生成式SVG内容",
+      "canonical_evidence": "VLM驱动的生成式SVG内容",
+      "llm_tldr_en": "Generating editable SVG from images remains hard because existing pipelines produce flat, semantically agnostic paths. This paper proposes a VLM-driven agentic framework that recursively parses scenes into semantic and geometric hierarchies, plus a Semantic SVG Benchmark.",
+      "llm_tldr_cn": "从图像生成结构化、可编辑的SVG矢量图仍具挑战，现有流程多产出缺乏语义的扁平路径集合，编辑单个对象需手动识别其构成路径。本文提出由视觉语言模型驱动的智能体框架，通过自顶向下分解、视觉定位与提示驱动的遮挡恢复，递归地把视觉场景解析为语义与几何层级。作者还构建了带有人工标注语义分组的SVG基准，推动生成内容的可编辑性与语义一致性。",
+      "llm_tldr": "从图像生成结构化、可编辑的SVG矢量图仍具挑战，现有流程多产出缺乏语义的扁平路径集合，编辑单个对象需手动识别其构成路径。本文提出由视觉语言模型驱动的智能体框架，通过自顶向下分解、视觉定位与提示驱动的遮挡恢复，递归地把视觉场景解析为语义与几何层级。作者还构建了带有人工标注语义分组的SVG基准，推动生成内容的可编辑性与语义一致性。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "What are the key advances in generative artificial intelligence for multimodal content generation?",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.14408v1",
+      "source": "arxiv",
+      "title": "Dynamic Learning Solutions: A System for Personalized Educational Video Generation",
+      "abstract": "We present an automated pipeline that converts NCERT textbooks into interactive video explanations that respond directly to user queries. A user uploads a PDF and asks a question; the system then generates a video-based explanation as output, handling both text and visual elements from the PDF for multi-modal retrieval and response generation. The pipeline combines a Retrieval-Augmented Generation (RAG) model with generative multimedia components. The RAG stage is optimized for the structure of NCERT textbooks and performs best on content from those books. Given a user query, the RAG model retrieves relevant content from the PDF and generates a multi-scene script containing narrative explanations and structured visual prompts aligned with the textbook's explanatory style. These prompts are passed to a Stable Diffusion module, implemented layer by layer for interpretability and control, which generates contextually relevant images. The images are then processed by DynamiCrafter to produce animated sequences. Finally, a Google Text-to-Speech module generates synchronized narration, aligning speech with the visual scenes through time-based control. The result is a coherent video explanation integrating animation, narration, and textbook-aligned visuals, transforming static educational material into an engaging learning experience. By combining multi-modal document retrieval, generative visual models, animation frameworks, and speech synthesis, this pipeline demonstrates a scalable approach to delivering interactive, personalized digital education content.",
+      "authors": [
+        "Siddhanth Sridhar",
+        "Shreya Chaurasia",
+        "Baddela Sai Yaswantha Reddy",
+        "Deepak Parmar",
+        "Shylaja S S"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-13T10:13:10+00:00",
+      "link": "https://arxiv.org/pdf/2609.14408v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "generative multimedia pipeline with RAG for multimodal content generation",
+      "llm_evidence_cn": "结合RAG的多模态生成式内容管线",
+      "llm_evidence": "结合RAG的多模态生成式内容管线",
+      "canonical_evidence": "结合RAG的多模态生成式内容管线",
+      "llm_tldr_en": "An automated pipeline converts textbooks into interactive video explanations by combining retrieval-augmented generation with generative multimedia components for multimodal content.",
+      "llm_tldr_cn": "现有教材内容静态，难以针对用户提问生成个性化解释。本文提出自动化管线，将教材PDF转化为交互式视频讲解，处理文本与视觉元素进行多模态检索与响应生成。系统结合检索增强生成与生成式多媒体组件，依据查询检索内容并生成含叙事与视觉提示的多场景脚本。实验表明该方法能针对教材结构有效生成个性化教育视频。",
+      "llm_tldr": "现有教材内容静态，难以针对用户提问生成个性化解释。本文提出自动化管线，将教材PDF转化为交互式视频讲解，处理文本与视觉元素进行多模态检索与响应生成。系统结合检索增强生成与生成式多媒体组件，依据查询检索内容并生成含叙事与视觉提示的多场景脚本。实验表明该方法能针对教材结构有效生成个性化教育视频。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "What are the key advances in generative artificial intelligence for multimodal content generation?",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.16057v1",
+      "source": "arxiv",
+      "title": "OmniHarness: Harnessing Generalizable Visual Generation via Symbolic Policy Learning",
+      "abstract": "Unified multimodal large language models (MLLMs) and multi-agent systems have advanced visual generation. However, three limitations remain. (1) Existing methods often distill task-specific experience with limited generalizability. (2) Reflection is often deferred until task completion. (3) Knowledge is often acquired only in response to downstream task demands. To address these limitations, we introduce OmniHarness, a framework for generalizable visual generation via symbolic policy learning. OmniHarness abstracts verified executions into symbolic policies for visual generation task families, capturing shared procedures and applicability conditions while removing instance-specific inputs. The harness instantiates, adapts, and composes these policies for new tasks. Intermediate verification guides refinement and failure recovery during execution. Through self-directed inquiry, OmniHarness autonomously generates and executes practice tasks near its capability limits before downstream objectives are specified. Execution feedback continually refines the policies while model parameters remain fixed. Experiments across six benchmarks, three MLLM backbones, and three visual agent frameworks demonstrate strong performance and continual capability expansion. On ComfyBench's Creative tasks, OmniHarness achieves a 95.0% resolve rate, exceeding the strongest baseline by 27.5 percentage points. Frozen policy snapshots improve existing visual agent systems through plug-and-play reuse.",
+      "authors": [
+        "Xu Xu",
+        "Jinxiu Liu",
+        "Zhangbo Qiao",
+        "Jiaxing Lu",
+        "Xiangyu Zhang",
+        "Yubin Gu",
+        "Fangwei Ning",
+        "Yan Shi"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-13T07:29:27+00:00",
+      "link": "https://arxiv.org/pdf/2609.16057v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Generalizable visual generation via symbolic policy learning",
+      "llm_evidence_cn": "通过符号策略学习实现可泛化视觉生成",
+      "llm_evidence": "通过符号策略学习实现可泛化视觉生成",
+      "canonical_evidence": "通过符号策略学习实现可泛化视觉生成",
+      "llm_tldr_en": "OmniHarness tackles limited generalizability in multimodal visual generation by abstracting verified executions into symbolic policies that can be instantiated, adapted, and composed.",
+      "llm_tldr_cn": "统一多模态大模型与多智能体系统推动了视觉生成，但现有方法经验泛化性有限、反思滞后且知识仅在下游需求时获取。本文提出OmniHarness框架，通过符号策略学习将已验证的执行抽象为视觉生成任务族的符号策略，捕捉共享流程与适用条件并去除实例特化输入。该框架可实例化、适配与组合这些策略，从而提升多模态视觉生成的泛化能力。",
+      "llm_tldr": "统一多模态大模型与多智能体系统推动了视觉生成，但现有方法经验泛化性有限、反思滞后且知识仅在下游需求时获取。本文提出OmniHarness框架，通过符号策略学习将已验证的执行抽象为视觉生成任务族的符号策略，捕捉共享流程与适用条件并去除实例特化输入。该框架可实例化、适配与组合这些策略，从而提升多模态视觉生成的泛化能力。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "What are the key advances in generative artificial intelligence for multimodal content generation?",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.14743v1",
+      "source": "arxiv",
+      "title": "Quantifying the Generation Modality Gap in Speech-Text Language Models",
+      "abstract": "Pure speech language models often lag behind text and speech-text language models in generating coherent content, but this gap is difficult to quantify because speech and text systems are typically evaluated with different metrics and trained on different data. We study the speech-text modality gap in a family of spoken language models, based on flow matching for continuous acoustic feature generation. We construct a unified generation-based evaluation suite that compares speech-only, text-only, and speech-text language models trained on matched data distributions and evaluated in matched generation settings. We evaluate generated continuations along multiple dimensions: semantic coherence, measured by transcribing generated speech and scoring it with a reference language model; local phonetic structure, measured by phone n-gram distributional statistics; speaker consistency and acoustic quality; and emotion-based distributional metrics. Across datasets, we find that joint speech-text modeling substantially improves semantic coherence. However, the improvement is not uniform across metrics: phone-level metrics change only modestly, speaker similarity and predicted quality are lower for speech-text continuations, while emotion-based distributional metrics improve. Compared with larger-scale speech-only models, our speech-text model closes much of the scaling gap in transcript-based semantic coherence, suggesting that text provides an efficient semantic training signal for spoken language modeling.",
+      "authors": [
+        "Ju-Chieh Chou",
+        "Jiawei Zhou",
+        "Karen Livescu"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-09-13T19:09:07+00:00",
+      "link": "https://arxiv.org/pdf/2609.14743v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "speech-text multimodal language model gap",
+      "llm_evidence_cn": "语音-文本多模态语言模型差距",
+      "llm_evidence": "语音-文本多模态语言模型差距",
+      "canonical_evidence": "语音-文本多模态语言模型差距",
+      "llm_tldr_en": "Pure speech language models generate less coherent content than text or speech-text models, but differing metrics and data make the gap hard to quantify. The authors build a unified generation-based evaluation suite over flow-matching spoken language models to compare speech-only, text-only and speech-text systems on matched data and settings.",
+      "llm_tldr_cn": "纯语音语言模型的生成连贯性常落后于文本或语音-文本模型，但语音与文本系统使用不同指标与数据，差距难以量化。作者基于流匹配的连续声学特征生成，构建统一生成式评测套件，在匹配数据分布与生成设定下比较语音、文本与语音-文本模型。实验沿语义连贯性等维度评估生成续写，为跨模态语言模型提供可比的量化基准。",
+      "llm_tldr": "纯语音语言模型的生成连贯性常落后于文本或语音-文本模型，但语音与文本系统使用不同指标与数据，差距难以量化。作者基于流匹配的连续声学特征生成，构建统一生成式评测套件，在匹配数据分布与生成设定下比较语音、文本与语音-文本模型。实验沿语义连贯性等维度评估生成续写，为跨模态语言模型提供可比的量化基准。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "integrating multiple modalities like text and images in learning systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.15055v1",
+      "source": "arxiv",
+      "title": "Bridging the Gap in ECG-Based Emotion Recognition: A Unified Evaluation of Deep Learning Models",
+      "abstract": "Deep learning has led to numerous proposed architectures for Automated Emotion Recognition (AER) from electrocardiogram (ECG) data, but inconsistencies in preprocessing, training, and evaluation make direct comparisons difficult. Most studies train and validate models on individual datasets collected under homogeneous conditions, limiting variability and raising concerns about generalizability. Cross-dataset validation is sometimes used but primarily assesses model adaptability rather than true generalization. This study presents a comparative analysis of prominent deep learning architectures in AER, emphasizing model generalization over dataset adaptability. To enable this benchmark, we introduce two open-source frameworks: Affective Research on Representations and Classifications (ARRC), a standardized benchmarking toolkit, and Affective Research Dataset Toolkit (ARDT), a framework for inter-dataset training and validation. Using ARDT, we consolidate three publicly available AER datasets, CUADS, ASCERTAIN, and DREAMER, into a single dataset, increasing variability in sensor types, recording conditions, and participant demographics. We then use ARRC to evaluate three widely studied deep learning models and two CNN baselines through hyperparameter optimization and 10-fold cross-validation. Our findings provide insights into the trade-offs between classification accuracy and model complexity, establishing a reproducible benchmark for AER research. All source code for ARRC, ARDT, and model evaluation is publicly available to ensure transparency and facilitate further research.",
+      "authors": [
+        "Timothy C Sweeney-Fanelli",
+        "Ajan Ahmed",
+        "Masudul Imtiaz"
+      ],
+      "primary_category": "eess.SP",
+      "categories": [
+        "eess.SP",
+        "cs.LG"
+      ],
+      "published": "2026-09-14T05:21:31+00:00",
+      "link": "https://arxiv.org/pdf/2609.15055v1",
+      "tags": [
+        "keyword:demo"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "unified evaluation of deep learning models for ECG-based emotion recognition",
+      "llm_evidence_cn": "面向心电情绪识别的深度学习模型统一评测",
+      "llm_evidence": "面向心电情绪识别的深度学习模型统一评测",
+      "canonical_evidence": "面向心电情绪识别的深度学习模型统一评测",
+      "llm_tldr_en": "Presents a unified comparison of deep learning architectures for ECG-based emotion recognition, emphasizing true generalization and releasing open-source frameworks for reproducible benchmarks.",
+      "llm_tldr_cn": "深度学习在心电信号情绪识别中提出众多架构，但预处理、训练与评测不一致导致难以直接比较，多数研究在单一数据集上验证，泛化性存疑。本文对主流深度学习架构进行对比分析，强调模型泛化而非数据集适配，并构建两个开源框架支撑统一基准。该工作揭示了跨数据集评测的重要性，为生理信号的情绪识别研究提供了可复现的基准。",
+      "llm_tldr": "深度学习在心电信号情绪识别中提出众多架构，但预处理、训练与评测不一致导致难以直接比较，多数研究在单一数据集上验证，泛化性存疑。本文对主流深度学习架构进行对比分析，强调模型泛化而非数据集适配，并构建两个开源框架支撑统一基准。该工作揭示了跨数据集评测的重要性，为生理信号的情绪识别研究提供了可复现的基准。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "machine learning applications in biological data analysis",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.16207v1",
+      "source": "arxiv",
+      "title": "Hyperbolic Contrastive Learning with Entailment for Spatial Transcriptomics",
+      "abstract": "Spatial Transcriptomics (ST) has transformed biomedical research by enabling the spatial mapping of gene expression across tissue sections. However, high operational costs, specialized equipment requirements, and sensitivity to experimental noise limit the accessibility and scalability of ST. Recent computer vision approaches aim to overcome these limitations by predicting spatial gene expression directly from histopathology images. While effective, current approaches often suffer from gene expression over-smoothing and overly uniform predictions across tissue regions, suggesting that further progress depends on learning representations that reflect the hierarchical and asymmetric structure of gene regulation and tissue morphology. To address these issues, we propose Hyperbolic Contrastive Learning with Entailment for Spatial Transcriptomics (HyCLoST), a hyperbolic contrastive learning model that captures the intrinsic hierarchical relationships within ST data. By leveraging hyperbolic geometry and a gene-to-image entailment loss, HyCLoST learns structured, biologically grounded representations that improve gene expression prediction accuracy, achieving a 6% reduction in MSE and an 8% increase in PCC across 26 ST datasets, over previous methods. Our source code is publicly available at https://github.com/BCV-Uniandes/HyCLoST",
+      "authors": [
+        "Daniela Vega",
+        "Paula Cárdenas",
+        "Hannah Ceballos",
+        "Leonardo Manrique",
+        "Pablo Arbelaéz"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-14T18:39:51+00:00",
+      "link": "https://arxiv.org/pdf/2609.16207v1",
+      "tags": [
+        "keyword:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "contrastive learning for spatial transcriptomics gene expression",
+      "llm_evidence_cn": "面向空间转录组基因表达的对比学习",
+      "llm_evidence": "面向空间转录组基因表达的对比学习",
+      "canonical_evidence": "面向空间转录组基因表达的对比学习",
+      "llm_tldr_en": "Spatial transcriptomics is costly and noisy, and predicting gene expression from histopathology images suffers from over-smoothing and uniform predictions. The authors propose hyperbolic contrastive learning with entailment to learn hierarchical, asymmetric representations of gene regulation and tissue morphology.",
+      "llm_tldr_cn": "空间转录组学成本高、依赖专用设备且对噪声敏感，近期用计算机视觉从病理图像预测基因表达的方法虽有效，却存在基因表达过度平滑、组织区域预测过于均匀的问题。作者提出带蕴含关系的双曲对比学习，学习反映基因调控与组织形态层次性、不对称性的表示。该工作缓解了预测过度均匀的缺陷，提升了从病理图像推断空间基因表达的可扩展性。",
+      "llm_tldr": "空间转录组学成本高、依赖专用设备且对噪声敏感，近期用计算机视觉从病理图像预测基因表达的方法虽有效，却存在基因表达过度平滑、组织区域预测过于均匀的问题。作者提出带蕴含关系的双曲对比学习，学习反映基因调控与组织形态层次性、不对称性的表示。该工作缓解了预测过度均匀的缺陷，提升了从病理图像推断空间基因表达的可扩展性。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "machine learning applications in biological data analysis",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.15126v1",
+      "source": "arxiv",
+      "title": "MoME: Mixture-of-Memory Embeddings for Context-Aware Sparse Lookup",
+      "abstract": "Scaling large language models efficiently has motivated sparse capacity mechanisms such as Mixture-of-Experts and, more recently, conditional memory: token-indexed embedding tables that augment the backbone with cheap parametric lookups. Existing memory-embedding methods retrieve via a deterministic function of the surface form, which collapses different contextual senses of the same token (e.g., python the language vs. the animal) into a single fixed entry. We introduce Mixture of Memory Embeddings (MoME), a context-aware memory mechanism that replaces each token's single memory row with a mixture of M slots and uses a learned gate over the hidden state to choose which slots to read at each position. In controlled pretraining experiments across nanochat, Llama-3/MobileLLM, and Qwen3 backbones, MoME improves over Value Embedding, Bigram, and STEM baselines in iso-parameter and iso-training-FLOP settings, shows a more promising memory-size scaling trend at sub-billion scale, and remains efficient in training and inference. Qualitative routing analyses on polysemous tokens further suggest that the learned mixture exhibits a degree of semantic interpretability, dispatching the same surface token to distinct memory slots under different senses.",
+      "authors": [
+        "Muchen Li",
+        "Leonid Sigal",
+        "Renjie Liao"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-09-14T07:01:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.15126v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "context-aware memory embeddings for scaling large language models",
+      "llm_evidence_cn": "面向大语言模型扩展的上下文感知记忆嵌入",
+      "llm_evidence": "面向大语言模型扩展的上下文感知记忆嵌入",
+      "canonical_evidence": "面向大语言模型扩展的上下文感知记忆嵌入",
+      "llm_tldr_en": "MoME replaces each token's single memory row with a mixture of slots gated by the hidden state, enabling context-aware sparse lookup and improving LLM scaling in nanochat pretraining.",
+      "llm_tldr_cn": "针对现有记忆嵌入按表面形式确定性检索、导致同一词不同上下文语义被压缩为单一固定条目的问题，本文提出记忆嵌入混合MoME，把每个词的单条记忆行扩展为M个槽位，并用基于隐状态的学习门控在每个位置选择读取哪些槽位。在nanochat等受控预训练实验中验证了该上下文感知稀疏查找机制的有效性。该工作为高效扩展大语言模型、增强条件记忆的上下文表达能力提供了新思路。",
+      "llm_tldr": "针对现有记忆嵌入按表面形式确定性检索、导致同一词不同上下文语义被压缩为单一固定条目的问题，本文提出记忆嵌入混合MoME，把每个词的单条记忆行扩展为M个槽位，并用基于隐状态的学习门控在每个位置选择读取哪些槽位。在nanochat等受控预训练实验中验证了该上下文感知稀疏查找机制的有效性。该工作为高效扩展大语言模型、增强条件记忆的上下文表达能力提供了新思路。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "What methods in natural language processing leverage large language models?",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.15338v1",
+      "source": "arxiv",
+      "title": "Dynamic Semantic Compression for Efficient Latent-Space Inference in Large Language Models",
+      "abstract": "Large Language Models (LLMs) primarily perform inference at the token level, resulting in substantial memory overhead and compromised computational efficiency. In this paper, we propose a Dynamic Semantic Extraction and Inference (DSEI) framework, which achieves segment-level inference within the latent space through a two-stage training strategy. First, we construct a Dynamic Semantic Autoencoder (DSAE) via self-supervised learning. DSAE dynamically extracts segment-level semantics and compresses them into compact latent representations via adaptive semantic weighting and gated fusion. Subsequently, we integrate the DSAE into the LLM architecture and train the model to infer over dense latent space. DSEI substantially reduces both input and generation sequences and significantly enhances inference efficiency. Extensive experiments conducted on the Wanjuan dataset demonstrate that DSEI reduces perplexity by 48% compared to static sentence-level latent inference baseline. Furthermore, compared to standard LLMs using token-level inference, DSEI accelerates inference speed by 2.5$\\times$ and reduces memory overhead by 90%.",
+      "authors": [
+        "Peipei Li",
+        "Dongsen Zhang",
+        "Yuchen Liu",
+        "Wenjun Xu"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-09-14T10:24:16+00:00",
+      "link": "https://arxiv.org/pdf/2609.15338v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "efficient latent-space inference for large language models",
+      "llm_evidence_cn": "大语言模型潜在空间高效推理",
+      "llm_evidence": "大语言模型潜在空间高效推理",
+      "canonical_evidence": "大语言模型潜在空间高效推理",
+      "llm_tldr_en": "LLMs infer at the token level, causing memory overhead and low efficiency. DSEI achieves segment-level latent-space inference via a two-stage strategy: a self-supervised Dynamic Semantic Autoencoder compresses segment semantics, which is integrated into the LLM for dense latent inference.",
+      "llm_tldr_cn": "大语言模型主要在词元级别进行推理，带来显著内存开销并影响计算效率。本文提出动态语义提取与推理框架DSEI，通过两阶段训练实现潜在空间中的片段级推理。第一阶段以自监督方式构建动态语义自编码器DSAE，借助自适应语义加权与门控融合把片段语义压缩为紧凑潜在表示；第二阶段将其集成进大语言模型，使模型在稠密潜在空间上推理。该框架显著降低内存开销并提升推理效率，为大语言模型的高效推理提供新思路。",
+      "llm_tldr": "大语言模型主要在词元级别进行推理，带来显著内存开销并影响计算效率。本文提出动态语义提取与推理框架DSEI，通过两阶段训练实现潜在空间中的片段级推理。第一阶段以自监督方式构建动态语义自编码器DSAE，借助自适应语义加权与门控融合把片段语义压缩为紧凑潜在表示；第二阶段将其集成进大语言模型，使模型在稠密潜在空间上推理。该框架显著降低内存开销并提升推理效率，为大语言模型的高效推理提供新思路。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "What methods in natural language processing leverage large language models?",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.16591v1",
+      "source": "arxiv",
+      "title": "FLAT: Resampling Image and Text into 1D Flexible-Length Aligned Transmodal Tokens for Retrieval and Generation",
+      "abstract": "Traditional multimodal representation learning and generation are two stages: a contrastive or self-supervised visual encoder is trained first, followed by a separate downstream generative model. This setup bottlenecks generative performance behind frozen embeddings. To bridge this gap, we revisit joint multimodal representation learning and generation to produce linearly interpolatable embeddings that are directly consumable by generative decoders. We present FLAT (Flexible-Length Aligned Transmodal representations), a representation pre-training framework that jointly optimizes a shared multimodal encoder alongside downstream text-to-image (T2I) and image-to-text (I2T) decoders. By combining contrastive alignment with bidirectional cross-modal generative objectives, FLAT ensures its representations function as both discriminative semantic descriptors and generative conditions. Architecturally, FLAT maps visual and textual inputs into a unified continuous 1D sequence space, applying nested dropout over prefix-K tokens to enable dynamic output lengths. A single pre-training stage allows FLAT to perform cross-modal retrieval and generation across variable prefix K, achieving a T2I GenEval score of 71.1. Task-specific fine-tuning aligns model performance with state-of-the-art baselines: 83.1 GenEval on T2I generation; 40.5 BLEU-4 and 138.6 CIDEr on MS-COCO image captioning; and Recall@5 scores of 86.8 (I2T) / 75.8 (T2I) on MS-COCO alongside 98.3 (I2T) / 93.6 (T2I) on Flickr30K. Finally, qualitative evaluations demonstrate that FLAT representations natively support linear interpolation, latent space arithmetic, and zero-shot composed retrieval.",
+      "authors": [
+        "Guangyu Sun",
+        "Shlok Kumar Mishra",
+        "Wentao Bao",
+        "Robert Zhenheng Yang",
+        "Xiao Wang",
+        "Xiyuan Wang",
+        "Yujunrong Ma",
+        "Chen Yuan",
+        "Max Xiangjun Fan",
+        "Jun Xiao",
+        "Jianpeng Cheng"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-15T03:35:59+00:00",
+      "link": "https://arxiv.org/pdf/2609.16591v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "joint image-text multimodal representation and generation",
+      "llm_evidence_cn": "图像-文本联合多模态表示与生成",
+      "llm_evidence": "图像-文本联合多模态表示与生成",
+      "canonical_evidence": "图像-文本联合多模态表示与生成",
+      "llm_tldr_en": "Multimodal representation learning and generation are usually two stages, bottlenecking generation behind frozen visual embeddings. FLAT jointly optimizes a shared multimodal encoder with text-to-image and image-to-text decoders, producing linearly interpolatable transmodal tokens for both retrieval and generation.",
+      "llm_tldr_cn": "传统多模态表示学习与生成分为两阶段，先训练视觉编码器再接入下游生成模型，使生成性能受限于冻结嵌入。作者提出FLAT表示预训练框架，联合优化共享多模态编码器与文生图、图生文解码器，将图像与文本重采样为一维可变长度对齐的跨模态标记。该框架产出可线性插值的嵌入，直接供生成解码器使用，从而打通检索与生成任务。",
+      "llm_tldr": "传统多模态表示学习与生成分为两阶段，先训练视觉编码器再接入下游生成模型，使生成性能受限于冻结嵌入。作者提出FLAT表示预训练框架，联合优化共享多模态编码器与文生图、图生文解码器，将图像与文本重采样为一维可变长度对齐的跨模态标记。该框架产出可线性插值的嵌入，直接供生成解码器使用，从而打通检索与生成任务。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "integrating multiple modalities like text and images in learning systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.15131v1",
+      "source": "arxiv",
+      "title": "AdaVSkip: Adaptive Visual Token Skipping Across Layers For Efficient MLLMs Inference",
+      "abstract": "Multimodal large language models (MLLMs) require substantial computation to process numerous visual tokens across all transformer layers. Most methods for efficient MLLM inference exploit horizontal redundancy by compressing visual tokens. Beyond token reduction, recent studies exploit vertical redundancy through early exit or fixed-layer skipping. However, we find that the extent and distribution of this redundancy vary across inputs and differ between self-attention and MLP modules. Motivated by these observations, we propose AdaVSkip, which equips each layer with two lightweight routers that independently determine whether visual tokens pass through by or skip the self-attention and MLP modules. These decisions collectively define an input-specific visual-computation path, but their discrete and non-differentiable nature makes learning effective paths challenging. To address this challenge, we develop a progressive two-stage training framework that updates only the routers while keeping the backbone frozen. Stage I establishes an initial routing policy through supervised training with input-specific targets derived from module-wise necessity scores. To further align the routing policy with task performance, Stage II uses reinforcement learning to optimize routing decisions with direct feedback from generated answers. It combines an answer correctness reward with a skip-consistency reward that discourages excessive retention of visual-token computation. Across three MLLM backbones, AdaVSkip maintains strong task performance with substantially less computation. On LLaVA-NeXT-7B, AdaVSkip reduces FLOPs by 53.2\\% while preserving the original model's average performance. Combining it with visual token compression increases this reduction to 91.2\\%, while retaining 97.2\\% of the original performance on average.",
+      "authors": [
+        "Yuyao Sun",
+        "Tao Deng",
+        "Shuang Li",
+        "Deqing Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-09-14T07:07:51+00:00",
+      "link": "https://arxiv.org/pdf/2609.15131v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "adaptive visual token skipping for efficient multimodal large language model inference",
+      "llm_evidence_cn": "面向高效多模态大模型推理的自适应视觉令牌跳过",
+      "llm_evidence": "面向高效多模态大模型推理的自适应视觉令牌跳过",
+      "canonical_evidence": "面向高效多模态大模型推理的自适应视觉令牌跳过",
+      "llm_tldr_en": "Multimodal LLMs spend heavy computation on visual tokens across transformer layers. Observing input-dependent vertical redundancy, AdaVSkip adds two lightweight routers per layer to decide whether visual tokens skip self-attention and MLP modules, accelerating inference.",
+      "llm_tldr_cn": "多模态大语言模型需在所有Transformer层处理大量视觉令牌，计算开销巨大。现有方法多利用水平冗余压缩令牌，而本文发现垂直冗余的程度与分布随输入变化，且在自注意力与MLP模块间不同。为此提出AdaVSkip，为每层配备两个轻量路由器，独立决定视觉令牌是否跳过自注意力与MLP模块，从而在保持性能的同时显著加速推理，为高效多模态推理提供了新途径。",
+      "llm_tldr": "多模态大语言模型需在所有Transformer层处理大量视觉令牌，计算开销巨大。现有方法多利用水平冗余压缩令牌，而本文发现垂直冗余的程度与分布随输入变化，且在自注意力与MLP模块间不同。为此提出AdaVSkip，为每层配备两个轻量路由器，独立决定视觉令牌是否跳过自注意力与MLP模块，从而在保持性能的同时显著加速推理，为高效多模态推理提供了新途径。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "integrating multiple modalities like text and images in learning systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

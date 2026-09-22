@@ -1,0 +1,281 @@
+{
+  "date": "20260913-20260922",
+  "date_label": "2026-09-13 ~ 2026-09-22",
+  "generated_at": "2026-09-22 16:36:50 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.14421v1",
+      "route": "20260913-20260922/2609.14421v1-dependency-compression-and-synergy-a-unified-information-theoretic-view-of-multimodal-learning",
+      "title": "Dependency, Compression, and Synergy: A Unified Information-Theoretic View of Multimodal Learning",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "多模态学习的信息论综述",
+      "first_seen_at": "2026-09-22 16:36:50 UTC",
+      "updated_at": "2026-09-22 16:36:50 UTC"
+    },
+    {
+      "paper_id": "2609.19970v1",
+      "route": "20260913-20260922/2609.19970v1-cellrft-reinforcement-fine-tuning-for-single-cell-perturbation-modeling",
+      "title": "CellRFT: Reinforcement Fine-Tuning for Single-Cell Perturbation Modeling",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向单细胞扰动建模的强化微调",
+      "first_seen_at": "2026-09-22 16:36:50 UTC",
+      "updated_at": "2026-09-22 16:36:50 UTC"
+    },
+    {
+      "paper_id": "2609.20792v1",
+      "route": "20260913-20260922/2609.20792v1-a-framework-for-supervised-and-unsupervised-learning-via-reproducing-kernel-hilbert-spaces",
+      "title": "A Framework for Supervised and Unsupervised Learning via Reproducing Kernel Hilbert Spaces",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "基于RKHS理论的有监督与无监督学习统一框架",
+      "first_seen_at": "2026-09-22 16:36:50 UTC",
+      "updated_at": "2026-09-22 16:36:50 UTC"
+    },
+    {
+      "paper_id": "2609.14790v1",
+      "route": "20260913-20260922/2609.14790v1-zero-shot-video-highlight-detection-based-on-text-descriptions-and-synthetic-images",
+      "title": "Zero-shot video highlight detection based on text descriptions and synthetic images",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "结合CLIP、大模型与扩散模型的零样本视频精彩片段检测",
+      "first_seen_at": "2026-09-22 16:36:50 UTC",
+      "updated_at": "2026-09-22 16:36:50 UTC"
+    },
+    {
+      "paper_id": "2609.14882v1",
+      "route": "20260913-20260922/2609.14882v1-seqmaestro-from-nucleotide-sequences-to-biological-hypotheses-through-interpretable-machine-learning",
+      "title": "SeqMaestro: From nucleotide sequences to biological hypotheses through interpretable machine learning",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向核苷酸序列的可解释机器学习与生物学假设生成",
+      "first_seen_at": "2026-09-22 16:36:50 UTC",
+      "updated_at": "2026-09-22 16:36:50 UTC"
+    },
+    {
+      "paper_id": "2609.15638v1",
+      "route": "20260913-20260922/2609.15638v1-potential-of-artificial-intelligence-algorithms-for-identification-of-relevant-diagnostic-and-prognostic-biomarkers-of-early-stage-liver-cancer",
+      "title": "Potential of Artificial Intelligence Algorithms for Identification of Relevant Diagnostic and Prognostic Biomarkers of Early-Stage Liver Cancer",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "用深度学习与可解释AI识别肝癌生物标志物",
+      "first_seen_at": "2026-09-22 16:36:50 UTC",
+      "updated_at": "2026-09-22 16:36:50 UTC"
+    },
+    {
+      "paper_id": "2609.15640v1",
+      "route": "20260913-20260922/2609.15640v1-human-grounded-calibration-for-long-text-image-text-congruence-in-vision-language-models",
+      "title": "Human-Grounded Calibration for Long-Text Image-Text Congruence in Vision-Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "视觉语言模型中图文一致性的校准",
+      "first_seen_at": "2026-09-22 16:36:50 UTC",
+      "updated_at": "2026-09-22 16:36:50 UTC"
+    },
+    {
+      "paper_id": "2609.16057v1",
+      "route": "20260913-20260922/2609.16057v1-omniharness-harnessing-generalizable-visual-generation-via-symbolic-policy-learning",
+      "title": "OmniHarness: Harnessing Generalizable Visual Generation via Symbolic Policy Learning",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "通过符号策略学习实现可泛化视觉生成",
+      "first_seen_at": "2026-09-22 16:36:50 UTC",
+      "updated_at": "2026-09-22 16:36:50 UTC"
+    },
+    {
+      "paper_id": "2609.16207v1",
+      "route": "20260913-20260922/2609.16207v1-hyperbolic-contrastive-learning-with-entailment-for-spatial-transcriptomics",
+      "title": "Hyperbolic Contrastive Learning with Entailment for Spatial Transcriptomics",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向空间转录组基因表达的对比学习",
+      "first_seen_at": "2026-09-22 16:36:50 UTC",
+      "updated_at": "2026-09-22 16:36:50 UTC"
+    },
+    {
+      "paper_id": "2609.16591v1",
+      "route": "20260913-20260922/2609.16591v1-flat-resampling-image-and-text-into-1d-flexible-length-aligned-transmodal-tokens-for-retrieval-and-generation",
+      "title": "FLAT: Resampling Image and Text into 1D Flexible-Length Aligned Transmodal Tokens for Retrieval and Generation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "图像-文本联合多模态表示与生成",
+      "first_seen_at": "2026-09-22 16:36:50 UTC",
+      "updated_at": "2026-09-22 16:36:50 UTC"
+    },
+    {
+      "paper_id": "2609.14657v1",
+      "route": "20260913-20260922/2609.14657v1-compositional-svg-generation-via-vlm-driven-hierarchical-semantic-parsing",
+      "title": "Compositional SVG Generation via VLM-Driven Hierarchical Semantic Parsing",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "VLM驱动的生成式SVG内容",
+      "first_seen_at": "2026-09-22 16:36:50 UTC",
+      "updated_at": "2026-09-22 16:36:50 UTC"
+    },
+    {
+      "paper_id": "2609.14743v1",
+      "route": "20260913-20260922/2609.14743v1-quantifying-the-generation-modality-gap-in-speech-text-language-models",
+      "title": "Quantifying the Generation Modality Gap in Speech-Text Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "语音-文本多模态语言模型差距",
+      "first_seen_at": "2026-09-22 16:36:50 UTC",
+      "updated_at": "2026-09-22 16:36:50 UTC"
+    },
+    {
+      "paper_id": "2609.15126v1",
+      "route": "20260913-20260922/2609.15126v1-mome-mixture-of-memory-embeddings-for-context-aware-sparse-lookup",
+      "title": "MoME: Mixture-of-Memory Embeddings for Context-Aware Sparse Lookup",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向大语言模型扩展的上下文感知记忆嵌入",
+      "first_seen_at": "2026-09-22 16:36:50 UTC",
+      "updated_at": "2026-09-22 16:36:50 UTC"
+    },
+    {
+      "paper_id": "2609.15131v1",
+      "route": "20260913-20260922/2609.15131v1-adavskip-adaptive-visual-token-skipping-across-layers-for-efficient-mllms-inference",
+      "title": "AdaVSkip: Adaptive Visual Token Skipping Across Layers For Efficient MLLMs Inference",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向高效多模态大模型推理的自适应视觉令牌跳过",
+      "first_seen_at": "2026-09-22 16:36:50 UTC",
+      "updated_at": "2026-09-22 16:36:50 UTC"
+    },
+    {
+      "paper_id": "2609.14408v1",
+      "route": "20260913-20260922/2609.14408v1-dynamic-learning-solutions-a-system-for-personalized-educational-video-generation",
+      "title": "Dynamic Learning Solutions: A System for Personalized Educational Video Generation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "结合RAG的多模态生成式内容管线",
+      "first_seen_at": "2026-09-22 16:36:50 UTC",
+      "updated_at": "2026-09-22 16:36:50 UTC"
+    },
+    {
+      "paper_id": "2609.15055v1",
+      "route": "20260913-20260922/2609.15055v1-bridging-the-gap-in-ecg-based-emotion-recognition-a-unified-evaluation-of-deep-learning-models",
+      "title": "Bridging the Gap in ECG-Based Emotion Recognition: A Unified Evaluation of Deep Learning Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向心电情绪识别的深度学习模型统一评测",
+      "first_seen_at": "2026-09-22 16:36:50 UTC",
+      "updated_at": "2026-09-22 16:36:50 UTC"
+    },
+    {
+      "paper_id": "2609.15338v1",
+      "route": "20260913-20260922/2609.15338v1-dynamic-semantic-compression-for-efficient-latent-space-inference-in-large-language-models",
+      "title": "Dynamic Semantic Compression for Efficient Latent-Space Inference in Large Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "大语言模型潜在空间高效推理",
+      "first_seen_at": "2026-09-22 16:36:50 UTC",
+      "updated_at": "2026-09-22 16:36:50 UTC"
+    }
+  ]
+}

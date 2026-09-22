@@ -1,0 +1,2496 @@
+Title: A Framework for Supervised and Unsupervised Learning via Reproducing Kernel Hilbert Spaces
+
+URL Source: https://arxiv.org/pdf/2609.20792v1
+
+Published Time: Fri, 18 Sep 2026 01:46:39 GMT
+
+Number of Pages: 22
+
+Markdown Content:
+# A Framework for Supervised and Unsupervised Learning via Reproducing Kernel Hilbert Spaces 
+
+## Frédéric PROTIN Past & Future September 18, 2026 
+
+Abstract 
+
+We introduce a unified framework for supervised and unsupervised learning based on re-producing kernel Hilbert spaces (RKHSs). We introduce the notion of a nested RKHS, namely an increasing sequence of RKHSs whose union is dense in an ambient L2-space. This construc-tion makes it possible to exploit the computational structure of RKHS methods at each finite approximation level while retaining the approximation power of the full L2-space. We first study statistical learning in a fixed RKHS. In both unsupervised and supervised settings, we establish strong convergence results for empirical averages of random elements taking values in an RKHS continuously embedded in L2. We then use the nested RKHS structure to combine these statistical convergence results with the density of the union of the RKHSs in the ambient L2-space. We apply this construction to probability density estimation and binary Bayesian classification. For density estimation, we construct explicit empirical esti-mators of the orthogonal projections of the target density onto the RKHSs and establish their almost sure convergence. A diagonal selection procedure then yields a sequence of estimators converging almost surely to the target density in L2. The resulting estimators are expressed explicitly in terms of kernel sections evaluated at the observations, avoiding the numerical minimization of empirical objective functions. For binary Bayesian classification, we formulate the approximation of the Bayes target as the minimization of suitable population and empirical risk functionals. We prove consistency of the empirical minimizers and use the nested structure to obtain convergence towards the Bayes target in L2. We further provide a geometric interpretation in terms of hyperplanes and weighted distances in the ambient L2-space, relating the construction to kernel Support Vector Machines. Finally, we show that the population risk admits a direct probabilistic interpretation in terms of the probability of misclassification. The resulting framework thus connects statistical learning, RKHS approximation, geometric classification, and Bayesian decision theory within a common nested RKHS setting. 
+
+# 1 Introduction 
+
+Estimating an unknown probability density from a random sample is a fundamental problem in statistics and machine learning. Classical nonparametric approaches, such as kernel density estimation, provide flexible estimators without imposing a parametric model on the underlying distribution. Reproducing kernel Hilbert spaces (RKHSs) provide a natural functional framework for nonparametric estimation, in which functions can be approximated by finite linear combinations of kernel sections. Kernel methods have consequently been widely used in density estimation, classification, and more generally in statistical learning [10, 11]. 1arXiv:2609.20792v1 [math.FA] 17 Sep 2026 RKHS-based approaches have also been considered specifically for probability density estima-tion. Vapnik and Mukherjee proposed a Support Vector Method for multivariate density estima-tion, in which density estimation is formulated as an inverse problem and solved using kernel-based methods [12]. More recently, Kazashi and Nobile developed a density estimation method in an RKHS framework, with the density approximated by finite linear combinations of kernel sections, and established convergence results for the resulting estimators [7]. RKHS-based density approx-imation has also been considered in the context of functional data. Saeidi, Aminghafari, and Ashkartizabi proposed Fdmclust, a model-based clustering method for functional data based on probability density approximation in an RKHS framework [9]. Their approach uses projections onto a Mercer kernel and combines these projections with PCA or ICA to handle Gaussian and non-Gaussian functional data, respectively, with parameter estimation performed by an EM al-gorithm. These works illustrate the versatility of RKHS-based density approximation and the importance of the choice of the underlying function space and approximation scheme. Existing RKHS-based density estimation methods generally work within a prescribed RKHS, whereas our approach considers an increasing family of RKHSs whose union is dense in the ambient 
+
+L2-space. This distinction is central to the framework developed in this paper. Rather than requiring a single RKHS to provide a sufficiently rich approximation space, we work with a sequence of RKHSs 
+
+H1 ⊂ H2 ⊂ · · · ⊂ L2(X , β )
+
+whose union is dense in L2(X , β ). We refer to such a family as a nested RKHS . After introducing the notion of L2-RKHS in Subsection 2.1, we introduce and study nested RKHSs in Subsection 2.2. We then define in Subsection 2.3 a particular class of nested RKHSs, naturally associated with orthonormal bases of continuous functions of the L2-space under consideration. This construction provides, in particular, a natural way to establish the existence of nested RKHSs. At each level, the problem remains within an RKHS and therefore admits a kernel representation, while increasing the level allows the approximation to converge to arbitrary elements of the ambient L2-space. The statistical basis of our approach is developed in Section 3. We consider random elements taking values in an RKHS continuously embedded in L2(X , β ) and study their expectations and empirical averages. In Subsection 3.1, we establish the relevant convergence result in the unsu-pervised setting, while Subsection 3.2 treats the corresponding supervised setting. These results provide the statistical foundation for the constructions developed subsequently. We then apply the nested RKHS framework to Bayesian machine learning in Section 4. Our objective is to extend the fixed-RKHS results of Section 3 so as to recover the target functions 
+
+fX and fm, rather than only their projections onto a given function space. We first formulate the corresponding approximation problems as the minimization of suitable risk functionals in Sub-section 4.1. For each approximation level, we study the consistency of the associated empirical minimization procedure. The nested structure is then used in Subsection 4.3 to combine the ap-proximation and statistical limits through a diagonal selection procedure. This yields a sequence of empirical estimators converging almost surely to the target function in L2(X , β ). In particular, the construction applies to probability density estimation and to the estimation of the Bayes target in binary classification. An important feature is that the resulting empirical minimizers admit explicit expressions in terms of kernel sections evaluated at the observations, so that their computation does not require the numerical minimization of a potentially costly empirical objective function. In the classification setting, we restrict our attention to binary classification, which contains the essential structure of the Bayesian decision problem considered here. The relevant target is the difference between the two class-conditional densities weighted by their prior probabilities, equivalently represented through the regression function associated with the binary response. The resulting classification rule is determined by the sign of this target function. The convergence results obtained in Subsection 4.3 therefore provide a consistent approximation of the Bayes target through functions belonging to the successive RKHSs. The proposed construction also admits a geometric interpretation, developed in Subsection 4.2. The canonical embedding of X into Hn allows a decision boundary in X to be viewed as a 2hyperplane in Hn. The Bayes decision function and its RKHS approximations can consequently be interpreted as vectors in the ambient L2-space, while the empirical cost can be expressed in terms of weighted distances to the corresponding hyperplane. This establishes a geometric connection with kernel Support Vector Machines, for which classification is likewise formulated in terms of separating hyperplanes in a feature space [11, 10]. Finally, in Subsection 4.4, we return to the binary classification setting and give a probabilistic interpretation of the risk functional. We show that the population risk can be expressed directly in terms of the probability of misclassification. Thus, the minimization of the population risk is equivalent to the minimization of the probability of an incorrect classification. The Bayes classifier consequently admits three complementary interpretations: as the solution of a statistical risk minimization problem, as a distinguished direction in the L2 geometry, and as the classifier minimizing the probability of misclassification. The resulting framework provides a unified setting for supervised and unsupervised learning based on nested RKHSs. Its main feature is the combination of the statistical and computational structure of RKHS methods at each finite approximation level with the density of the nested family in the ambient L2-space. This makes it possible to obtain explicit kernel-based estimators while retaining, in the asymptotic limit, access to the full target function rather than only to its projection onto a prescribed RKHS. 
+
+# 2 RKHS framework 
+
+Kernel methods in machine learning amount to working in a proper subspace of an L2-space endowed with the structure of an RKHS. In order to extend this approach to the whole L2-space, we introduce the notion of nested RKHSs, namely an increasing family of RKHSs whose union is dense in the ambient L2-space. After introducing the notion of L2-RKHS in Subsection 2.1, which is closely related to the classical concept of RKHS and is suitable for our purpose, we introduce and study nested RKHSs in Subsection 2.2. We then define in Subsection 2.3 a particular class of nested RKHSs, naturally associated with orthonormal bases of continuous functions of the L2-space under consideration. This construction also provides a natural way to establish the existence of nested RKHSs. 
+
+## 2.1 Reproducing kernel Hilbert spaces sub:RKHS 
+
+In this subsection, we recall some basic facts about reproducing kernel Hilbert spaces and introduce the notion of L2-RKHS, which will be useful throughout the paper. We refer, for instance, to [1] and [2] for further developments. def:rkhs-classical 
+
+Definition 1. Let X be a topological space. A reproducing kernel Hilbert space (RKHS) with reproducing kernel K : X × X → R is a Hilbert space H of functions f : X → R such that: 
+
+• For every x ∈ X , the function K(x, ·) belongs to H.
+
+• For every f ∈ H and every x ∈ X , the reproducing property holds: 
+
+⟨f, K (x, ·)⟩H = f (x).
+
+Remark 1. Let ∀x ∈ X , and suppose H maximal with kernel K. The function K(x, ·) has the smallest norm among all functions in H witch take the same value at x. Indeed, Theorem 6 in [2] implies min    
+
+> f∈H,f|x=K(x,x )
+
+∥f ∥H = K(x, x ).
+
+For our purpose, we use a slightly variant definition: def:rkhs_ 
+
+Definition 2. Let (X , β ) be a probability space. An L2-RKHS with reproducing kernel 
+
+K ∈ M (X × X , R) is a Hilbert space H that is continuously embedded in L2(X , β ) such that 
+
+3• For every x ∈ X , the function K(x, ·) belongs to L2(X , β ).
+
+• For every f ∈ H and every x ∈ X , the reproducing property holds: 
+
+⟨f, K (x, ·)⟩L2(X ,β ) = f (x). (1) 
+
+> eq:reproducing eq:reproducingeq:reproducing
+
+Remark 2. We no longer suppose in Definition 2 that K(x, ·) ∈ H for all x ∈ X . Moreover, since elements of L2(X , β ) are equivalence classes, the elements of H are understood as functions with specified representatives, so that the pointwise evaluation f (x) is well defined. 
+
+Let us now state the following property, showing that any RKHS in the sense of Definition 2 is contained in an RKHS in the classical sense of Definition 1. Recall that, by Definition 2, the elements of H are understood as functions with specified representatives, so that the pointwise evaluation f (x) is well defined. 
+
+> maxkernel
+
+Theorem 1. Let K : X × X → R be such that K(x, ·) ∈ L2(X , β ) for all x ∈ X , and suppose that, for all x, y ∈ X ,
+
+⟨K(x, ·), K (y, ·)⟩L2(X ,β ) = K(x, y ).
+
+Set 
+
+H0 := span [
+
+> x∈X
+
+K(x, ·)
+
+!
+
+.
+
+Then H0 is an RKHS, and is the greatest subspace of L2(X , β ) for which K satisfies the reproducing property (1) .Proof. First, let H′ ⊂ L2(X , β ) be the greatest subspace for which K satisfies the reproducing property (1). Since H′ also satisfies this property by continuity of the scalar product, we deduce that H′ is closed. By construction, H0 ⊂ H′. Let l : H′ → R be a continuous linear form that vanishes on H0. By the Riesz representation theorem, there exists h ∈ H′ such that 
+
+l = ⟨· , h ⟩L2(X ,β ).
+
+For a.e. x ∈ X , since K(x, ·) ∈ H0,
+
+h(x) = ⟨K(x, ·), h ⟩L2(X ,β ) = l(K(x, ·)) = 0 .
+
+Thus h = 0 , and hence l = 0 . Therefore, H0 is dense in H′. Since H0 is closed, we conclude that 
+
+H′ = H0. Hence H0 is the greatest subspace of L2(X , β ) for which K satisfies the reproducing property. Now, let 
+
+V := span {K(x, ·) : x ∈ X } .
+
+For every f ∈ V and every x ∈ X , linearity and the assumed property of K give 
+
+⟨f, K (x, ·)⟩L2(X ,β ) = f (x).
+
+Since V is dense in H0, this property extends by continuity of the scalar product to every 
+
+f ∈ H0. Thus H0 is an L2-RKHS. Moreover, by definition, K(x, ·) ∈ H0 for all x ∈ X , so H0 is an RKHS in the sense of Definition 1. Note that if the kernel K : X ×X → R is continuous, then the canonical feature map x 7 → K(·, x )
+
+is continuous in H. Hence, by the reproducing property, every f ∈ H is continuous (see, e.g., [2], Ch. 1). 42.2 Nested RKHS sub:Nested_RKHS 
+
+In this subsection, we introduce the concept of nested RKHSs, namely an increasing family of RKHS subspaces whose union is dense in an L2-space, and establish some of its basic properties. 
+
+> def:maximality
+
+Definition 3. With the notations of Definition 2, an L2-RKHS L ⊂ L2(X , β ) with reproducing kernel K ∈ C (X × X , R) is said maximal if 
+
+L = u ∈ L2(X , β ) : ∀x ∈ X , u (x) = ⟨u, K (x, ·)⟩ .
+
+> lem:maximal
+
+Remark 3. An L2-RKHS L ⊂ L2(X , β ) with reproducing kernel K ∈ C (X × X , R) is maximal if and only if K(x, ·) ∈ L for all x ∈ X , i.e. if it is an RKHS in the sense of Definition 1. Indeed, if 
+
+K(x, ·) ∈ L for all x ∈ X , then L is maximal by Theorem 1. Conversely, suppose that L is maximal and fix x ∈ X . Then K(x, y ) = ⟨K(x, ·), K (y, ·)⟩ for all y ∈ X implies K(x, ·) ∈ L according to Definition 3. def:rkhs 
+
+Definition 4. Let X ⊂ Rn be a subset, and consider some Hilbert space H ⊂ L2(X , β ) endowed with the canonical scalar product for some probabilistic measure β on X . Then H is said to be a nested RKHS if there exists an increasing sequence H1 ⊂ H2 ⊂ . . . ⊂ H of RKHS, each endowed with a reproducing kernel for the scalar product induced by that of L2(X , β ), such that [
+
+> n
+
+Hn = H.Moreover if dim (Hn) < +∞ for all n ∈ N, then H is said a finitely generated nested RKHS. 
+
+Note that a nested RKHS is not an RKHS in general. In the sequel, we suppose (without loss of generality) Hn̸ = Hn+1 for all n ∈ N.
+
+Notation 1. With the notations of Definition 4, if Kn : X × X → R denotes the reproducing kernel of the RKHS Hn, we say that (H, (Hn)n∈N, (Kn)n∈N) forms a nested RKHS in L2(X , β ).
+
+Let H a Hilbert space and H′ ⊂ H a closed subspace. We denote by P HH′ the orthogonal projection of H onto H′. Let us isolate a property that we’ll use often: 
+
+Remark 4. Fix x0 ∈ X arbitrarily. for all y ∈ X , for 0 ≤ n ≤ m and for n ≤ k,
+
+Kn(y, ·) ⊥ Km(x0, ·) − Kk(x0, ·). (2) 
+
+> eq:perp eq:perpeq:perp
+
+Indeed ⟨Kn(y, ·) | Km(x0, ·)⟩ = Kn(y, x 0) for all y ∈ X , since Kn(y, ·) ∈ Hn ⊂ Hm, so 
+
+⟨Kn(y, ·) | Km(x0, ·) − Kk(x0, ·)⟩H = 0 .
+
+Denote by C0(X ) the set of continuous functions with compact support on X . For f ∈ L2(X , β ),define (Knf )( x) := ⟨Kn(x, ·), f ⟩L2(X ,β ). Now let us state a useful result. dirac 
+
+Theorem 2. Let X ⊂ Rn be a subset, and some probabilistic measure β ∈ P (X ). Consider a nested RKHS (H, (Hn)n∈N, (Kn)n∈N) in L2(X , β ). Then : 0) For all n ∈ N, H n = span {Kn(x, ·), x ∈ X } .
+
+1) For all x ∈ X , the Kn(x, ·) is compatible with the orthogonal projections, in the sense that 
+
+∀k, m, n ∈ N such that m, n ≤ k, P Hk 
+
+> Hn
+
+(Km(x, ·)) = Kmin( n,m )(x, ·).2) The orthogonal projection P L2(X ,β ) 
+
+> Hn
+
+: L2(X , β ) → Hn is expressed for n ∈ N, f ∈ L2(X , β )
+
+and x ∈ X by (P L2(X ,β ) 
+
+> Hn
+
+f )( x) = ⟨Kn(x, ·), f ⟩.
+
+3) For all x ∈ X , Kn(x, ·) → 
+
+> n→+∞
+
+K(x, ·) in norm if H has a reproducing Kernel K(·, ·).4) If H = L2(X , β ), then for all f ∈ L2(X , β ), Knf → 
+
+> n→+∞
+
+f in L2(X , β ).
+
+5Proof. 0) This is a direct consequence of Theorem 1. 1) Let k ≥ m ≥ n. Since Hn ⊂ Hk, write Hk = Hn ⊕ (Hk ∩ H⊥ 
+
+> n
+
+). Then consider the decomposition 
+
+Km = f1
+
+L f2, f1 ∈ Hn, f2 ∈ Hk ∩ H⊥ 
+
+> n
+
+. Thanks to (2), f1 = Kn(x, ·) and f2 = Km(x, ·) − Kn(x, ·)
+
+for all x ∈ X . In other words, P Hk 
+
+> Hn
+
+Km(x, ·) = Kn(x, ·), which proves the claim. Now suppose 
+
+k ≥ n ≥ m. Then Km(x, ·) ∈ Hm ⊂ Hn ⊂ Hk, and we get P Hk 
+
+> Hn
+
+Km(x, ·) = Km(x, ·), as claimed. 2) We first show that Knf ∈ Hn. Let Rf ∈ Hn be the Riesz representer of the continuous linear functional g 7 −→ ⟨ f, g ⟩L2(X ,β ) on Hn. For every x ∈ X , the reproducing property gives 
+
+Rf (x) = ⟨Rf , K n(x, ·)⟩L2(X ,β ) = ⟨f, K n(x, ·)⟩L2(X ,β ) = ( Knf )( x).
+
+Hence Knf = Rf ∈ Hn. Moreover, for every g ∈ Hn,
+
+⟨f − Knf, g ⟩L2(X ,β ) = 0 
+
+so f − Knf ⊥ Hn. Since Knf ∈ Hn, it follows that Knf = P L2(X ,β ) 
+
+> Hn
+
+f .3) Since [
+
+> n
+
+Hn = H, the orthogonal projections P HHn converge strongly to the identity. In other words, for f ∈ L2(X , β ),
+
+P HHn f − f H = → 
+
+> n→+∞
+
+0. (3) 
+
+eq:knconvergence eq:knconvergenceeq:knconvergence 
+
+On the other hand, note that 
+
+P HHn K(x, ·) = Kn(x, ·). (4) 
+
+eq:PkequalKn eq:PkequalKneq:PkequalKn 
+
+Indeed, for all f ∈ Hn,
+
+⟨P HHn K(x, ·), f ⟩H = ⟨K(x, ·), f ⟩H = f (x) = ⟨Kn(x, ·), f ⟩H .
+
+Since P HHn K(x, ·) ∈ Hn and Kn(x, ·) ∈ Hn, we obtain (4). Injecting this equality in (3) for 
+
+f = K(x, ·), we get ∥Kn(x, ·) − K(x, ·)∥H → 0.
+
+4) Kn = P L2(X ,β ) 
+
+> Hn
+
+by point 2), and since [
+
+> n
+
+Hn = L2(X , β ) by hypothesis, the orthogonal projec-tions P L2(X ,β ) 
+
+> Hn
+
+converge strongly to the identity. Hence ∥Knf − f ∥L2(X ,β ) → 0 for f ∈ L2(X , β ).
+
+Note that if H is a finitely generated nested RKHS, condition 0) in Theorem 2 reduces to 
+
+Hn = span {Kn(x, ·), x ∈ X } and, in this case, the family {Kn(x, ·) : x ∈ X } is linearly dependent, although its elements are pairwise linearly independent. 
+
+## 2.3 Distinguished nested RKHS sub:Distinguished_nested_RKHS 
+
+In this subsection, we define a particular class of nested RKHSs and prove that these spaces are naturally in bijection with orthonormal bases of continuous functions of the Hilbert space under consideration. In particular, this construction provides a class of nested RKHSs and establishes their existence. def:nested 
+
+Definition 5. A nested RKHS (H, (Hn)n∈N, (Kn)n∈N) will be said distinguished if for all RKHS 
+
+L ⊂ L2(X , β ) with kernel K ∈ C (X × X , R), Hn ⊂ L ⊂ Hn+1 for some n ∈ N implies Hn = L and 
+
+K = Kn, or Hn+1 = L and K = Kn+1 .
+
+In fact we will establish that all closed subspace of L2(X , β ) can be endowed with a structure of nested RKHS. Let us first state the following fact: 6lem:maximalBasis 
+
+Lemma 1. Let (T0, . . . , T n) an orthonormal family in L2(X , β ) ∩ C (X , R). Then span( T0, . . . , T n)
+
+is an RKHS for the reproducing kernel (x, y ) 7 →
+
+> n
+
+X
+
+> i=0
+
+Ti(x)Ti(y).
+
+Proof. A straightforward computation shows that (x, y ) 7 →
+
+> n
+
+X
+
+> i=0
+
+Ti(x)Ti(y) is a reproducing ker-nel with respect to the canonical scalar product of L2(X , β ) for span( T0, . . . , T n). But, for u ∈
+
+L2(X , β ),u(x) = 
+
+*
+
+u, 
+
+> n
+
+X
+
+> i=0
+
+Ti(x)Ti
+
++
+
+for all x ∈ X if and only if u ∈ span( T0, . . . , T n). Thus 
+
+span ( T0, . . . , T n) , x 7 →
+
+> n
+
+X
+
+> i=0
+
+Ti(x)Ti
+
+!
+
+is a maximal L2-RKHS, i.e. an RKHS according to Remark 3. th:distinguished 
+
+Theorem 3. Let H ⊂ L2(X , β ). There is a one-to-one correspondence between distinguished nested RKHS (H, (Hn)n∈N, (Kn)n∈N) and orthonormal basis of continuous functions on H.In particular, a distinguished nested RKHS is finitely generated. Proof. Let (Tk)k∈N be an orthonormal basis of continuous functions in H. Then 
+
+Kn(x, y ) := 
+
+> n
+
+X
+
+> i=0
+
+Ti(x)Ti(y)
+
+defines a reproducing Kernel of Hn := span( T0, . . . , T n). By Lemma 1, the L2-RKHSs (Hn, K n)
+
+are maximal, and since dim (Hn+1 /H n) = 1 , all RKHS L with Hn ⊂ L ⊂ Hn+1 for some n ∈ N is equal to Hn or Hn+1 .Reciprocally, let (H, (Hi)i∈N, (Ki)i∈N) be a distinguished nested RKHS. Fix x0 ∈ X arbitrarily. Up to renumber (Hi)i, we can suppose H0̸ = {0}. Choose (xi)i∈N ∈ X N such that K0(x0, ·)̸ = 0 
+
+and Ki+1 (xi, ·) − Ki(xi, ·)̸ = 0 for all i ∈ N, which is possible since Hi̸ = Hi+1 . Thanks to (2), we can build by recurrence an orthonormal system of H by 
+
+T0 := K0(x0, ·)
+
+∥K0(x0, ·)∥L2(X ,β )
+
+and 
+
+Tk+1 := Kk+1 (xk, ·) − Kk(xk, ·)
+
+∥Kk+1 (xk, ·) − Kk(xk, ·)∥L2(X ,β )
+
+. (5) 
+
+eq:tkplusone eq:tkplusoneeq:tkplusone 
+
+Let us prove that (Tn)n is an orthonormal basis of H. Lemma 1 shows that span( T0, . . . , T n) is a RKHS for the reproducing kernel 
+
+Dn : ( x, y ) 7 →
+
+> n
+
+X
+
+> i=0
+
+Ti(x)Ti(y).
+
+Since H is distinguished, for some j ∈ N,
+
+(span ( T0, . . . , T n) , D n) = ( Hj , K j ) .
+
+7From span( T0, . . . , T n) ⊂ Hn, we get j ≤ n. But if j < n , we would have Tn ∈ Hj ⊂ Hn−1, which contradicts Tn ∈ H⊥ 
+
+> n−1
+
+\ { 0}. Thus j = n. Thus 
+
+span( T0, . . . , T n) = Hn and Kn = Dn. (6) 
+
+eq:completeness eq:completenesseq:completeness 
+
+This implies span( T0, . . . , T i, . . . ) = H as claimed. 
+
+Remark 5. We deduce from (6) that Kn(x, y ) = 
+
+> n
+
+X
+
+> i=0
+
+Ti(x)Ti(y), where Ti are defined by (5) ,independently of the choice of (xi)i∈N ∈ X N.
+
+Remark 6. The operations 
+
+A : ( Tk)k=1 ,...,n 7 → (x, y ) 7 →
+
+> k
+
+X
+
+> i=0
+
+Ti(x)Ti(y)
+
+!
+
+> k=1 ,...,n
+
+and 
+
+B : ( Kk)k=0 ,...,n −1 7 →
+
+ Kk+1 (xk, ·) − Kk(xk, ·)
+
+∥Kk+1 (xk, ·) − Kk(xk, ·)∥
+
+
+
+> k=0 ,...,n −1
+
+are reciprocal. Indeed B ◦ A = Id follows by a direct computation, while A ◦ B = Id follows from 
+
+(6) .
+
+Once we have a distinguished nested RKHS (H, (Hi)i, (Ki)i), given a strictly increasing map 
+
+k : N → N, we still obtain a nested RKHS (H, (H′ 
+
+> j
+
+)j , (K′ 
+
+> j
+
+)j ) by setting 
+
+H′ 
+
+> j
+
+:= Hk(j), K′ 
+
+> j
+
+:= Kk(j).
+
+This operation will be implicitly used in the following examples. 
+
+Example 1. Let β be a probability measure on [−1, 1] . Let (Tk)k∈N be an orthonormal ba-sis of L2([ −1, 1] , β ) consisting of polynomials, with deg( Tk) = k. Then Hn = Pn([ −1, 1]) = span( T0, . . . , T n) has reproducing kernel 
+
+Kn(x, y ) = 
+
+> n
+
+X
+
+> k=0
+
+Tk(x)Tk(y).
+
+More generally, for d ∈ N∗, an orthonormal basis of H = L2  [−1, 1] d, β ⊗d is given by 
+
+(x1, . . . , x d) 7 →
+
+> d
+
+Y
+
+> j=1
+
+Tkj (xj )
+
+
+
+> (k1,...,k d)∈Nd
+
+.
+
+Here Hn = Pn([ −1, 1]) ⊗d consists of polynomials of degree at most n in each variable. The repro-ducing kernel of Hn is 
+
+Kn(x, y ) = X
+
+> 0≤k1,...,k d≤nd
+
+Y
+
+> j=1
+
+Tkj (xj )Tkj (yj ) = 
+
+> d
+
+Y
+
+> j=1
+> n
+
+X
+
+> k=0
+
+Tk(xj )Tk(yj )
+
+!
+
+.
+
+Then (H, (Hn)n, (Kn)n) is a nested RKHS. Indeed, Lemma 1 ensures that each Hn is maximal in the sense of Definition 3. 
+
+8Example 2. Let β be a probability measure on X ⊂ Rd such that all polynomials are in L2(X , β ).Denote by Nj ∈ N the dimension of the space of homogeneous polynomials in d variables of degree 
+
+j. Let (Ti,j )j∈N,1≤i≤Nj be an orthonormal basis of the space of polynomials in L2(X , β ), ordered according to their degree, namely deg( Ti,j ) = j. Hj := span {Ti,k : 0 ≤ k ≤ j, 1 ≤ i ≤ Nk},
+
+which is the space of polynomials of degree at most j. Then 
+
+ [
+
+> j≥0
+
+Hj , (Hj )j∈N, (Kj )j∈N
+
+ is a nested RKHS, where 
+
+Kj (x, y ) = 
+
+> j
+
+X
+
+> k=0
+> Nk
+
+X
+
+> i=1
+
+Ti,k (x)Ti,k (y).
+
+# 3 Statistical learning in RKHSs subsec:statistical 
+
+In this section, we consider random elements taking values in an RKHS continuously embedded in L2(X , β ). We study their expectations and establish a strong law of large numbers in both an unsupervised setting, considered in Subsection 3.1, and a supervised setting, considered in Subsec-tion 3.2. Let (Ω , T , μ ) be a probability space, let X ⊂ Rn be equipped with a Borel probability measure 
+
+β, and let X ∈ L2(Ω , X ) be a random variable. Assume that its distribution ρX := X∗μ is absolutely continuous with respect to β, with density fX ∈ L2(X , β ), i.e. 
+
+ρX (B) = 
+
+Z
+
+> B
+
+fX dβ 
+
+for every Borel set B ⊂ X . Let H ⊂ L2(X , β ) be a RKHS with reproducing kernel K with respect to the scalar product induced by that of L2(X , β ). We also suppose 
+
+Z
+
+> Ω
+
+K(X, X ) 12 dμ < +∞. We denote by H := L2(Ω , H, μ ) the corresponding Hilbert space. 
+
+## 3.1 Unsupervised learning sec:random 
+
+Denote by i : x 7 → K(x, ·) the canonical embedding i : X → H. Using the terminology of [5] p. 178, 
+
+i(X) : Ω → H is a random element , i.e. a measurable map from a probability space to a Hilbert space endowed with the Borel σ-algebra. Since ∥i(X)∥2 
+
+> H
+
+= K(X, X ) and 
+
+E(∥i(X)∥H ) = 
+
+Z
+
+> Ω
+
+K(X, X ) 12 dμ < +∞,Eμ(i(X)) is well defined in the Bochner sense (Definition 7.2.1 in [5]). 
+
+def:almostsure 
+
+Definition 6. According to [5], we say that a sequence an ∈ H of random elements converges almost surely towards a ∈ H if 
+
+μ⊗∞ 
+
+ 
+
+(ωn)n ∈ ΩN, lim  
+
+> n→+∞
+
+∥an(ωn) − a∥ = 0 
+
+ 
+
+= 1 ,
+
+where μ⊗∞ denotes the product measure. We note lim  
+
+> n→+∞
+
+an = 
+
+> a.s.
+
+a. 
+
+9pro:estimator1 
+
+Proposition 1. Let X ∈ L2(Ω , X , μ ) be a random variable with 
+
+Z
+
+> Ω
+
+K(X, X ) 12 dμ < +∞. Then 
+
+Eμ(i(X)) = P L2(X ,β ) 
+
+> H
+
+fX .
+
+Let (Xi)i∈N ∈ L2(Ω , X )N be a sequence of i.i.d. random elements with 
+
+Z
+
+> Ω
+
+K(X0, X 0) 12 dμ < +∞.
+
+Then 
+
+lim  
+
+> N→+∞
+
+1
+
+N
+
+> N
+
+X
+
+> i=1
+
+K(Xi, ·) =  
+
+> a.s.
+
+P L2(X ,β ) 
+
+> H
+
+fX ,
+
+Proof. Eμ(i(X)) = Eμ(K(X, ·)) ∈ H is well defined as Bochner integral, since ∥i(X)∥ : Ω → R is a measurable function, and Eμ(∥i(X)∥) < +∞. Recall that ρX = fX dβ = X∗μ. But for all f ∈ H,
+
+Eμ(⟨i(X), f ⟩H ) = Eμ(f (X)) = 
+
+Z
+
+> X
+
+f dX ∗μ =
+
+Z
+
+> X
+
+f ·fX dβ =
+
+Z
+
+> X
+
+P L2(X ,β ) 
+
+> H
+
+f ·fX dβ =
+
+Z
+
+> X
+
+f ·P L2(X ,β ) 
+
+> H
+
+fX dβ, 
+
+so 
+
+Eμ(i(X)) = P L2(X ,β ) 
+
+> H
+
+fX .
+
+So by the law of large numbers for random elements (Theorem 7.7.2 p.204 in [5]), since E(∥i(X)∥) = 
+
+E(K(X, X ) 12 ) < +∞,
+
+lim  
+
+> N→+∞
+
+1
+
+N
+
+> N
+
+X
+
+> i=1
+
+i(Xi) = lim  
+
+> N→+∞
+
+1
+
+N
+
+> N
+
+X
+
+> i=1
+
+K(Xi, ·) =  
+
+> a.s.
+
+P L2(X ,β ) 
+
+> H
+
+fX .
+
+## 3.2 Supervised learning sec:framework 
+
+We restrict our attention to binary classification. It is well known that this is not a loss of generality (see e.g. 9.2 in [6]). We place ourselves in the classic framework of [3]. Let X be a compact domain or a manifold in Euclidean space and Y := {− 1, 1}. Let ρ be a Borel probability measure on X ×Y .We suppose that ρ is the law of some random variable (X, Y ) : (Ω , μ ) → X × Y , i.e. (X, Y )∗μ = ρ.Define also 
+
+fm := μ(Y = 1) fX|Y =1 − μ(Y = −1) fX|Y =−1,
+
+where the functions fX|Y =±1 are the conditional densities of X knowing Y = ±1 with respect to β, and μ(Y = ±1) := μ(ω ∈ Ω : Y (ω) = ±1) . Note that fm is the density, with respect to 
+
+β, of the signed measure A 7 → Eμ(Y 1{X∈A}). In particular, |fm| ≤ fX , so fm ∈ L2(X , β ) since 
+
+fX ∈ L2(X , β ). In this case, the previous framework can be reexpressed in the following Lemma, that we will use later: lem:alternative 
+
+Lemma 2. Let (X, Y ) : (Ω , μ ) → X × Y be a random variable. Then, possibly after extending the underlying probability space, for each x ∈ X there exists a random variable Yx taking values in 
+
+{− 1, 1} such that (X, Y X ) has the same joint distribution as (X, Y ), where YX (ω) := YX(ω)(ω).
+
+Proof. Let (eΩ, eT , eμ) = (Ω × [0 , 1] , T ⊗ B ([0 , 1]) , μ ⊗ λ), where λ denotes the Lebesgue measure on 
+
+[0 , 1] . We identify X with its lift to eΩ, and let U (ω, u ) = u. Then U is uniformly distributed on 
+
+[0 , 1] and independent of X.There exists a measurable function p : X → [0 , 1] such that p(X) = Eμ(1{Y =1 } | X) a.s. Define 
+
+Yx(ω, u ) := 2 1{u≤p(x)} − 1, x ∈ X .
+
+10 Then YX = 2 1{U ≤p(X)} − 1 is measurable. Moreover, for every Borel set A ⊂ X ,
+
+eμ(X ∈ A, Y X = 1) = 
+
+Z
+
+> A
+
+λ([0 , p (x)]) dρ X (x) = 
+
+Z
+
+> A
+
+p(x) dρ X (x) = μ(X ∈ A, Y = 1) ,
+
+where ρX := X∗μ. The same identity holds for YX = −1. Hence (X, Y X ) and (X, Y ) have the same joint distribution. Using the notations of Subsection 3.1, we can state the following results, which generalize Proposition 1, the latter corresponding to the case Y = 1 . pro:estimator2 
+
+Proposition 2. We have 
+
+Eμ(Y K (X, ·)) = P L2(X ,β ) 
+
+> H
+
+fm. (7) 
+
+eq:estimator eq:estimatoreq:estimator 
+
+Moreover, let  (Xi, Y i) ∈ (X × Y )Ω, i ∈ N be a sequence of i.i.d. random variables, such that 
+
+X1 ∈ L2(Ω , X , μ ) and 
+
+Z
+
+> Ω
+
+K(X1, X 1) 12 dμ < +∞. Then 
+
+lim  
+
+> N→+∞
+
+1
+
+N
+
+> N
+
+X
+
+> i=1
+
+YiK(Xi, ·) =  
+
+> a.s.
+
+P L2(X ,β ) 
+
+> H
+
+fm. (8) 
+
+eq:empiricalConv eq:empiricalConveq:empiricalConv 
+
+Proof. By the same method as in the proof of Proposition 1, for f ∈ H,
+
+⟨Eμ(Y K (X, ·)) , f ⟩H = Eμ (Y ⟨K (X, ·) , f ⟩H ) = Eμ(Y f (X)) = 
+
+Z
+
+> X ×{− 1,1}
+
+yf (x)dρ 
+
+= μ(Y = 1) 
+
+Z
+
+> X
+
+f · fX|Y =1 dβ − μ(Y = −1) 
+
+Z
+
+> X
+
+f · fX|Y =−1dβ =
+
+Z
+
+> X
+
+f · fmdβ =
+
+D
+
+P L2(X ,β ) 
+
+> H
+
+fm, f 
+
+E
+
+> H
+
+.
+
+So when N → +∞, by the law of large numbers for random elements (Theorem 7.7.2 p.204 in [5]), since E(∥i(X)∥) = E(K(X, X ) 12 ) < +∞,
+
+1
+
+N
+
+> N
+
+X
+
+> i=1
+
+YiK(Xi, ·) −→  
+
+> a.s.
+
+Eμ(Y K (X, ·)) = P L2(X ,β ) 
+
+> H
+
+fm.
+
+Remark 7. Let us give an alternative way to get (7) . For all z ∈ X , we have Eμ(Y K (X, z )) = Z
+
+> X
+
+K(x, z )fm(x)dβ (x). Theorem 2 2) implies that this last integral is equal to P L2(X ,β ) 
+
+> H
+
+fm(z).
+
+# 4 Bayesian machine learning via nested RKHSs sec:bayesian 
+
+In this section, we apply the framework of nested RKHSs to Bayesian machine learning. More precisely, our goal is to extend the results of Section 3 to the nested setting, in order to recover fX
+
+or fm, rather than only their projections onto a given function space, as in Propositions 1 and 2. We first introduce some notation that will be used throughout this section. Suppose given S∞ = ( x1, x 2, . . . ) ∈ X N, and let ΣX 
+
+> ∞
+
+= ( X1, X 2, . . . ) be a random sample, i.e. a sequence of i.i.d. random variables with values in X . For N ∈ N∗, we denote 
+
+SXN = ( x1, . . . , x N ), ΣXN = ( X1, . . . , X N ).
+
+For ω = ( ω1, . . . ) ∈ ΩN and for ω = ( ω1, . . . , ω N ) ∈ ΩN , we also write ΣXN (ω) = ( X1(ω1), . . . , X N (ωN )) .
+
+We also denote S∞ = {(xi, y i) ∈ X × Y , i ∈ N}, Σ∞ = {(Xi, Y i) ∈ (X × Y )Ω, i ∈ N} a sequence of 11 i.i.d. random variables. If πN : ( R × R)N → (R × R)N is the projection onto the N first doublets, we note SN := πN S∞ and ΣN := πN Σ∞.Let (H, (Hn)n, (Kn)n) be a nested RKHS. We place ourselves in the case of binary classification. We use the same notations of Subsection 3.2. Expressed in this context, Propositions 1 and 2 allow to formulate: pro:def_fn 
+
+Proposition 3. Fix n ∈ N. For each N ∈ N∗, define 
+
+f ∗
+
+> n, ΣXN
+
+:= 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+Kn(Xi, ·), f ∗ 
+
+> n, ΣN
+
+:= 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+YiKn(Xi, ·).
+
+Then f ∗
+
+> n, ΣXN
+
+and f ∗ 
+
+> n, ΣN
+
+are unbiased estimators of P L2(X ,β ) 
+
+> Hn
+
+fX and P L2(X ,β ) 
+
+> Hn
+
+fm, respectively. More-over, as N → +∞,f ∗
+
+> n, ΣXN
+
+−→  
+
+> a.s.
+
+P L2(X ,β ) 
+
+> Hn
+
+fX and f ∗ 
+
+> n, ΣN
+
+−→  
+
+> a.s.
+
+P L2(X ,β ) 
+
+> Hn
+
+fm.
+
+In principle, we can recover fm by first letting N → +∞ and then n → +∞: for fixed n, the empirical estimator converges to P L2(X ,β ) 
+
+> Hn
+
+fm, while 
+
+P L2(X ,β ) 
+
+> Hn
+
+fm −→ fm in L2(X , β ).
+
+In practice, however, this is impossible, since we do not have access to the whole sample Σ∞, but only to a finite sample ΣN . So we will formulate the problem of finding the best approximation of fm in Hn in the L2-sense in terms of an empirical minimization problem. For each fixed n, this will provide an estimator converging to the projection of fm onto Hn as N → +∞. We will then use a diagonal selection to obtain a sequence converging to fm when both n and N tend to infinity. In Subsection 4.1, we construct a risk functional for estimating P L2(X ,β ) 
+
+> Hn
+
+fm in Hn, and we provide an empirical estimator. We prove the consistency of this procedure as the sample size tends to infinity. We give a geometric interpretation of this setting, which is intrinsic since it is independent of n, in Subsection 4.2. In Subsection 4.3, we prove the consistency of the estimation of fm by a sequence obtained through a diagonal selection of the empirical estimators for each n
+
+and N . We establish sufficient optimality properties for this extracted sequence, which allow us to construct it. Finally, in Subsection 4.4, we give a probabilistic interpretation of these constructions. 
+
+## 4.1 Risk functionals sub:risk 
+
+In this subsection, we formulate the estimation of fX and fm as the minimization of suitable risk functionals and study the consistency of the corresponding empirical risk minimization procedures. Let the notation of Subsection 3.2 prevail. Recall that SN = {(xi, y i)}Ni=1 , ΣN = {(Xi, Y i)}Ni=1 
+
+where the latter is a sequence of i.i.d. random variables with distribution ρ. Let H ⊂ L2(X , β ) be an RKHS with a reproducing kernel with respect to the canonical scalar product. Let h : R2 → R
+
+be continuous and satisfy h(x, y ) = 0 if and only if x = y; we define a risk functional Eh,ρ : H → R
+
+by 
+
+Eh,ρ (f ) := 
+
+Z
+
+> Ω
+
+h(f (X1), Y 1)dμ =
+
+Z
+
+> X ×Y
+
+h(f (x), y )dρ. (9) 
+
+eq:riskfunctional eq:riskfunctionaleq:riskfunctional 
+
+We also define the associated empirical risk functional E∗ 
+
+> h
+
+: ( X × Y )N × H → R by 
+
+E∗ 
+
+> h
+
+(SN , f ) := 1
+
+N
+
+X
+
+> (xi,y i)∈SN
+
+h (f (xi), y i) . (10) 
+
+eq:empiricalrisk eq:empiricalriskeq:empiricalrisk 
+
+12 For an RKHS H ⊂ L2(X , β ) with reproducing kernel K, we denote by H∗ the map from X N
+
+to the set of subspaces of L2(X , β ), defined by H∗(x1, . . . , x N ) = span ( K(xi, ·) : 1 ≤ i ≤ N ) .
+
+When SN is fixed, we will denote 
+
+E∗ 
+
+> h,S N
+
+: f 7 → E ∗ 
+
+> h
+
+(SN , f ).
+
+The following lemma shows that empirical risk minimization over H reduces to minimization over the finite-dimensional subspace H∗(SN ). lemempiric 
+
+Lemma 3 ([4] Corollary 2.26) . Let D ⊂ H be a closed subset. Let n ∈ N, and E∗ 
+
+> h,S N
+
+: H → R an empirical risk functional defined by (10) . We have 
+
+inf   
+
+> f∈D
+
+E∗ 
+
+> h,S N
+
+(f ) = inf    
+
+> f∈PHH∗(SN)(D)
+
+E∗ 
+
+> h,S N
+
+(f ). (11) 
+
+eq:sufficient eq:sufficienteq:sufficient 
+
+Proof. Let f ∈ D. For all (x, y ) ∈ SN , f (x) = ⟨f | K(x, ·)⟩ = ⟨P HH∗(SN )f | K(x, ·)⟩ =(P HH∗(SN )f )( x). Thus E∗ 
+
+> h,S N
+
+(f ) = E∗ 
+
+> h,S N
+
+(P HH∗(SN )f ). It follows (11) using a minimizing sequence. We now specialize Lemma 3 to the loss h(x, y ) = h1(x, y ) := 1 − xy. From now on, we write 
+
+E1,ρ := Eh1,ρ and E∗ 
+
+> 1,ΣN
+
+:= E∗ 
+
+> h1,ΣN
+
+to simplify the notation. The following identity will play a key role. 
+
+Lemma 4. Let f ∈ L2(X , β ). Then 
+
+E1,ρ (f ) = 1 − ⟨ f, f m⟩L2(X ,β ). (12) 
+
+eq:reformulation eq:reformulationeq:reformulation 
+
+Proof. 
+
+1 − E 1,ρ (f ) = Eμ(Y1f (X1)) = 
+
+Z
+
+> X ×Y
+
+yf (x)dρ (x, y ) = 
+
+Z
+
+> X ×Y
+
+yf (x)μ(X = x, Y = y)dβ (x)= X
+
+> j=±1
+
+j
+
+Z
+
+> X
+
+f (x)μ(X = x | y = j)μ(Y = j)dβ (x) = 
+
+Z
+
+> X
+
+f (x)fm(x)dβ (x) = ⟨f, f m⟩L2(X ,β ).
+
+The previous representation reduces the minimization of E1,ρ to the maximization of a linear functional over H. The following theorem characterizes the maximizers of such functionals and will be our main tool in what follows. evaluation 
+
+Theorem 4. Let α1, . . . , α N ∈ RN and x1, . . . , x N ∈ X N . Define g := 
+
+> N
+
+X
+
+> i=1
+
+αiK(xi, ·), and suppose g̸ = 0 . Then 
+
+∥g∥L2(X ,β ) = sup  
+
+> f∈H\{ 0}
+
+PNi=1 αif (xi)
+
+∥f ∥L2(X ,β )
+
+=
+
+vuut NX
+
+> i,j =1
+
+αiαj K(xi, x j ) = sup   
+
+> f∈H∗(x1,...,x N)\{ 0}
+
+PNi=1 αif (xi)
+
+∥f ∥L2(X ,β )
+
+.
+
+Moreover, the supremum is attained precisely by the nonzero scalar multiples of g.Consequently, g is the unique minimum-norm interpolant among all functions taking the same values at x1, . . . , x N .Consequently, the linear functional f 7 →
+
+> N
+
+X
+
+> i=1
+
+αiδxi (f ) on H has norm 
+
+vuut NX
+
+> i,j =1
+
+αiαj K(xi, x j ) = 
+
+> N
+
+X
+
+> i=1
+
+αiK(xi, ·) 
+
+> L2(X,β )
+
+≥ 0.
+
+13 Proof. All assertions follow immediately from the Cauchy–Schwarz inequality, which yields, for every f ∈ H,
+
+> N
+
+X
+
+> i=1
+
+αif (xi) =
+
+* NX
+
+> i=1
+
+αiK(xi, ·), f 
+
++ 
+
+> L2(X,β )
+
+≤
+
+> N
+
+X
+
+> i=1
+
+αiK(xi, ·) 
+
+> L2(X,β )
+
+∥f ∥L2(X ,β )
+
+=
+
+vuut NX
+
+> i,j =1
+
+αiαj K(xi, x j ) ∥f ∥L2(X ,β ) .
+
+Equality holds if and only if the two vectors are collinear. rmq:geqone 
+
+Remark 8. Thanks to the construction of Theorem 3, there are many RKHS H ⊂ L2(X , β ) with reproducing kernels K with respect to the canonical scalar product such that 1 ∈ H. In this case, we can derive some interesting inequalities. Taking αi = 1 in Theorem 4, we obtain 
+
+N ≤ sup    
+
+> f∈H, ∥f∥=1
+> N
+
+X
+
+> i=1
+
+f (xi) =
+
+vuut NX
+
+> i,j =1
+
+K(xi, x j ). (13) 
+
+eq:nonvanishing eq:nonvanishingeq:nonvanishing 
+
+Moreover, taking αi = ei and using 1 ∈ H yields K(xi, x i) ≥ 1.
+
+Now we apply the previous considerations to the framework presented in Subsection 3. Let 
+
+B := {g ∈ H, ∥g∥L2(X ,β ) = 1 } be the unit sphere. Since ΣN is random, empirical minimizers can naturally be regarded as B-valued random variables, that is, as elements of M(Ω , B ).
+
+cor:riskdensity 
+
+Corollary 1. Let N ∈ N. For every sample SN = (( xi, y i)) Ni=1 , define 
+
+f ∗ 
+
+> SN
+
+:= 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+yiK(xi, ·).
+
+Then, provided that the denominators below do not vanish, 
+
+P L2(X ,β ) 
+
+> H
+
+fm
+
+P L2(X ,β ) 
+
+> H
+
+fm L2(X ,β )
+
+∈ arg min   
+
+> f∈B
+
+E1,ρ (14) 
+
+eq:empiricalepsilonone eq:empiricalepsilononeeq:empiricalepsilonone 
+
+and, for every ω ∈ ΩN ,
+
+
+
+f ∗ 
+
+> ΣN(ω)
+
+f ∗   
+
+> ΣN(ω)L2(X,β )
+
+ = arg min   
+
+> f∈B
+
+E∗ 
+
+> 1,ΣN(ω)
+
+. (15) 
+
+eq:globalmin eq:globalmineq:globalmin 
+
+Proof. Let f ∈ B. Fix ω = ( ω1, . . . , ω N ) ∈ ΩN . Applying Theorem 4 to the sample ΣN (ω) with 
+
+αi = Yi(ωi) and xi = Xi(ωi) yields the inequality 
+
+> N
+
+X
+
+> i=1
+
+Yi(ωi)f (Xi(ωi)) ≤
+
+> N
+
+X
+
+> i=1
+
+Yi(ωi) f ∗ 
+
+> ΣN(ω)
+
+(Xi(ωi)) 
+
+f ∗   
+
+> ΣN(ω)L2(X,β )
+
+,
+
+with equality if and only if f = f ∗ 
+
+> ΣN(ω)
+
+f ∗   
+
+> ΣN(ω)L2(X,β )
+
+. In other words, 
+
+E∗ 
+
+> 1,ΣN(ω)
+
+(f ) ≥ E ∗ 
+
+> 1,ΣN(ω)
+
+ f ∗ 
+
+> ΣN(ω)
+
+f ∗   
+
+> ΣN(ω)L2(X,β )
+
+ ,
+
+14 so we get the last part of (14). Moreover, (12) gives 
+
+E1,ρ (f ) = 1 −⟨ f, f m⟩L2(X ,β ) ≥ 1−
+
+*
+
+P L2(X ,β ) 
+
+> H
+
+fm
+
+P L2(X ,β ) 
+
+> H
+
+fm L2(X ,β )
+
+, f m
+
++ 
+
+> L2(X,β )
+
+= E1,ρ 
+
+ P L2(X ,β ) 
+
+> H
+
+fm
+
+P L2(X ,β ) 
+
+> H
+
+fm L2(X ,β )
+
+ .
+
+Study of consistency . By slight abuse of notation, for f ∈ M (Ω , B ), we still write E∗ 
+
+> h, ΣN
+
+(f ) for the random variables ω 7 → E ∗ 
+
+> h, ΣN(ω)
+
+(f (ω)) , and we write f ∗ 
+
+> ΣN
+
+for the random element ω 7 → f ∗ 
+
+> ΣN(ω)
+
+.Following Vapnik [11] Chapter 3, given a risk functional Eh,ρ : B → R, provided that for each N ∈ N
+
+and each SN ∈ (X × Y )N , the set of minimizers argmin  
+
+> f∈B
+
+E∗ 
+
+> h,S N
+
+(f ) is nonempty, the empirical risk minimization procedure is said to be consistent if the following convergence holds in probability: 
+
+lim   
+
+> N→+∞
+
+Eh,ρ (fN ) = inf  
+
+> f∈B
+
+Eh,ρ (f )
+
+for any sequence of empirical risk minimizers 
+
+fN ∈ argmin  
+
+> f∈M (Ω ,B )
+
+E∗ 
+
+> h, ΣN
+
+(f ).
+
+A sufficient condition is that (fN )N converges almost surely to a minimizer of Eh in H, in which case the procedure will be said to be strongly consistent .
+
+Corollary 2. Provided that f ∗
+
+> ΣN
+
+̸ = 0 a.s. for all N ∈ N and that P L2(X ,β ) 
+
+> H
+
+fm̸ = 0 , the minimization procedure of E1,ρ : B → R+ is strongly consistent. Proof. (f ∗ 
+
+> ΣN
+
+)N converges almost surely to P L2(X ,β ) 
+
+> H
+
+fm, in the sense of Definition 6, by (8). Since 
+
+∥ · ∥ L2(X ,β ) is the norm of the RKHS H, continuity of the normalization map yields 
+
+f ∗
+
+> ΣN
+
+f ∗  
+
+> ΣNL2(X,β )
+
+→
+
+> a.s.
+
+P L2(X ,β ) 
+
+> H
+
+fm
+
+P L2(X ,β ) 
+
+> H
+
+fm L2(X ,β )
+
+.
+
+By Corollary 1, the right-hand side is the unique minimizer of the population risk over B, while the left-hand side is, almost surely, the unique minimizer of the empirical risk. Hence the above criterion for strong consistency applies. 
+
+## 4.2 Geometric interpretation lift 
+
+In this subsection, we show how the canonical embedding of X into Hn allows a decision boundary in X to be interpreted as a hyperplane in Hn. This viewpoint provides a geometric interpretation of the minimization of the cost function E1,S N over B as an optimization problem involving distances to this hyperplane. For every n, the reproducing kernel defines the canonical feature map 
+
+in : X −→ Hn, in(x) = Kn(x, ·).
+
+For h ∈ Hn, let 
+
+h⊥ := {u ∈ L2(X , β ) : ⟨h, u ⟩L2(X ,β ) = 0 },
+
+and define 
+
+h⊥,n := h⊥ ∩ Hn.
+
+15 By the reproducing property, h(x) = ⟨h, i n(x)⟩L2(X ,β ), so 
+
+{x ∈ X : h(x) = 0 } = i−1
+
+> n
+
+ h⊥ ∩ in(X) .
+
+Hence, the decision boundary of h is the trace of the hyperplane h⊥ on in(X ).The following proposition shows that this geometric distance depends only on the function h, and not on the ambient RKHS containing it. pro:distance 
+
+Proposition 4. Let 0̸ = h ∈ Hn0 for some n0 ∈ N. For every n ≥ n0, the distance in Hn from the point in(x) to the hyperplane h⊥,n is 
+
+dHn
+
+ in(x), h ⊥,n  = |h(x)|∥h∥L2(X ,β )
+
+. (16) 
+
+eq:distanceHn eq:distanceHneq:distanceHn 
+
+In particular, this distance does not depend on the ambient RKHS Hn. Moreover, the distance in 
+
+L2(X , β ) from the point in(x) to the hyperplane h⊥ ⊂ L2(X , β ) is 
+
+dL2(X ,β )
+
+ in(x), h ⊥ = dHn
+
+ in(x), h ⊥ ∩ Hn
+
+ . (17) 
+
+eq:distanceH eq:distanceHeq:distanceH 
+
+Proof. The unit normal vector to h⊥,n in Hn is u = h
+
+∥h∥L2(X ,β )
+
+. Hence 
+
+dHn (in(x), h ⊥,n ) = ⟨in(x), u ⟩Hn = |⟨ in(x), h ⟩Hn |∥h∥L2(X ,β )
+
+. (18) 
+
+eq:geometric eq:geometriceq:geometric 
+
+The reproducing property yields ⟨in(x), h ⟩Hn = h(x) which proves (16). Since L2(X , β ) = h⊥ ⊕
+
+span( h), and span( h) ⊂ Hn, the orthogonal projection of every point of Hn onto h⊥ still belongs to Hn. Therefore (17) follows. For binary classification, the sign of h(x) indicates on which side of the hyperplane h⊥ the point 
+
+in(x) lies. Therefore, E∗ 
+
+> 1,S N
+
+(h), for h ∈ Hn0 ∩ B, admits the following geometric interpretation: by (18), 
+
+1 − E ∗ 
+
+> 1,S N
+
+(h) = 1
+
+N
+
+X
+
+> (xi,y i)∈SN
+
+yi · sign( h(xi)) · dL2(X ,β )(in(xi), h ⊥).
+
+By Proposition 4, this quantity is independent of n for every n ≥ n0. The factor yi ·sign( h(xi)) takes values in {− 1, +1 }: it equals +1 if xi is correctly classified by h, and −1 otherwise. Consequently, minimizing E∗ 
+
+> 1,S N
+
+(h) on B is equivalent to maximizing the total distance from the training points in 
+
+SN to the hyperplane h⊥, with positive contributions from correctly classified points and negative contributions from misclassified ones. Hence the optimal hyperplane f ∗⊥  
+
+> n
+
+is precisely the one maximizing this total signed distance. .
+
+## 4.3 Minimization of E1,ρ in L2(X , β ). sub:minL2 
+
+In this subsection, we prove the existence of a function (N, ω ) 7 → nN (ω) from N×Ω to N, increasing in its first argument, such that f ∗  
+
+> nN,ΣN
+
+→ fm a.s. as N → +∞. This is done in Subsubsection 4.3.1, where we prove the existence of a minimizing sequence for the risk functional E1, ρ in L2(X , β ).The consistency of this minimization procedure is then studied. In Subsubsection 4.3.2, we provide criteria for estimating the terms of this sequence in a machine-learning context. Let (Ω , T , μ ) be a probability space, and (H, H n, K n) a nested RKHS. 16 4.3.1 Existence of a minimizing sequence sec:premiminary 
+
+Fix N ∈ N. A deterministic sample SN ∈ (X × Y )N being given, define 
+
+f ∗ 
+
+> n,S N
+
+:= 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+yiKn(xi, ·).
+
+lem:oneminimum 
+
+Lemma 5. The function n 7 → f ∗   
+
+> n,S NL2(X,β )
+
+is non-decreasing. Proof. It suffices to note that f ∗ 
+
+> n−1,S N
+
+⊥ f ∗ 
+
+> n,S N
+
+− f ∗ 
+
+> n−1,S N
+
+in H, that is consequence of (2). Thus 
+
+f ∗  
+
+> n,S N
+> 2
+> L2(X,β )
+
+− f ∗  
+
+> n−1,S N
+> 2
+> L2(X,β )
+
+= f ∗ 
+
+> n,S N
+
+− f ∗  
+
+> n−1,S N
+> 2
+> L2(X,β )
+
+≥ 0. (19) 
+
+eq:firstpartweak eq:firstpartweakeq:firstpartweak 
+
+Remark 9. The statement of Lemma 5 can also be deduced from Theorem 4. Indeed, 
+
+f ∗   
+
+> n,S NL2(X,β )
+
+= 1
+
+N sup    
+
+> f∈Hn,∥f∥β=1
+> N
+
+X
+
+> i=1
+
+yif (xi) .
+
+Since (Hn)n is nested, the right-hand side is non-decreasing in n.
+
+Let S ∈ (X × Y )N. Define E0 : H → R by E0(f ) := ∥f − fm∥. For ϵ > 0, we can define 
+
+nϵ,S N := min 
+
+
+
+n ∈ N : E0(f ∗ 
+
+> n,S N
+
+) < inf  
+
+> k∈N
+
+E0(f ∗ 
+
+> k,S N
+
+) + ϵ
+
+
+
+.
+
+This quantity is well defined since the set in the definition is nonempty by construction. This choice is measurable with respect to SN , since the infimum is taken over a countable set and the minimum is taken over N. We denote by nϵ, ΣN the corresponding random variable nϵ, ΣN (ω) := nϵ, ΣN (ω).
+
+thm:unifcrmconv 
+
+Theorem 5. Set 
+
+nN := n1/N, ΣN .
+
+Then, in the sense of Definition 6, 
+
+lim   
+
+> N→+∞
+
+f ∗  
+
+> nN,ΣN
+
+= 
+
+> a.s.
+
+fm. (20) 
+
+eq:unifcrmconv eq:unifcrmconveq:unifcrmconv 
+
+More precisely, there exists E ⊂ ΩN with μ∞(E) = 1 such that, for every ω ∈ E,
+
+lim   
+
+> N→+∞
+
+f ∗   
+
+> nN(ω),ΣN(ω)
+
+=  
+
+> L2(X,β )
+
+fm.
+
+Proof. Fix ϵ > 0. Since (Hn)n is dense in L2(X , β ), there exists n1 ∈ N such that 
+
+fm − P L2(X ,β )
+
+> Hn1
+
+fm L2(X ,β )
+
+< ϵ. 
+
+By Proposition 2, there exists a set E ⊂ ΩN with μ∞(E) = 1 such that, for every ω ∈ E,
+
+f ∗  
+
+> n1,ΣN(ω)
+
+−→   
+
+> L2(X,β )
+
+P L2(X ,β )
+
+> Hn1
+
+fm.
+
+Hence, for every ω ∈ E,
+
+E0
+
+
+
+f ∗ 
+
+> n1,ΣN(ω)
+
+
+
+−→ P L2(X ,β )
+
+> Hn1
+
+fm − fm L2(X ,β )
+
+< ϵ. 
+
+17 By the definition of nN = n1/N, ΣN ,
+
+E0
+
+ f ∗ 
+
+> nN,ΣN
+
+ ≤ inf  
+
+> n∈N
+
+E0(f ∗ 
+
+> n, ΣN
+
+) + 1
+
+N ≤ E 0
+
+ f ∗
+
+> n1,ΣN
+
+ + 1
+
+N .
+
+Therefore, for every ω ∈ E,
+
+lim sup  
+
+> N→+∞
+
+E0
+
+
+
+f ∗  
+
+> nN(ω),ΣN(ω)
+
+
+
+≤ ϵ. 
+
+Since ϵ > 0 is arbitrary, 
+
+lim   
+
+> N→+∞
+
+E0
+
+
+
+f ∗  
+
+> nN(ω),ΣN(ω)
+
+
+
+= 0 .
+
+Thus f ∗  
+
+> nN,ΣN
+
+−→   
+
+> L2(X,β )
+
+fm a.s., which proves the result. We also define a less restrictive notion of consistency for the case where there is not guarantee that the minimum of the empirical risk functional is reached. The risk functional Eh will be said 
+
+weakly consistent if there exists a sequence (fN ) ∈ HN such that 
+
+E∗ 
+
+> h
+
+(fN ) − inf  
+
+> f∈H
+
+E∗ 
+
+> h
+
+(f ) → 0
+
+and Eh(fN ) → inf  
+
+> f∈H
+
+Eh(f ) when N → +∞. For that, it suffices that (fN )N converges almost surely towards a minimizer of Eh in H, in which case we will say that the risk functional Eh is convergent .
+
+Corollary 3. The minimization problem of E1,ρ is convergent. Proof. By Theorem 5, f ∗  
+
+> nN,ΣN(ω)
+
+f ∗    
+
+> nN,ΣN(ω)L2(X,β )
+
+→ 
+
+> N→+∞
+
+fm
+
+∥fm∥L2(X ,β )
+
+in L2(X , β ) for a.e. ω ∈ ΩN, so the minimization problem of E1,ρ is strongly consistent by 15, provided that f ∗  
+
+> nN,ΣN
+
+(ω)̸ = 0 for all N ∈ N and amost ω ∈ Ω∞. In the general case, the convergence 
+
+f ∗  
+
+> nN,ΣN(ω)
+
+∥fm∥L2(X ,β )
+
+→ 
+
+> N→+∞
+
+fm
+
+∥fm∥L2(X ,β )
+
+prove that the minimization problem of E1,ΣN is convergent. 
+
+4.3.2 Estimation of the minimizing sequence sec:consistence 
+
+In the previous subsection, we have established the existence of a function (n, ω ) 7 → nN (ω) from 
+
+N × Ω to N, that allows to construct a sequence (fnN ,ΣN )N of good approximates of fm. In this subsection, we give two theorems providing some numerical criteria allowing to estimate this function. 
+
+Theorem 6. For almost every ω ∈ ΩN and every ϵ > 0, there exists N0 ∈ N such that, for every 
+
+N ≥ N0, there exists a function hN,ω : N → R+, decreasing on {0, . . . , n N (ω)} and increasing on 
+
+{nN (ω), . . . }, with hN,ω (nN (ω)) = 0 , such that, for every n ∈ N,
+
+E0
+
+
+
+f ∗ 
+
+> n, ΣN(ω)
+
+
+
+− hN,ω (n) ≤ ϵ
+
+18 Proof. Fix ϵ > 0. By Theorem 5, for almost every ω ∈ ΩN, there exists N0 = N0(ω, ϵ ) ∈ N such that, for all n ∈ N, ∥f ∗   
+
+> nN(ω),ΣN(ω)
+
+− fm∥ < ϵ for N ≥ N0. Fix a such ω ∈ ΩN. We have the triangular inequality: 
+
+f ∗  
+
+> n, ΣN(ω)
+
+− fm L2(X ,β )
+
+− f ∗  
+
+> n, ΣN(ω)
+
+− f ∗    
+
+> nN(ω),ΣN(ω)L2(X,β )
+
+≤ f ∗   
+
+> nN(ω),ΣN(ω)
+
+− fm L2(X ,β )
+
+.
+
+Hence, for all N ≥ N0 and all n ∈ N,
+
+f ∗  
+
+> n, ΣN(ω)
+
+− f ∗    
+
+> nN(ω),ΣN(ω)L2(X,β )
+
+−ϵ ≤ f ∗  
+
+> n, ΣN(ω)
+
+− fm L2(X ,β )
+
+≤ f ∗  
+
+> n, ΣN(ω)
+
+− f ∗    
+
+> nN(ω),ΣN(ω)L2(X,β )
+
++ϵ. 
+
+On the other hand, denoting 
+
+hN,ω : n 7 → f ∗  
+
+> n, ΣN(ω)
+
+− f ∗    
+
+> nN(ω),ΣN(ω)L2(X,β )
+
+,
+
+we have hN,ω (n) = 0 for n = nN (ω), and else we compute: 
+
+h2 
+
+> N,ω
+
+(n) = 1
+
+N 2
+
+> N
+
+X
+
+> i=1
+
+ Yi(ωi)Kn(Xi(ωi), ·) − Yi(ωi)KnN (ω)(Xi(ωi), ·) 2 
+
+> L2(X,β )
+
+(21) 
+
+= 1
+
+N 2max( n,n N (ω)) −1
+
+X 
+
+> j=min( n,n N(ω))
+> N
+
+X
+
+> i=1
+
+(Yi(ωi)Kj (Xi(ωi), ·) − Yi(ωi)Kj+1 (Xi(ωi), ·))  
+
+> 2
+> L2(X,β )
+
+. (22) 
+
+onemin oneminonemin 
+
+We have used the fact, justified by (2), that the terms in the telescopic sum are orthogonal. It follows that n 7 → hN,ω (n) is decreasing on {0, . . . , n N (ω)} and increasing on {nN (ω), . . . }.
+
+Theorem 7. For almost every ω ∈ ΩN and every ϵ > 0, there exists N0 ∈ N such that, for every 
+
+N ≥ N0, there exists a function hN,ω : N → R+, decreasing on {0, . . . , n N (ω)} and increasing on 
+
+{nN (ω), . . . }, with hN,ω (nN (ω)) = 0 , such that, for every n ∈ N such that f ∗ 
+
+> n, ΣN(ω)
+
+̸ = 0 ,
+
+E1,ρ 
+
+ f ∗ 
+
+> n, ΣN(ω)
+
+f ∗   
+
+> n, ΣN(ω)L2(X,β )
+
+ − hN,ω (n) ≤ ϵ. 
+
+Proof. Fix ϵ > 0. By Theorem 5, for a.e. ω ∈ ΩN, there exists N0 = N0(ω, ϵ ) ∈ N such that 
+
+∥fm − f ∗    
+
+> nN(ω)
+> ∥f∗
+> nN(ω)∥
+
+∥ ≤ ϵ for N ≥ N0. Fix such an ω ∈ ΩN.We compute for n ≤ nN (ω):
+
+* f ∗ 
+
+> n, ΣN(ω)
+
+f ∗   
+
+> n, ΣN(ω)L2(X,β )
+
+, f ∗  
+
+> nN(ω),ΣN(ω)
+
+f ∗    
+
+> nN(ω),ΣN(ω)L2(X,β )
+
++
+
+=
+
+f ∗   
+
+> n, ΣN(ω)L2(X,β )
+
+f ∗    
+
+> nN(ω),ΣN(ω)L2(X,β )
+
+.
+
+For n ≥ nN (ω), we obtain in the same way 
+
+* f ∗ 
+
+> n, ΣN(ω)
+
+f ∗   
+
+> n, ΣN(ω)L2(X,β )
+
+, f ∗  
+
+> nN(ω),ΣN(ω)
+
+f ∗    
+
+> nN(ω),ΣN(ω)L2(X,β )
+
++
+
+=
+
+f ∗    
+
+> nN(ω),ΣN(ω)L2(X,β )
+
+f ∗   
+
+> n, ΣN(ω)L2(X,β )
+
+.
+
+19 Then, Lemma 5 implies that 
+
+gN,ω : n 7 →
+
+* f ∗ 
+
+> n, ΣN(ω)
+
+f ∗   
+
+> n, ΣN(ω)L2(X,β )
+
+, f ∗  
+
+> nN(ω),ΣN(ω)
+
+f ∗    
+
+> nN(ω),ΣN(ω)L2(X,β )
+
++
+
+is increasing up to 1 for n ≤ nN (ω) and then decreasing. By Cauchy-Schwarz, for N ≥ N0,
+
+|gN,ω (n) − vN,ω (n)| ≤ ϵ for every n ∈ N such that f ∗ 
+
+> n, ΣN(ω)
+
+̸ = 0 , where 
+
+vN,ω : n 7 →
+
+* f ∗ 
+
+> n, ΣN(ω)
+
+f ∗   
+
+> n, ΣN(ω)L2(X,β )
+
+, f m
+
++
+
+.
+
+From (12) we have 
+
+vN,ω (n) = 1 − E 1,ρ 
+
+ f ∗ 
+
+> n, ΣN(ω)
+
+f ∗   
+
+> n, ΣN(ω)L2(X,β )
+
+ ,
+
+So hN,ω := 1 − gN,ω satisfies the statement. 
+
+## 4.4 Probabilistic interpretation sub:probabilistic 
+
+In this subsection, still in the setting of binary classification, we consider the probability of misclas-sification as a risk functional to be minimized. We show how the functions f ∗   
+
+> nN(ω),ΣN(ω)
+
+provide a solution to this minimization problem. As in Subsection 3, we consider X, Y : Ω → X × {− 1, 1}. We need the following notion. The 
+
+regression function fρ : X → [−1, 1] is defined as a representative of the conditional expectation 
+
+fρ(x) := E(Y |X = x). We emphasize the following relation between fρ and fm: density 
+
+Proposition 5. We have β-a.e. 
+
+fρ · fX = P (Y = 1) fX|Y =1 − P (Y = −1) fX|Y =−1 = fm (23) 
+
+eq:tempered_difference eq:tempered_differenceeq:tempered_difference 
+
+.Proof. For β-almost every x ∈ X such that fX (x) > 0, we have 
+
+fρ(x) = E(Y | X = x) = μ(Y = 1) fX|Y =1 (x) − μ(Y = −1) fX|Y =−1(x)
+
+fX (x) = fm(x)
+
+fX (x) .
+
+Alternatively, Lemma 2 gives, for β-almost every x ∈ X such that fX (x) > 0,
+
+fρ(x) = E(Y | X = x) = E(YX | X = x) = fm(x)
+
+fX (x) .
+
+For the sake of simplicity, given two random variables Z1, Z 2 ∈ M (Ω , R), we denote by 
+
+P (Z1 = Z2) := μ ({ω ∈ Ω : Z1(ω) = Z2(ω)}) ,
+
+and P (Z1̸ = Z2) := 1 − P (Z1 = Z2), and we use the same notation for conditional probabilities. Define g : R2 → R by g(x, y ) := IR− (xy ). For all f : X → {− 1, 1}, we can express, using the notation of (9): 
+
+Eg,ρ (f ) = 
+
+Z
+
+> X ×Y
+
+IR− (yf (x)) dρ = P (Y̸ = f (X)) . (24) 
+
+classif classifclassif 
+
+20 Proposition 6. For Y ′ ∈ M (Ω , {− 1, 1}, σ (X)) , the quantity P (Y = Y ′) is maximized by Y ′ =sign fm(X).
+
+Moreover, let (X, Y ) : Ω → X × {− 1, 1} be a random variable independent of each random variable of the random sample ΣN = (( X0, Y 0), (X1, Y 1), . . . ) but with the same law. For ω ∈ ΩN, let 
+
+Yn,N := signf ∗ 
+
+> n, ΣN(ω)
+
+(X). Then, for a.e. ω ∈ ΩN,
+
+P (Y = YnN (ω),N ) − sup 
+
+> n∈N
+
+P (Y = Yn,N ) →  
+
+> N→+∞
+
+0.
+
+Proof. Let Y ′ ∈ M (Ω , {− 1; 1 }, σ (X)) . We can write Y ′ := g(X) for some Borel function g : X → {− 1, 1} by the Doob–Dynkin Lemma (see e.g. Proposition 3, Chapter 2 in [8]). Then β-a.e. we have 
+
+P (Y = Y ′|X = x) = P
+
+ Y Y ′ + 1 2 = 1 |X = x
+
+
+
+= E
+
+ Y Y ′ + 1 2 |X = x
+
+
+
+= E(Y (g(X)) |X = x) + 1 2 = E(Y |X = x)( g(x)) + 1 2 = fρ(x)( g(x)) + 1 2 .
+
+We see that this expression is maximal for g = sign fρ = sign fm on fX > 0. (We can adopt here the convention sign (0) ∈ {− 1, 1}.) Now let us prove the second statement. 
+
+P (Y = Yn,N ) = E(Y Y n,N + 1) 2 = E(E(Y Y n,N + 1 |X)) 2 = E(fρ(X) sign f ∗ 
+
+> n, ΣN(ω)
+
+(X)) + 1 2=
+
+D
+
+fm, sign f ∗ 
+
+> n, ΣN(ω)
+
+E
+
++ 1 2 =
+
+D
+
+f ∗  
+
+> nN(ω),ΣN(ω)
+
+, sign f ∗ 
+
+> n, ΣN(ω)
+
+E
+
+2 +
+
+D
+
+fm − f ∗  
+
+> nN(ω),ΣN(ω)
+
+, sign f ∗ 
+
+> n, ΣN(ω)
+
+E
+
+2 + 12 .
+
+(25) 
+
+eq:encart eq:encarteq:encart 
+
+Fix ϵ > 0. Then for N large by Theorem 5, thanks to the Cauchy-Schwarz inequality, 
+
+D
+
+f ∗  
+
+> nN(ω),ΣN(ω)
+
+, sign f ∗ 
+
+> n, ΣN(ω)
+
+E
+
++ 1 2 − ϵ ≤ P (Y = Yn,N ) ≤
+
+D
+
+f ∗  
+
+> nN(ω),ΣN(ω)
+
+, signf ∗ 
+
+> n, ΣN(ω)
+
+E
+
++ 1 2 + ϵ. 
+
+The conclusion follows from the fact that the following quantity is maximal for n = nN (ω), thanks to the Cauchy-Schwarz inequality: 
+
+D
+
+f ∗  
+
+> nN(ω),ΣN(ω)
+
+, sign f ∗ 
+
+> n, ΣN(ω)
+
+E
+
+.
+
+From (25) we can give the following precision: 
+
+Corollary 4. For a.e. ω ∈ ΩN, the sequence 
+
+
+
+sign f ∗  
+
+> nN(ω),ΣN(ω)
+
+
+
+> N
+
+is a minimizing sequence for Eg,ρ .
+
+# References 
+
+[1] N. Aronszajn, “Theory of reproducing kernels,” Transactions of the American Mathematical Society , vol. 68, no. 3, pp. 337–404, 1950. [2] A. Berlinet and C. Thomas-Agnan, Reproducing Kernel Hilbert Spaces in Probability and Statistics , Springer Science & Business Media, 2011. [3] F. Cucker and S. Smale. Learning theory: an approximation theory viewpoint. Bulletin of the American Mathematical Society , 39(1):1–49, 2002. 21 [4] F. Cucker and D. X. Zhou. Learning Theory: An Approximation Theory Viewpoint . Cambridge University Press, 2007. [5] T. Hsing and R. Eubank. Theoretical Foundations of Functional Data Analysis, with an Introduction to Linear Operators . Wiley & Sons, 2015. [6] T. Hastie, R. Tibshirani, and J. Friedman, The Elements of Statistical Learning: Data Mining, Inference, and Prediction , 2nd edition, Springer, 2009. [7] Y. Kazashi and A. Nobile. Density estimation in RKHS with application to Korobov spaces in high dimensions. SIAM Journal on Numerical Analysis , 61(2):1080–1102, 2023. [8] M. M. Rao, Conditional Measures and Applications , 2nd ed., CRC Press, Boca Raton, FL, 2005. [9] H. Saeidi, M. Aminghafari, and M. Ashkartizabi. Fdmclust: Functional data model-based clustering using approximation of probability density for a random function in a reproducing kernel hilbert space framework. Neurocomputing , 650:130768, 2025. [10] B. Schölkopf and A. J. Smola. Learning with Kernels: Support Vector Machines, Regulariza-tion, Optimization, and Beyond . MIT Press, Cambridge, MA, 2002. [11] V. N. Vapnik. Statistical Learning Theory . Wiley, New York, 1998. [12] V. N. Vapnik and S. Mukherjee. Support vector method for multivariate density estimation. In Advances in Neural Information Processing Systems , volume 12, 1999. 22

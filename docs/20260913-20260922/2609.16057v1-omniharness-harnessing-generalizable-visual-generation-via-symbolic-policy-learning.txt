@@ -1,0 +1,2786 @@
+OmniHarness: Harnessing Generalizable Visual
+Generation via Symbolic Policy Learning
+Xu Xu1,∗, Jinxiu Liu2,∗, Zhangbo Qiao1, Jiaxing Lu1
+Xiangyu Zhang1, Yubin Gu3, Fangwei Ning1, Yan Shi1
+1Beihang University, 2The Chinese University of Hong Kong, 3National University of Singapore
+∗Corresponding authors: Xu Xu (xuxu1@buaa.edu.cn), Jinxiu Liu (jinxiuliu0628@foxmail.com)
+Figure 1 Overview of OmniHarness and its diverse visual generation capabilities.
+1
+arXiv:2609.16057v1  [cs.LG]  13 Sep 2026
+
+
+Abstract
+Unified multimodal large language models (MLLMs) and multi-agent systems have advanced visual
+generation. However, three limitations remain. (1) Existing methods often distill task-specific
+experience with limited generalizability. (2) Reflection is often deferred until task completion. (3)
+Knowledge is often acquired only in response to downstream task demands. To address these
+limitations, we introduce OmniHarness, a framework for generalizable visual generation via
+symbolic policy learning. OmniHarness abstracts verified executions into symbolic policies for
+visual generation task families, capturing shared procedures and applicability conditions while
+removing instance-specific inputs. The harness instantiates, adapts, and composes these policies
+for new tasks. Intermediate verification guides refinement and failure recovery during execution.
+Through self-directed inquiry, OmniHarness autonomously generates and executes practice tasks
+near its capability limits before downstream objectives are specified. Execution feedback continually
+refines the policies while model parameters remain fixed. Experiments across six benchmarks,
+three MLLM backbones, and three visual agent frameworks demonstrate strong performance and
+continual capability expansion. On ComfyBench’s Creative tasks, OmniHarness achieves a 95.0%
+resolve rate, exceeding the strongest baseline by 27.5 percentage points. Frozen policy snapshots
+improve existing visual agent systems through plug-and-play reuse.
+Resources:
+Project Page
+Code
+1
+Introduction
+Visual intelligence is advancing along two complementary paths for effective scaling. The first develops end-
+to-end unified multimodal large language models (MLLMs) for visual perception [10, 13, 36, 47], multimodal
+reasoning [20, 54, 74], and image generation [6, 19, 30, 71]. However, as shown in Figure 2(a), this approach
+relies on large-scale training data. Standalone models offer limited support for explicit verification and
+self-correction and can struggle with complex reasoning tasks. These limitations motivate the second path,
+which explores MLLM-based multi-agent systems (MAS) [49, 69, 73, 76].
+Self-Evolving Visual MAS. Kahneman’s dual-process theory distinguishes fast intuition from deliberate
+reasoning [24], while neuroscientific evidence suggests that language may express rather than underlie reasoning
+[14]. This perspective motivates visual MAS that combine direct generation, collaborative reasoning, and
+memory to learn from experience [9, 21, 67]. However, as illustrated in Figure 2(b), many systems still
+rely on manually defined ComfyUI workflows [22, 32, 65] or fixed communication topologies [34, 35, 63].
+Recent methods automate prompt or topology optimization, yet adapting coordination based on collaboration
+experience remains difficult [38, 62, 75]. Retaining successful executions does not necessarily yield reusable
+skills or reliable cross-task transfer [18, 37]. When confined to individual cases, such experience preserves
+specific solutions without revealing the principles shared across a task family, much like giving a fish without
+teaching how to fish.
+Harness Design for Self-Evolving Agents. A harness coordinates tools, workflows, and memory, shaping
+agent behavior alongside data and models [11, 68]. Enabling self-evolution through harness design raises three
+questions: ❶Can task-specific experience reveal generalizable patterns? Miss the forest for the trees.
+Existing methods distill execution experience but often remain focused on individual solutions, overlooking
+patterns shared across a task family and limiting transfer to new tasks. ❷Can post-task reflection alone
+ensure reliable execution? Hindsight offers lessons, but errors do not wait. Many existing methods
+reflect only after task completion, allowing intermediate errors to propagate without timely verification or
+recovery. ❸Can reactive learning prepare agents for future tasks? Necessity is a late teacher. Existing
+methods often acquire knowledge only in response to downstream task demands, leaving capability gaps
+2
+
+
+Figure 2 Comparison of visual generation paradigms. (a) End-to-end unified MLLMs enable fast multimodal generation
+but lack deliberate reasoning and self-correction. (b) Existing multi-agent systems improve collaborative reasoning but
+lack unified coordination and persistent knowledge accumulation. (c) OmniHarness integrates self-directed inquiry and
+feedback-guided execution to learn reusable symbolic policies for generalizable visual generation.
+unaddressed until they hinder execution. These challenges motivate a central question: How can we build a
+visual generation system that generalizes beyond individual cases, reflects as it acts, and learns
+through self-directed exploration?
+To address this central question, we introduce OmniHarness, a framework for generalizable visual generation
+via symbolic policy learning. As shown in Figure 2(c), OmniHarness distills verified executions into symbolic
+policies for families of visual generation tasks, capturing shared procedures and applicability conditions while
+removing instance-specific inputs. The harness instantiates, adapts, and composes these policies for new
+tasks. During execution, it verifies intermediate outputs and repairs failed steps. Motivated by Chinese
+philosopher Wang Yangming’s interpretation of the investigation of things and the extension of knowledge [52],
+we incorporate self-directed inquiry. Before downstream objectives are specified, OmniHarness autonomously
+generates and executes practice tasks to probe its capability limits and gather experience for policy learning.
+Execution feedback continually refines these policies while model parameters remain fixed. Frozen policy
+snapshots support plug-and-play reuse across visual agent frameworks.
+Our contributions are summarized as follows:
+• Symbolic Policy Learning. We distill verified executions into symbolic policies for visual generation
+task families, capturing shared procedures and applicability conditions while removing instance-specific
+inputs.
+• Feedback-Guided Execution. We design a harness that instantiates, adapts, and composes symbolic
+policies for new tasks. Verification of intermediate outputs guides workflow refinement and failure
+recovery during execution, limiting error propagation.
+• Self-Directed Inquiry. We introduce self-directed inquiry to learn reusable symbolic policies before
+downstream objectives are specified. OmniHarness autonomously generates and executes practice tasks,
+probing its capability limits and using execution feedback to guide policy learning.
+• Experimental Evaluation. Experiments across six benchmarks demonstrate strong performance,
+continual capability expansion, and transfer across visual agent frameworks. On ComfyBench’s Creative
+tasks, OmniHarness achieves a 95.0% resolve rate, exceeding the state-of-the-art baseline by 27.5
+percentage points.
+3
+
+
+Figure 3 Architecture of OmniHarness. Self-directed inquiry and feedback-guided execution drive symbolic policy
+learning for generalizable visual generation. The policy library evolves during OmniHarness execution, while frozen
+snapshots support plug-and-play reuse across visual agents.
+2
+Related Work
+End-to-End Unified MLLMs. Unified MLLMs integrate visual understanding and generation within
+a single architecture [15, 50, 61]. Recent work advances reasoning through cross-modal chain-of-thought
+[5, 33], multi-representation mutual reinforcement [46], and shared-context visual tokenization [42]. However,
+standard inference offers limited support for explicit verification, failure recovery, and persistent workflow
+reuse.
+Agentic Systems. ComfyBench evaluates autonomous workflow construction in ComfyUI [65], while related
+systems combine planning and feedback to construct workflows for assigned tasks [18, 22]. Recent methods
+evolve execution checks and recovery for embodied agents [11], synthesize task-specific harnesses [68], or
+learn reusable symbolic concepts from incoming tasks [37]. OmniHarness learns symbolic policies from
+verified executions, capturing principles shared across visual generation task families. The harness adapts
+and composes these policies for new tasks, using intermediate verification to guide refinement and recovery
+during execution. Self-directed inquiry autonomously generates and executes practice tasks to probe capability
+limits before downstream objectives are specified. Execution feedback continually refines the policies while
+model parameters remain fixed. Frozen policy snapshots support plug-and-play reuse across visual agent
+frameworks.
+3
+OmniHarness: Symbolic Policy Learning
+3.1
+Self-Directed Inquiry
+Motivated by Wang Yangming’s interpretation of the investigation of things and the extension of knowledge
+[52], OmniHarness uses self-directed inquiry to learn symbolic policies before downstream objectives are
+specified. Figure 3 shows the architecture. Appendix Sections A.1 and A.2 detail the formulation, learning
+procedure, and inquiry configuration.
+Candidate Task Generation. At iteration t, the proposer generates Tt = Propose(G, ct, St) using capability
+space G, scene context ct, and policy library state St = (Lt, Ft). The context ct summarizes capability
+coverage, workflow reliability, and available source images. The workflow library Lt stores symbolic policies
+as reusable workflow templates for visual generation task families, while the failure library Ft stores failure
+evidence and corrective strategies. Each candidate τ = (qτ, mτ, Gτ, xτ) specifies a description qτ, modality
+4
+
+
+Figure 4 Qualitative comparison on challenging tasks from the Complex and Creative subsets.
+mτ ∈{T2I, I2I}, required capabilities Gτ ⊆G, and source image xτ ∈X ∪{⊥}, where xτ = ⊥for T2I.
+Generation encourages diverse capability combinations, filters near-duplicates, and avoids known failure
+patterns.
+Exploration within Reach. Candidates are scored by capability novelty N(τ) and competence frontier
+score C(τ), with time indices omitted. Set zτ = zT2I for T2I and zτ = xτ for I2I. Given attempt counts nt(z, g)
+for context z and capability g, N(τ) =
+1
+|Gτ |
+P
+g∈Gτ
+1
+√
+nt(zτ ,g)+1 favors underexplored context–capability pairs.
+Capability support uses applicable, non-suspended workflows Wt(τ, g) ⊆Lt. Workflow reliability is the lower
+endpoint of a 95% Wilson confidence interval based on usage and success counts. The highest reliability defines
+rt(τ, g), with a small prior ε when Wt(τ, g) is empty. Estimated task competence follows the weakest required
+capability, ¯rt(τ) = ming∈Gτ rt(τ, g). See Appendix Section A.1.2 for reliability details. Following the Goldilocks
+principle [1, 26], the learnability heuristic C(τ) = 4¯rt(τ) (1 −¯rt(τ)) peaks at ¯rt(τ) = 0.5 and downweights
+tasks with very low or high estimated competence. OmniHarness selects τt = arg maxτ∈Tt N(τ)C(τ), favoring
+novel tasks near the competence frontier as St evolves.
+3.2
+Feedback-Guided Execution
+For a practice or downstream task τt, OmniHarness executes symbolic policies through (πt, ot) = Run(τt, ct, K,
+St), where πt is the task’s executable workflow and ot records status, verifier feedback, and evidence. Agents
+share plans, programs, verification results, and corrections. The planner constructs the ordered plan ρt =
+5
+
+
+Table 1 Quantitative comparison on ComfyBench [65].
+Agent
+Vanilla
+Complex
+Creative
+Total
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+GPT-4o + Zero-shot
+0.0
+0.0
+0.0
+0.0
+0.0
+0.0
+0.0
+0.0
+GPT-4o + Few-shot [3]
+32.0↑32.0
+27.0↑27.0
+16.7↑16.7
+8.3↑8.3
+7.5↑7.5
+0.0=0.0
+22.5↑22.5
+16.0↑16.0
+GPT-4o + CoT [53]
+44.0↑44.0
+29.0↑29.0
+11.7↑11.7
+8.3↑8.3
+12.5↑12.5
+0.0=0.0
+28.0↑28.0
+17.0↑17.0
+GPT-4o + CoT-SC [51]
+45.0↑45.0
+34.0↑34.0
+11.7↑11.7
+5.0↑5.0
+15.0↑15.0
+0.0=0.0
+29.0↑29.0
+18.5↑18.5
+Claude-3.5-Sonnet + RAG [29]
+27.0↑27.0
+13.0↑13.0
+23.0↑23.0
+6.7↑6.7
+7.5↑7.5
+0.0=0.0
+22.0↑22.0
+8.5↑8.5
+Llama-3.1-70B + RAG
+58.0↑58.0
+32.0↑32.0
+23.0↑23.0
+10.0↑10.0
+15.0↑15.0
+5.0↑5.0
+39.0↑39.0
+20.0↑20.0
+GPT-4o + RAG
+62.0↑62.0
+41.0↑41.0
+45.0↑45.0
+21.7↑21.7
+40.0↑40.0
+7.5↑7.5
+52.0↑52.0
+23.0↑23.0
+o1-mini + RAG
+32.0↑32.0
+16.0↑16.0
+21.7↑21.7
+8.3↑8.3
+12.5↑12.5
+7.5↑7.5
+25.0↑25.0
+12.0↑12.0
+o1-preview + RAG
+70.0↑70.0
+46.0↑46.0
+48.3↑48.3
+23.3↑23.3
+30.0↑30.0
+12.5↑12.5
+55.5↑55.5
+32.5↑32.5
+Llama-3.1-70B + ComfyAgent [65]
+63.0
+35.0
+26.7
+18.3
+20.0
+5.0
+43.5
+24.0
+GPT-4o + ComfyAgent
+67.0↑4.0
+46.0↑11.0
+48.3↑21.6
+21.7↑3.4
+40.0↑20.0
+15.0↑10.0
+56.0↑12.5
+32.5↑8.5
+GPT-4o + ComfyMind [18]
+100.0↑37.0 92.0↑57.0
+100.0↑73.3 85.0↑66.7 100.0↑80.0 57.5↑52.5
+100.0↑56.5 83.0↑59.0
+DeepSeek-V3 + ComfyMind
+100.0↑37.0 90.0↑55.0
+100.0↑73.3 71.7↑53.4
+100.0↑80.0 60.0↑55.0
+100.0↑56.5 78.5↑54.5
+Gemini-2.5-Flash + SymbOmni [37]
+100.0↑37.0 95.0↑60.0
+100.0↑73.3 83.3↑65.0
+100.0↑80.0 67.5↑62.5
+100.0↑56.5 86.0↑62.0
+GPT-4o + OmniHarness
+100.0↑37.0 95.0↑60.0
+100.0↑73.3 76.7↑58.4
+100.0↑80.0 95.0↑90.0 100.0↑56.5 89.5↑65.5
+Codex GPT-4o + OmniHarness 100.0↑37.0 97.0↑62.0 100.0↑73.3 83.3↑65.0
+100.0↑80.0 95.0↑90.0 100.0↑56.5 92.5↑68.5
+(at,1, . . . , at,Jt) via ρt = Plan(τt, ct, K, St). It instantiates, adapts, and composes policies from the workflow
+library Lt, guided by failure patterns and remedies in Ft. A plan verifier checks step order, dependencies,
+and task alignment. The writer generates a Python-like Code-as-Policy program eπt = Write(ρt, K), which a
+reversible interpreter compiles into πt = Compile(eπt). Function calls represent ComfyUI nodes, and data flow
+defines their connections. Workflows and components are reused when their preconditions hold. Verification
+checks executability, the intended effect of each at,j, and whether the output satisfies qτt and the constraints
+in τt. On failure, the diagnoser identifies the affected step and retrieves a correction from Ft. The harness
+repairs that component while preserving verified steps. A subagent supplies a reusable subworkflow when
+needed. Verification repeats until success or the retry budget is exhausted.
+3.3
+Symbolic Policy Learning
+After each task, OmniHarness updates its context and policy library through (ct+1, St+1) = Update(ct, St,
+τt, πt, ot), where St = (Lt, Ft). On verified success, πt is distilled into a symbolic policy in Lt+1 for its
+visual generation task family. This abstraction captures shared procedures and applicability conditions
+while removing instance-specific inputs. Equivalent workflows are merged, and usage, success, and reliability
+statistics are updated to guide condition-aware retrieval and composition. Failures are recorded in Ft+1 with
+τt, πt, execution evidence, and verifier feedback. Their analysis identifies root causes, workflow antipatterns,
+remedies, and applicable scope. A curator periodically merges redundant workflows, consolidates corrective
+strategies, updates reliability tiers, and may construct missing workflows. It refreshes ct+1 from the libraries
+and source image pool X to guide future task proposals. Updates apply to both practice and downstream
+tasks, continually refining the policy library. The policy library learned through self-directed inquiry is
+exported as a frozen snapshot Kinquiry for plug-and-play reuse by external visual agents.
+4
+Experiments
+4.1
+Autonomous Workflow Construction
+We evaluate autonomous workflow construction on ComfyBench [65], where each agent must construct an
+executable ComfyUI workflow that satisfies the task requirements. Table 1 shows that both OmniHarness
+variants achieve a 100.0% Pass rate across all subsets. GPT-4o + OmniHarness and Codex GPT-4o +
+OmniHarness achieve Total Resolve rates of 89.5% and 92.5%, respectively. The latter exceeds SymbOmni
+6
+
+
+Figure 5 Qualitative comparison on representative text-to-image tasks.
+Table 2 Quantitative comparison on GenEval [17].
+Method
+Single Obj.↑
+Two Obj.↑
+Counting↑
+Colors↑
+Position↑
+Attr. Bind.↑
+Overall↑
+Frozen Text-Encoder Mapping Methods
+SDv1.5 [45]
+0.97
+0.38
+0.35
+0.76
+0.04
+0.06
+0.43
+SDv2.1 [45]
+0.98↑0.01
+0.51↑0.13
+0.44↑0.09
+0.85↑0.09
+0.07↑0.03
+0.17↑0.11
+0.50↑0.07
+SD-XL [43]
+0.98↑0.01
+0.74↑0.36
+0.39↑0.04
+0.85↑0.09
+0.15↑0.11
+0.23↑0.17
+0.55↑0.12
+DALL-E 2 [44]
+0.94↓0.03
+0.66↑0.28
+0.49↑0.14
+0.77↑0.01
+0.10↑0.06
+0.19↑0.13
+0.52↑0.09
+SD3-Medium [12]
+0.99↑0.02
+0.94↑0.56
+0.72↑0.37
+0.89↑0.13
+0.33↑0.29
+0.60↑0.54
+0.74↑0.31
+Unified Multimodal Models
+LlamaGen [47]
+0.71
+0.34
+0.21
+0.58
+0.07
+0.04
+0.32
+LWM [36]
+0.93↑0.22
+0.41↑0.07
+0.46↑0.25
+0.79↑0.21
+0.09↑0.02
+0.15↑0.11
+0.47↑0.15
+SEED-X [15]
+0.97↑0.26
+0.58↑0.24
+0.26↑0.05
+0.80↑0.22
+0.19↑0.12
+0.14↑0.10
+0.49↑0.17
+Emu3-Gen [50]
+0.98↑0.27
+0.71↑0.37
+0.34↑0.13
+0.81↑0.23
+0.17↑0.10
+0.21↑0.17
+0.54↑0.22
+Janus [56]
+0.97↑0.26
+0.68↑0.34
+0.30↑0.09
+0.84↑0.26
+0.46↑0.39
+0.42↑0.38
+0.61↑0.29
+JanusFlow [40]
+0.97↑0.26
+0.59↑0.25
+0.45↑0.24
+0.83↑0.25
+0.53↑0.46
+0.42↑0.38
+0.63↑0.31
+Janus-Pro-7B [7]
+0.99↑0.28
+0.89↑0.55
+0.59↑0.38
+0.90↑0.32
+0.79↑0.72
+0.66↑0.62
+0.80↑0.48
+GoT [13]
+0.99↑0.28
+0.69↑0.35
+0.67↑0.46
+0.85↑0.27
+0.34↑0.27
+0.27↑0.23
+0.64↑0.32
+Bagel [10]
+0.98↑0.27
+0.94↑0.60
+0.76↑0.55
+0.91↑0.33
+0.69↑0.62
+0.70↑0.66
+0.78↑0.46
+GPT-Image-1
+0.99↑0.28
+0.92↑0.58
+0.85↑0.64
+0.92↑0.34
+0.75↑0.68
+0.61↑0.57
+0.84↑0.52
+Collaborative AI Systems
+ComfyAgent [65]
+0.69
+0.30
+0.33
+0.50
+0.04
+0.04
+0.32
+ComfyMind [18]
+1.00↑0.31
+1.00↑0.70
+0.96↑0.63
+0.97↑0.47
+0.63↑0.59
+0.81↑0.77
+0.90↑0.58
+SymbOmni [37]
+1.00↑0.31
+1.00↑0.70
+0.99↑0.66
+0.98↑0.48
+0.97↑0.93
+0.95↑0.91
+0.98↑0.66
+OmniHarness
+1.00↑0.31
+1.00↑0.70
+1.00↑0.67
+1.00↑0.50
+1.00↑0.96
+0.98↑0.94
+0.997↑0.677
+by 6.5 percentage points overall, with the largest gain on Creative tasks, where it achieves 95.0% Resolve
+compared with SymbOmni’s 67.5%. On Complex tasks, OmniHarness matches SymbOmni at 83.3% Resolve,
+while ComfyMind achieves 85.0%. Figure 4 provides qualitative examples of multi-step editing, reference-style
+transfer, restoration, and content preservation.
+4.2
+Text-to-Image Generation
+We evaluate text-to-image generation on GenEval [17], GenEval2 [25], and WISE [41]. GenEval measures
+six object-centric compositional skills, GenEval2 tests fine-grained attributes, counting, and spatial and
+transitive verb relations, while WISE assesses knowledge-informed synthesis across cultural, spatiotemporal,
+7
+
+
+Table 3 Quantitative comparison on GenEval2 [25].
+Method
+Object↑
+Attribute↑
+Count↑
+Position↑
+Verb↑
+Overall↑
+Stable Diffusion Model Series
+SD 2.1 [45]
+55.1
+30.4
+22.3
+11.7
+17.8
+27.46
+SDXL [43]
+74.1↑19.0
+42.4↑12.0
+28.7↑6.4
+16.0↑4.3
+28.9↑11.1
+38.02↑10.56
+SD3 [12]
+87.0↑31.9
+65.5↑35.1
+49.9↑27.6
+41.0↑29.3
+46.7↑28.9
+58.02↑30.56
+SD3.5-Large [12]
+91.6↑36.5
+70.3↑39.9
+52.2↑29.9
+39.5↑27.8
+55.6↑37.8
+61.84↑34.38
+State-of-the-Art Text-to-Image Models
+FLUX.1-dev [28]
+88.4
+68.3
+55.6
+37.0
+44.4
+58.74
+Bagel + CoT [10]
+92.9↑4.5
+75.9↑7.6
+55.6=0.0
+50.6↑13.6
+57.8↑13.4
+66.56↑7.82
+Qwen-Image [55]
+99.1↑10.7
+85.6↑17.3
+70.3↑14.7
+60.2↑23.2
+71.1↑26.7
+77.26↑18.52
+Gemini 2.5 Flash Image [8]
+99.0↑10.6
+91.4↑23.1
+70.1↑14.5
+70.2↑33.2
+86.7↑42.3
+83.48↑24.74
+Collaborative AI Systems
+SymbOmni [37]
+95.0
+83.6
+74.8
+68.8
+64.5
+77.34
+OmniHarness
+95.0=0.0
+94.0↑10.4
+94.0↑19.2
+76.9↑8.1
+89.0↑24.5
+89.78↑12.44
+Figure 6 Qualitative results on (a) Understanding Scenarios, (b) Reasoning Scenarios.
+and scientific domains. For these evaluations, self-directed inquiry uses a general T2I generative capability
+space without access to evaluation tasks from these benchmarks. As shown in Tables 2–4, OmniHarness
+achieves the highest GenEval overall score of 0.997, reaching 1.00 in five categories and 0.98 in attribute
+binding. On GenEval2, it leads in Attribute, Count, Position, and Verb with scores of 94.0, 94.0, 76.9, and
+89.0, exceeding the best competing scores by 2.6, 19.2, 6.7, and 2.3 points, respectively. Its Object score
+of 95.0 matches SymbOmni but remains below Qwen-Image and Gemini 2.5 Flash Image. On WISE, it
+achieves the highest overall WiScore of 0.86, exceeding both SymbOmni and GPT-Image-1 by 0.06. It leads
+in Time, Biology, Physics, and Chemistry and remains within 0.03 of the best Cultural and Space scores.
+Figure 5 further illustrates adherence to object counts, attribute combinations, spatial and action relations,
+and world-knowledge constraints.
+4.3
+Image Editing
+We evaluate instruction-based image editing on Reason-Edit [23], which includes explicit target cues in
+Understanding Scenarios and indirect target descriptions in Reasoning Scenarios. During self-directed inquiry,
+OmniHarness may access raw source images used by ComfyBench, but downstream task instructions, target
+8
+
+
+Table 4 Quantitative comparison on WISE [41].
+Method
+Cultural↑
+Time↑
+Space↑
+Biology↑
+Physics↑
+Chemistry↑
+Overall↑
+Dedicated T2I Models
+SDv1.5 [45]
+0.34
+0.35
+0.32
+0.28
+0.29
+0.21
+0.32
+SDv2.1 [45]
+0.30↓0.04
+0.38↑0.03
+0.35↑0.03
+0.33↑0.05
+0.34↑0.05
+0.21=0.00
+0.32=0.00
+SD-XL [43]
+0.43↑0.09
+0.48↑0.13
+0.47↑0.15
+0.44↑0.16
+0.45↑0.16
+0.27↑0.06
+0.43↑0.11
+SD3-Medium [12]
+0.42↑0.08
+0.44↑0.09
+0.48↑0.16
+0.39↑0.11
+0.47↑0.18
+0.29↑0.08
+0.42↑0.10
+SD3.5-Medium [12]
+0.43↑0.09
+0.50↑0.15
+0.52↑0.20
+0.41↑0.13
+0.53↑0.24
+0.33↑0.12
+0.45↑0.13
+SD3.5-Large [12]
+0.44↑0.10
+0.50↑0.15
+0.58↑0.26
+0.44↑0.16
+0.52↑0.23
+0.31↑0.10
+0.46↑0.14
+PixArt-Alpha [4]
+0.45↑0.11
+0.50↑0.15
+0.48↑0.16
+0.49↑0.21
+0.56↑0.27
+0.34↑0.13
+0.47↑0.15
+Playground-v2.5 [31]
+0.49↑0.15
+0.58↑0.23
+0.55↑0.23
+0.43↑0.15
+0.48↑0.19
+0.33↑0.12
+0.49↑0.17
+FLUX.1-schnell [28]
+0.39↑0.05
+0.44↑0.09
+0.50↑0.18
+0.31↑0.03
+0.44↑0.15
+0.26↑0.05
+0.40↑0.08
+FLUX.1-dev [28]
+0.48↑0.14
+0.58↑0.23
+0.62↑0.30
+0.42↑0.14
+0.51↑0.22
+0.35↑0.14
+0.50↑0.18
+Unified MLLM Models
+Janus-1.3B [56]
+0.16
+0.26
+0.35
+0.28
+0.30
+0.14
+0.23
+JanusFlow-1.3B [40]
+0.13↓0.03
+0.26=0.00
+0.28↓0.07
+0.20↓0.08
+0.19↓0.11
+0.11↓0.03
+0.18↓0.05
+Janus-Pro-1B [7]
+0.20↑0.04
+0.28↑0.02
+0.45↑0.10
+0.24↓0.04
+0.32↑0.02
+0.16↑0.02
+0.26↑0.03
+Janus-Pro-7B [7]
+0.30↑0.14
+0.37↑0.11
+0.49↑0.14
+0.36↑0.08
+0.42↑0.12
+0.26↑0.12
+0.35↑0.12
+Show-o [60]
+0.28↑0.12
+0.36↑0.10
+0.40↑0.05
+0.23↓0.05
+0.33↑0.03
+0.22↑0.08
+0.30↑0.07
+Show-o-512 [60]
+0.28↑0.12
+0.40↑0.14
+0.48↑0.13
+0.30↑0.02
+0.46↑0.16
+0.30↑0.16
+0.35↑0.12
+VILA-U-7B [57]
+0.26↑0.10
+0.33↑0.07
+0.37↑0.02
+0.35↑0.07
+0.39↑0.09
+0.23↑0.09
+0.31↑0.08
+Orthus-7B-base [27]
+0.07↓0.09
+0.10↓0.16
+0.12↓0.23
+0.15↓0.13
+0.15↓0.15
+0.10↓0.04
+0.10↓0.13
+Orthus-7B-instruct [27]
+0.23↑0.07
+0.31↑0.05
+0.38↑0.03
+0.28=0.00
+0.31↑0.01
+0.20↑0.06
+0.27↑0.04
+Emu3 [50]
+0.34↑0.18
+0.45↑0.19
+0.48↑0.13
+0.41↑0.13
+0.45↑0.15
+0.27↑0.13
+0.39↑0.16
+BAGEL [10]
+0.44↑0.28
+0.55↑0.29
+0.68↑0.33
+0.44↑0.16
+0.60↑0.30
+0.39↑0.25
+0.52↑0.29
+BAGEL + CoT [10]
+0.76↑0.60
+0.69↑0.43
+0.75↑0.40
+0.65↑0.37
+0.75↑0.45
+0.58↑0.44
+0.70↑0.47
+Closed-Source Models
+GPT-Image-1
+0.81
+0.71
+0.89
+0.83
+0.79
+0.74
+0.80
+Collaborative AI Systems
+ComfyMind [18]
+0.85
+0.66
+0.72
+0.67
+0.70
+0.78
+0.76
+SymbOmni [37]
+0.90↑0.05
+0.70↑0.04
+0.74↑0.02
+0.75↑0.08
+0.74↑0.04
+0.78=0.00
+0.80↑0.04
+OmniHarness
+0.88↑0.03
+0.85↑0.19
+0.86↑0.14
+0.84↑0.17
+0.82↑0.12
+0.86↑0.08
+0.86↑0.10
+outputs, reference workflows, benchmark annotations, and evaluation labels are withheld to prevent task-level
+leakage. As shown in Table 5, OmniHarness leads on all four metrics in Understanding Scenarios, with 23.89
+dB PSNR, 0.86 SSIM, 0.05 LPIPS, and 24.55 CLIP Score. In Reasoning Scenarios, it achieves the highest
+SSIM of 0.80 and CLIP Score of 21.32, while its LPIPS of 0.05 matches the best baselines at two-decimal
+precision. Figure 6 provides complementary qualitative evidence.
+4.4
+Ablation Study
+Table 6 shows that removing self-directed inquiry lowers Total Resolve from 92.5% to 87.0% and Creative
+Resolve from 95.0% to 72.5%. Creative tasks test skill application beyond curriculum examples [65], and
+the larger decline supports prior policy acquisition for new generation requirements. Disabling online policy
+updates lowers Total Resolve to 88.5%, supporting continual refinement through execution feedback. Table 7
+shows that removing capability novelty or the competence frontier score lowers Creative Resolve to 87.5%
+and 85.0%, respectively. Their combination outperforms either alone, supporting the complementary roles
+of exploration and estimated learnability. Complex tasks require combining multiple workflows [65], testing
+composition and coordination across dependent steps. In Table 8, removing planning, intermediate verification,
+or localized recovery lowers Complex Resolve from 83.3% to 55.0%, 68.3%, and 76.7%, respectively. Removing
+intermediate verification also reduces Complex Pass from 100.0% to 75.0%. These declines support planning
+for dependency coordination and intermediate feedback for workflow refinement and recovery, consistent with
+limiting error propagation. Additional ablation results appear in Appendix Section A.4.
+9
+
+
+Table 5 Quantitative comparison on Reason-Edit [23].
+Method
+Understanding Scenarios
+Reasoning Scenarios
+PSNR↑
+SSIM↑
+LPIPS↓
+CLIP↑
+PSNR↑
+SSIM↑
+LPIPS↓
+CLIP↑
+InstructPix2Pix [2]
+21.58
+0.72
+0.09
+22.76
+24.23
+0.71
+0.08
+19.41
+MagicBrush [70]
+18.12↓3.46
+0.68↓0.04
+0.14↑0.05
+22.62↓0.14
+22.10↓2.13
+0.69↓0.01
+0.11↑0.03
+19.76↑0.34
+InstructDiffusion [16]
+23.26↑1.68
+0.74↑0.02
+0.07↓0.02
+23.08↑0.32
+21.45↓2.78
+0.67↓0.04
+0.12↑0.03
+19.52↑0.11
+SmartEdit-7B [23]
+22.05↑0.47
+0.73↑0.01
+0.09≈0.00
+23.61↑0.85
+25.26↑1.02
+0.74↑0.04
+0.06↓0.03
+20.95↑1.54
+SmartEdit-13B [23]
+23.60↑2.02
+0.75↑0.03
+0.07↓0.02
+23.54↑0.77
+25.76↑1.52
+0.75↑0.04
+0.05↓0.03
+20.78↑1.36
+InsightEdit [64]
+23.59↑2.01
+0.75↑0.03
+0.07↓0.02
+23.73↑0.97
+25.71↑1.48
+0.75↑0.04
+0.05↓0.03
+20.87↑1.45
+OmniHarness
+23.89↑2.32
+0.86↑0.14
+0.05↓0.04
+24.55↑1.79
+23.87↓0.36
+0.80↑0.09
+0.05↓0.03
+21.32↑1.91
+Table 6 Quantitative ablation results on ComfyBench [65].
+Agent
+Vanilla
+Complex
+Creative
+Total
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+w/o Self-Directed Inquiry
+100.0=0.0
+96.0↓1.0
+100.0=0.0
+81.7↓1.6
+100.0=0.0
+72.5↓22.5
+100.0=0.0
+87.0↓5.5
+w/o Online Policy Updates 100.0=0.0
+96.0↓1.0
+100.0=0.0
+76.7↓6.6
+100.0=0.0
+87.5↓7.5
+100.0=0.0
+88.5↓4.0
+OmniHarness
+100.0
+97.0
+100.0
+83.3
+100.0
+95.0
+100.0
+92.5
+Table 7 Ablation of task selection in self-directed inquiry on the Creative subset.
+Agent
+Creative T2I
+Creative I2I
+Creative Total
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+w/o Capability Novelty
+100.0=0.0
+66.7↓16.6
+100.0=0.0
+86.7↓6.6
+100.0=0.0
+87.5↓7.5
+w/o Competence Frontier
+100.0=0.0
+83.3=0.0
+100.0=0.0
+80.0↓13.3
+100.0=0.0
+85.0↓10.0
+OmniHarness
+100.0
+83.3
+100.0
+93.3
+100.0
+95.0
+Table 8 Ablation of feedback-guided execution on the Complex subset.
+Agent
+Complex T2I
+Complex I2I
+Complex Total
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+w/o Planning
+80.0↓20.0
+40.0↓50.0
+87.0↓13.0
+56.5↓34.8
+86.7↓13.3
+55.0↓28.3
+w/o Intermediate Verification
+70.0↓30.0
+60.0↓30.0
+73.9↓26.1
+69.6↓21.7
+75.0↓25.0
+68.3↓15.0
+w/o Localized Recovery
+90.0↓10.0
+80.0↓10.0
+95.7↓4.3
+82.6↓8.7
+93.3↓6.7
+76.7↓6.6
+OmniHarness
+100.0
+90.0
+100.0
+91.3
+100.0
+83.3
+5
+Conclusion
+Visual agents need to generalize across tasks, correct errors during execution, and learn before new task
+demands arise. We introduce OmniHarness, a framework for generalizable visual generation via symbolic
+policy learning. It abstracts verified executions into reusable symbolic policies for visual generation task
+families. The harness adapts and composes these policies for new tasks, with intermediate verification guiding
+refinement and localized recovery. Self-directed inquiry acquires policies before downstream objectives are
+specified, while execution feedback continually refines them without model fine-tuning. Experiments across
+six benchmarks demonstrate effectiveness. On ComfyBench’s Creative tasks, OmniHarness achieves a 95.0%
+Resolve rate, exceeding the strongest baseline by 27.5 percentage points. Frozen policy snapshots improve
+external agents through plug-and-play reuse. Policies learned through image-only inquiry also transfer to
+unseen video generation tasks, supporting reuse across tasks, frameworks, and modalities.
+10
+
+
+References
+[1] Adrien Baranes and Pierre-Yves Oudeyer. Active learning of inverse models with intrinsically motivated goal explo-
+ration in robots. Robotics and Autonomous Systems, 61(1):49–73, 2013. ISSN 0921-8890. doi: https://doi.org/10.
+1016/j.robot.2012.05.008. URL https://www.sciencedirect.com/science/article/pii/S0921889012000644.
+[2] Tim Brooks, Aleksander Holynski, and Alexei A. Efros. Instructpix2pix: Learning to follow image editing
+instructions.
+In 2023 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pages
+18392–18402, 2023. doi: 10.1109/CVPR52729.2023.01764.
+[3] Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared D Kaplan, Prafulla Dhariwal, Arvind
+Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, Sandhini Agarwal, Ariel Herbert-Voss, Gretchen
+Krueger, Tom Henighan, Rewon Child, Aditya Ramesh, Daniel Ziegler, Jeffrey Wu, Clemens Winter, Chris
+Hesse, Mark Chen, Eric Sigler, Mateusz Litwin, Scott Gray, Benjamin Chess, Jack Clark, Christopher Berner,
+Sam McCandlish, Alec Radford, Ilya Sutskever, and Dario Amodei. Language models are few-shot learners.
+In H. Larochelle, M. Ranzato, R. Hadsell, M.F. Balcan, and H. Lin, editors, Advances in Neural Information
+Processing Systems, volume 33, pages 1877–1901. Curran Associates, Inc., 2020. URL https://proceedings.
+neurips.cc/paper_files/paper/2020/file/1457c0d6bfcb4967418bfb8ac142f64a-Paper.pdf.
+[4] Junsong Chen, Jincheng YU, Chongjian GE, Lewei Yao, Enze Xie, Zhongdao Wang, James Kwok, Ping Luo,
+Huchuan Lu, and Zhenguo Li. PixArt-α: Fast training of diffusion transformer for photorealistic text-to-image
+synthesis. In B. Kim, Y. Yue, S. Chaudhuri, K. Fragkiadaki, M. Khan, and Y. Sun, editors, International
+Conference on Learning Representations, volume 2024, pages 57611–57640, 2024. URL https://proceedings.
+iclr.cc/paper_files/paper/2024/file/fe989bb038b5dcc44181255dd6913e43-Paper-Conference.pdf.
+[5] Leon Liangyu Chen, Haoyu Ma, Zhipeng Fan, Ziqi Huang, Animesh Sinha, Xiaoliang Dai, Jialiang Wang, Zecheng
+He, Jianwei Yang, Chunyuan Li, Junzhe Sun, Chu Wang, Serena Yeung-Levy, and Felix Juefei-Xu. Unit: Unified
+multimodal chain-of-thought test-time scaling, 2026. URL https://arxiv.org/abs/2602.12279.
+[6] Sixiang Chen, Zhaohu Xing, Tian Ye, Xinyu Geng, Yunlong Lin, Jianyu Lai, Xuanhua He, Fuxiang Zhai, Jialin
+Gao, and Lei Zhu. Genevolve: Self-evolving image generation agents via tool-orchestrated visual experience
+distillation, 2026. URL https://arxiv.org/abs/2605.21605.
+[7] Xiaokang Chen, Zhiyu Wu, Xingchao Liu, Zizheng Pan, Wen Liu, Zhenda Xie, Xingkai Yu, and Chong Ruan.
+Janus-pro: Unified multimodal understanding and generation with data and model scaling, 2025. URL https:
+//arxiv.org/abs/2501.17811.
+[8] Gheorghe Comanici, Eric Bieber, Mike Schaekermann, Ice Pasupat, Noveen Sachdeva, Inderjit Dhillon, Marcel
+Blistein, Ori Ram, Dan Zhang, Evan Rosen, et al. Gemini 2.5: Pushing the frontier with advanced reasoning,
+multimodality, long context, and next generation agentic capabilities. arXiv preprint arXiv:2507.06261, 2025.
+[9] Yufan Dang, Chen Qian, Xueheng Luo, Jingru Fan, Zihao Xie, Ruijie Shi, Weize Chen, Cheng Yang, Xiaoyin
+Che, Ye Tian, Xuantang Xiong, Lei Han, Zhiyuan Liu, and Maosong Sun. Multi-agent collaboration via evolving
+orchestration. In D. Belgrave, C. Zhang, H. Lin, R. Pascanu, P. Koniusz, M. Ghassemi, and N. Chen, editors,
+Advances in Neural Information Processing Systems, volume 38, Main Conference, pages 165025–165059. Curran
+Associates, Inc., 2025. doi: 10.52202/085713-5502. URL https://proceedings.neurips.cc/paper_files/paper/
+2025/file/f1320d2e2842169c6fc89dcbd80e94d0-Paper-Conference.pdf.
+[10] Chaorui Deng, Deyao Zhu, Kunchang Li, Chenhui Gou, Feng Li, Zeyu Wang, Shu Zhong, Weihao Yu, Xiaonan
+Nie, Ziang Song, et al. Emerging properties in unified multimodal pretraining. arXiv preprint arXiv:2505.14683,
+2025.
+[11] Xin Ding, Liang Mi, Mingzhe Huang, Zixuan Wang, Chao Zhang, Zixu Hao, Fu Chen, Xiangyu Li, Yikai Zheng,
+Yaoyu Guo, Weijun Wang, Kun Li, Hao Wu, Yunxin Liu, and Ting Cao. Zetta ζ: An efficient closed-loop embodied
+harness for self-evolving physical intelligence, 2026. URL https://arxiv.org/abs/2608.16590.
+[12] Patrick Esser, Sumith Kulal, Andreas Blattmann, Rahim Entezari, Jonas Müller, Harry Saini, Yam Levi,
+Dominik Lorenz, Axel Sauer, Frederic Boesel, Dustin Podell, Tim Dockhorn, Zion English, and Robin Rombach.
+Scaling rectified flow transformers for high-resolution image synthesis. In Ruslan Salakhutdinov, Zico Kolter,
+Katherine A. Heller, Adrian Weller, Nuria Oliver, Jonathan Scarlett, and Felix Berkenkamp, editors, Forty-first
+International Conference on Machine Learning, ICML 2024, Vienna, Austria, July 21-27, 2024, volume 235
+of Proceedings of Machine Learning Research, pages 12606–12633. PMLR / OpenReview.net, 2024.
+URL
+https://proceedings.mlr.press/v235/esser24a.html.
+11
+
+
+[13] Rongyao Fang, Chengqi Duan, Kun Wang, Linjiang Huang, Hao Li, Hao Tian, Shilin Yan, Weihao Yu, Xingyu
+Zeng, Jifeng Dai, Xihui Liu, and Hongsheng Li. Got: Unleashing reasoning capability of mllm for visual generation
+and editing. In D. Belgrave, C. Zhang, H. Lin, R. Pascanu, P. Koniusz, M. Ghassemi, and N. Chen, editors,
+Advances in Neural Information Processing Systems, volume 38, Main Conference, pages 67680–67708. Curran
+Associates, Inc., 2025. doi: 10.52202/085713-2270. URL https://proceedings.neurips.cc/paper_files/paper/
+2025/file/61960fdfda4d4e95fa1c1f6e64bfe8bc-Paper-Conference.pdf.
+[14] Evelina Fedorenko, Steven T. Piantadosi, and Edward A. F. Gibson. Language is primarily a tool for communication
+rather than thought. Nature, 630(8017):575–586, June 2024. ISSN 1476-4687. doi: 10.1038/s41586-024-07522-w.
+URL https://doi.org/10.1038/s41586-024-07522-w.
+[15] Yuying Ge, Sijie Zhao, Jinguo Zhu, Yixiao Ge, Kun Yi, Lin Song, Chen Li, Xiaohan Ding, and Ying Shan.
+Seed-x: Multimodal models with unified multi-granularity comprehension and generation, 2025. URL https:
+//arxiv.org/abs/2404.14396.
+[16] Zigang Geng, Binxin Yang, Tiankai Hang, Chen Li, Shuyang Gu, Ting Zhang, Jianmin Bao, Zheng Zhang,
+Houqiang Li, Han Hu, Dong Chen, and Baining Guo. Instructdiffusion: A generalist modeling interface for vision
+tasks. In 2024 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pages 12709–12720,
+2024. doi: 10.1109/CVPR52733.2024.01208.
+[17] Dhruba Ghosh, Hannaneh Hajishirzi, and Ludwig Schmidt. Geneval: An object-focused framework for evaluating
+text-to-image alignment. In A. Oh, T. Naumann, A. Globerson, K. Saenko, M. Hardt, and S. Levine, editors,
+Advances in Neural Information Processing Systems, volume 36, pages 52132–52152. Curran Associates, Inc.,
+2023. doi: 10.52202/075280-2270. URL https://proceedings.neurips.cc/paper_files/paper/2023/file/
+a3bf71c7c63f0c3bcb7ff67c67b1e7b1-Paper-Datasets_and_Benchmarks.pdf.
+[18] Litao Guo, Xinli Xu, Luozhou Wang, Jiantao Lin, Jinsong Zhou, Zixin Zhang, Bolan Su, and Yingcong Chen.
+Comfymind: Toward general-purpose generation via tree-based planning and reactive feedback. In D. Bel-
+grave, C. Zhang, H. Lin, R. Pascanu, P. Koniusz, M. Ghassemi, and N. Chen, editors, Advances in Neural
+Information Processing Systems, volume 38, Main Conference, pages 45128–45164. Curran Associates, Inc.,
+2025. doi: 10.52202/085713-1503. URL https://proceedings.neurips.cc/paper_files/paper/2025/file/
+40168e00bf87869c5d153e934d8a3602-Paper-Conference.pdf.
+[19] Siwei Han, Haonian Ji, Siyang Xin, Juanquan Shi, Shi Qiu, Xinyu Ye, Peng Xia, Jiaqi Liu, Zhaorun Chen, Yiyang
+Zhou, Linjie Li, Lijuan Wang, and Huaxiu Yao. Paper2figure: A multi-agent collaborative system for figure
+generation towards academic research paper. In Proceedings of the IEEE/CVF Conference on Computer Vision
+and Pattern Recognition (CVPR), pages 29157–29166, June 2026.
+[20] Zhezheng Hao, Hong Wang, Jian Luo, Jianqing Zhang, Yuyan Zhou, Qiang Lin, Can Wang, Hande Dong, and
+Jiawei Chen. ReCreate: Reasoning and creating domain agents driven by experience. In Maria Liakata, Viviane P.
+Moreira, Jiajun Zhang, and David Jurgens, editors, Proceedings of the 64th Annual Meeting of the Association
+for Computational Linguistics (Volume 1: Long Papers), pages 31018–31046, San Diego, California, United States,
+July 2026. Association for Computational Linguistics. ISBN 979-8-89176-390-6. doi: 10.18653/v1/2026.acl-long.
+1432. URL https://aclanthology.org/2026.acl-long.1432/.
+[21] Jing Huang, Luyuan Chen, Zhijie Xu, Yadong Li, Xingzhong Xu, Siye Chen, Jie Liu, Ming Kong, and Qiang
+Zhu. Meta: Meta evolution of tool trajectory adaptation for long-video understanding. In Proceedings of the
+IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pages 9837–9846, June 2026.
+[22] Oucheng Huang, Yuhang Ma, Zeng Zhao, Mingrui Wu, Jiayi Ji, Rongsheng Zhang, Zhipeng Hu, Xiaoshuai Sun,
+and Rongrong Ji. Comfygpt: A self-optimizing multi-agent system for comprehensive comfyui workflow generation,
+2025. URL https://arxiv.org/abs/2503.17671.
+[23] Yuzhou Huang, Liangbin Xie, Xintao Wang, Ziyang Yuan, Xiaodong Cun, Yixiao Ge, Jiantao Zhou, Chao Dong,
+Rui Huang, Ruimao Zhang, and Ying Shan. Smartedit: Exploring complex instruction-based image editing with
+multimodal large language models. In 2024 IEEE/CVF Conference on Computer Vision and Pattern Recognition
+(CVPR), pages 8362–8371, 2024. doi: 10.1109/CVPR52733.2024.00799.
+[24] Daniel Kahneman. Thinking, Fast and Slow. Farrar, Straus and Giroux, 2011. ISBN 9780374275631. URL
+https://us.macmillan.com/books/9780374275631/thinkingfastandslow/.
+[25] Amita Kamath, Kai-Wei Chang, Ranjay Krishna, Luke Zettlemoyer, Yushi Hu, and Marjan Ghazvininejad. Geneval
+2: Addressing benchmark drift in text-to-image evaluation, 2025. URL https://arxiv.org/abs/2512.16853.
+12
+
+
+[26] Celeste Kidd, Steven T. Piantadosi, and Richard N. Aslin.
+The goldilocks effect: Human infants allocate
+attention to visual sequences that are neither too simple nor too complex. PLOS ONE, 7(5):1–8, 05 2012. doi:
+10.1371/journal.pone.0036399. URL https://doi.org/10.1371/journal.pone.0036399.
+[27] Siqi Kou, Jiachun Jin, Zhihong Liu, Chang Liu, Ye Ma, Jian Jia, Quan Chen, Peng Jiang, and Zhijie Deng.
+Orthus: Autoregressive interleaved image-text generation with modality-specific heads, 2025.
+URL https:
+//arxiv.org/abs/2412.00127.
+[28] Black Forest Labs, Stephen Batifol, Andreas Blattmann, Frederic Boesel, Saksham Consul, Cyril Diagne,
+Tim Dockhorn, Jack English, Zion English, Patrick Esser, Sumith Kulal, Kyle Lacey, Yam Levi, Cheng Li,
+Dominik Lorenz, Jonas Müller, Dustin Podell, Robin Rombach, Harry Saini, Axel Sauer, and Luke Smith.
+Flux.1 kontext: Flow matching for in-context image generation and editing in latent space, 2025. URL https:
+//arxiv.org/abs/2506.15742.
+[29] Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Hein-
+rich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel, Sebastian Riedel, and Douwe Kiela.
+Retrieval-
+augmented generation for knowledge-intensive nlp tasks.
+In H. Larochelle, M. Ranzato, R. Hadsell, M.F.
+Balcan, and H. Lin, editors, Advances in Neural Information Processing Systems, volume 33, pages 9459–
+9474. Curran Associates, Inc., 2020. URL https://proceedings.neurips.cc/paper_files/paper/2020/file/
+6b493230205f780e1bc26945df7481e5-Paper.pdf.
+[30] Chunhan Li, Qifeng Wu, Jia-Hui Pan, Ka-Hei Hui, Jingyu Hu, Yuming Jiang, Bin Sheng, Xihui Liu, Wenjuan
+Gong, and Zhengzhe Liu. codrawagents: A multi-agent dialogue framework for compositional image generation.
+In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Findings,
+pages 9802–9812, June 2026.
+[31] Daiqing Li, Aleks Kamko, Ehsan Akhgari, Ali Sabet, Linmiao Xu, and Suhail Doshi. Playground v2.5: Three
+insights towards enhancing aesthetic quality in text-to-image generation, 2024. URL https://arxiv.org/abs/
+2402.17245.
+[32] Zongxia Li, Dawei Liu, Fuxiao Liu, Yuhang Zhou, Xiyang Wu, Jingxi Chen, Jing Xie, Xiaomin Wu, and
+Lichao Sun.
+Comfyclaw: Self-evolving skill harnesses for image generation workflows, 2026.
+URL https:
+//arxiv.org/abs/2607.01709.
+[33] Qian Liang, Yujia Wu, Kuncheng Li, Jiwei Wei, Shiyuan He, Jinyu Guo, and Ning Xie. Mm-r1: Unleashing
+the power of unified multimodal large language models for personalized image generation, 2025. URL https:
+//arxiv.org/abs/2508.11433.
+[34] Jiashi Lin, Changhong Jiang, Xiangru Lin, Ruifei Zhang, Xinyi Zhu, Jiyao Liu, Cheng Tang, Ye Du, Shujian
+Gao, Junzhi Ning, et al. Evograph-r1: Self-evolving multimodal knowledge hypergraphs for agentic retrieval. In
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 756–765, 2026.
+[35] Yunlong Lin, Linqing Wang, Kunjie Lin, Zixu Lin, Kaixiong Gong, Wenbo Li, Bin Lin, Zhenxi Li, Shiyi Zhang,
+Yuyang Peng, Wenxun Dai, Xinghao Ding, Chunyu Wang, and Qinglin Lu. Jarvisevo: Towards a self-evolving
+photo editing agent with synergistic editor-evaluator optimization. In Proceedings of the IEEE/CVF Conference
+on Computer Vision and Pattern Recognition (CVPR), pages 27291–27302, June 2026.
+[36] Hao Liu, Wilson Yan, Matei Zaharia, and Pieter Abbeel. World model on million-length video and language with
+blockwise ringattention. In Y. Yue, A. Garg, N. Peng, F. Sha, and R. Yu, editors, International Conference on
+Learning Representations, volume 2025, pages 45953–45977, 2025. URL https://proceedings.iclr.cc/paper_
+files/paper/2025/file/71859ac75d53879d9bbd2f4b77b59929-Paper-Conference.pdf.
+[37] Jinxiu Liu, Jianru Li, Tanqing Kuang, Xuanming Liu, Kangfu Mei, Yandong Wen, and Weiyang Liu. Symbomni:
+Evolving agentic omni models via symbolic concept learning. In Proceedings of the European Conference on
+Computer Vision (ECCV), 2026.
+[38] Mugeng Liu, Xiaojun Ma, Yuhang Xie, Qin Chen, Xuanzhe Liu, and Yun Ma.
+Roga:
+Scaling gen-
+eralist agents for office productivity tasks via tool generation.
+In C. Vondrick, B. Hariharan, C. Raf-
+fel, L. Pinto, D. Yang, and A. Faust, editors, International Conference on Learning Representations, vol-
+ume 2026, pages 18183–18199, 2026.
+URL https://proceedings.iclr.cc/paper_files/paper/2026/file/
+1ed4723f12853cbd02aecb8160f5e0c9-Paper-Conference.pdf.
+[39] Shiyu Liu, Yucheng Han, Peng Xing, Fukun Yin, Rui Wang, Wei Cheng, Jiaqi Liao, Yingming Wang, Honghao
+Fu, Chunrui Han, Guopeng Li, Yuang Peng, Quan Sun, Jingwei Wu, Yan Cai, Zheng Ge, Ranchen Ming, Lei Xia,
+13
+
+
+Xianfang Zeng, Yibo Zhu, Binxing Jiao, Xiangyu Zhang, Gang Yu, and Daxin Jiang. Step1x-edit: A practical
+framework for general image editing. arXiv preprint arXiv:2504.17761, 2025.
+[40] Yiyang Ma, Xingchao Liu, Xiaokang Chen, Wen Liu, Chengyue Wu, Zhiyu Wu, Zizheng Pan, Zhenda Xie, Haowei
+Zhang, Xingkai Yu, Liang Zhao, Yisong Wang, Jiaying Liu, and Chong Ruan. Janusflow: Harmonizing autoregres-
+sion and rectified flow for unified multimodal understanding and generation. In 2025 IEEE/CVF Conference on
+Computer Vision and Pattern Recognition (CVPR), pages 7739–7751, 2025. doi: 10.1109/CVPR52734.2025.00725.
+[41] Yuwei Niu, Munan Ning, Mengren Zheng, Bin Lin, Peng Jin, Jiaqi Liao, Kun-Peng Ning, Bin Zhu, and Li Yuan.
+WISE: A world knowledge-informed semantic evaluation for text-to-image generation. CoRR, abs/2503.07265,
+2025. doi: 10.48550/ARXIV.2503.07265. URL https://doi.org/10.48550/arXiv.2503.07265.
+[42] Wujian Peng, Lingchen Meng, Yuxuan Cai, Xianwei Zhuang, Yuhuan Yang, Rongyao Fang, Chenfei Wu, Junyang
+Lin, Zuxuan Wu, and Shuai Bai. Unified multimodal autoregressive modeling with shared context-visual tokenizer
+is key to unification, 2026. URL https://arxiv.org/abs/2606.18249.
+[43] Dustin Podell, Zion English, Kyle Lacey, Andreas Blattmann, Tim Dockhorn, Jonas Müller, Joe Penna, and
+Robin Rombach.
+Sdxl: Improving latent diffusion models for high-resolution image synthesis.
+In B. Kim,
+Y. Yue, S. Chaudhuri, K. Fragkiadaki, M. Khan, and Y. Sun, editors, International Conference on Learning
+Representations, volume 2024, pages 1862–1874, 2024. URL https://proceedings.iclr.cc/paper_files/paper/
+2024/file/081b08068e4733ae3e7ad019fe8d172f-Paper-Conference.pdf.
+[44] Aditya Ramesh, Prafulla Dhariwal, Alex Nichol, Casey Chu, and Mark Chen. Hierarchical text-conditional image
+generation with clip latents, 2022. URL https://arxiv.org/abs/2204.06125.
+[45] Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Björn Ommer.
+High-resolution
+image synthesis with latent diffusion models. In 2022 IEEE/CVF Conference on Computer Vision and Pattern
+Recognition (CVPR), pages 10674–10685, 2022. doi: 10.1109/CVPR52688.2022.01042.
+[46] Zihan Su, Hongyang Wei, Kangrui Cen, Yong Wang, Guanhua Chen, Chun Yuan, and Xiangxiang Chu. Generation
+enhances understanding in unified multimodal models via multi-representation generation, 2026. URL https:
+//arxiv.org/abs/2601.21406.
+[47] Peize Sun, Yi Jiang, Shoufa Chen, Shilong Zhang, Bingyue Peng, Ping Luo, and Zehuan Yuan. Autoregressive
+model beats diffusion: Llama for scalable image generation. arXiv preprint arXiv:2406.06525, 2024.
+[48] Quan Sun, Yufeng Cui, Xiaosong Zhang, Fan Zhang, Qiying Yu, Yueze Wang, Yongming Rao, Jingjing Liu, Tiejun
+Huang, and Xinlong Wang. Generative multimodal models are in-context learners. In 2024 IEEE/CVF Conference
+on Computer Vision and Pattern Recognition (CVPR), pages 14398–14409, 2024. doi: 10.1109/CVPR52733.2024.
+01365.
+[49] Kun Wang, Guibin Zhang, ManKit Ye, Xinyu Deng, Dongxia Wang, Xiaobin Hu, Jinyang Guo, Yang Liu, and Yufei
+Guo. Mas2: Self-generative, self-configuring, self-rectifying multi-agent systems. In C. Vondrick, B. Hariharan,
+C. Raffel, L. Pinto, D. Yang, and A. Faust, editors, International Conference on Learning Representations,
+volume 2026, pages 113586–113613, 2026. URL https://proceedings.iclr.cc/paper_files/paper/2026/file/
+b88318174aad2cc174a4e05ab6bfad80-Paper-Conference.pdf.
+[50] Xinlong Wang, Xiaosong Zhang, Zhengxiong Luo, Quan Sun, Yufeng Cui, Jinsheng Wang, Fan Zhang, Yueze
+Wang, Zhen Li, Qiying Yu, Yingli Zhao, Yulong Ao, Xuebin Min, Tao Li, Boya Wu, Bo Zhao, Bowen Zhang,
+Liangdong Wang, Guang Liu, Zheqi He, Xi Yang, Jingjing Liu, Yonghua Lin, Tiejun Huang, and Zhongyuan
+Wang. Emu3: Next-token prediction is all you need, 2024. URL https://arxiv.org/abs/2409.18869.
+[51] Xuezhi Wang, Jason Wei, Dale Schuurmans, Quoc V Le, Ed H. Chi, Sharan Narang, Aakanksha Chowd-
+hery, and Denny Zhou.
+Self-Consistency Improves Chain of Thought Reasoning in Language Models.
+In
+International Conference on Learning Representations, 2023.
+URL https://mlanthology.org/iclr/2023/
+wang2023iclr-selfconsistency/.
+[52] Yangming Wang. The philosophy of Wang Yang-ming. Open Court Publishing Company, 1916.
+[53] Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, brian ichter, Fei Xia, Ed Chi, Quoc V Le, and Denny
+Zhou. Chain-of-thought prompting elicits reasoning in large language models. In S. Koyejo, S. Mohamed, A. Agar-
+wal, D. Belgrave, K. Cho, and A. Oh, editors, Advances in Neural Information Processing Systems, volume 35,
+pages 24824–24837. Curran Associates, Inc., 2022. doi: 10.52202/068431-1800. URL https://proceedings.
+neurips.cc/paper_files/paper/2022/file/9d5609613524ecf4f15af0f7b31abca4-Paper-Conference.pdf.
+14
+
+
+[54] Yule Wen, Yixin Ye, Yanzhe Zhang, Diyi Yang, and Hao Zhu. Real-time reasoning agents in evolving environments.
+In International Conference on Learning Representations, 2026. URL https://iclr.cc/virtual/2026/poster/
+10007516.
+[55] Chenfei Wu, Jiahao Li, Jingren Zhou, Junyang Lin, Kaiyuan Gao, Kun Yan, Sheng ming Yin, Shuai Bai, Xiao
+Xu, Yilei Chen, Yuxiang Chen, Zecheng Tang, Zekai Zhang, Zhengyi Wang, An Yang, Bowen Yu, Chen Cheng,
+Dayiheng Liu, Deqing Li, Hang Zhang, Hao Meng, Hu Wei, Jingyuan Ni, Kai Chen, Kuan Cao, Liang Peng,
+Lin Qu, Minggang Wu, Peng Wang, Shuting Yu, Tingkun Wen, Wensen Feng, Xiaoxiao Xu, Yi Wang, Yichang
+Zhang, Yongqiang Zhu, Yujia Wu, Yuxuan Cai, and Zenan Liu. Qwen-image technical report, 2025. URL
+https://arxiv.org/abs/2508.02324.
+[56] Chengyue Wu, Xiaokang Chen, Zhiyu Wu, Yiyang Ma, Xingchao Liu, Zizheng Pan, Wen Liu, Zhenda Xie,
+Xingkai Yu, Chong Ruan, and Ping Luo. Janus: Decoupling visual encoding for unified multimodal understanding
+and generation. In 2025 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pages
+12966–12977, 2025. doi: 10.1109/CVPR52734.2025.01210.
+[57] Yecheng Wu, Zhuoyang Zhang, Junyu Chen, Haotian Tang, Dacheng Li, Yunhao Fang, Ligeng Zhu, Enze Xie,
+Hongxu Yin, Li Yi, Song Han, and Yao Lu. Vila-u: a unified foundation model integrating visual understanding
+and generation. In Y. Yue, A. Garg, N. Peng, F. Sha, and R. Yu, editors, International Conference on Learning
+Representations, volume 2025, pages 93620–93638, 2025. URL https://proceedings.iclr.cc/paper_files/
+paper/2025/file/e9e140df6de01afb672cb859d203c307-Paper-Conference.pdf.
+[58] Yongliang Wu, Zonghui Li, Xinting Hu, Xinyu Ye, Xianfang Zeng, Gang Yu, Wenbo Zhu, Bernt Schiele,
+Ming-Hsuan Yang, and Xu Yang.
+Kris-bench:
+Benchmarking next-level intelligent image editing mod-
+els.
+In D. Belgrave, C. Zhang, H. Lin, R. Pascanu, P. Koniusz, M. Ghassemi, and N. Chen, editors,
+Advances in Neural Information Processing Systems, volume 38, Main Conference. Curran Associates, Inc.,
+2025. doi: 10.52202/085713-5242. URL https://proceedings.neurips.cc/paper_files/paper/2025/file/
+e619b285582fb12f4c3de3a507b8b99c-Paper-Datasets_and_Benchmarks_Track.pdf.
+[59] Shitao Xiao, Yueze Wang, Junjie Zhou, Huaying Yuan, Xingrun Xing, Ruiran Yan, Chaofan Li, Shuting Wang,
+Tiejun Huang, and Zheng Liu. Omnigen: Unified image generation. In 2025 IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR), pages 13294–13304, 2025. doi: 10.1109/CVPR52734.2025.01241.
+[60] Jinheng Xie, Weijia Mao, Zechen Bai, David Junhao Zhang, Weihao Wang, Kevin Qinghong Lin, Yuchao Gu, Zhijie
+Chen, Zhenheng Yang, and Mike Zheng Shou. Show-o: One single transformer to unify multimodal understanding
+and generation. In Y. Yue, A. Garg, N. Peng, F. Sha, and R. Yu, editors, International Conference on Learning
+Representations, volume 2025, pages 28240–28264, 2025. URL https://proceedings.iclr.cc/paper_files/
+paper/2025/file/45f0d179ef7e10eb7366550cd4e574ae-Paper-Conference.pdf.
+[61] Jinheng Xie, Zhenheng Yang, and Mike Zheng Shou. Show-o2: Improved native unified multimodal models.
+In D. Belgrave, C. Zhang, H. Lin, R. Pascanu, P. Koniusz, M. Ghassemi, and N. Chen, editors, Advances in
+Neural Information Processing Systems, volume 38, Main Conference, pages 47490–47518. Curran Associates, Inc.,
+2025. doi: 10.52202/085713-1584. URL https://proceedings.neurips.cc/paper_files/paper/2025/file/
+43e8fd8b9581faa71a6a61602bc28435-Paper-Conference.pdf.
+[62] Haidong Xin, Xinze Li, Zhenghao Liu, Yukun Yan, Shuo Wang, Cheng Yang, Yu Gu, Ge Yu, and Maosong
+Sun. MetaMem: Evolving meta-memory for knowledge utilization through self-reflective symbolic optimization.
+In Maria Liakata, Viviane P. Moreira, Jiajun Zhang, and David Jurgens, editors, Findings of the Association
+for Computational Linguistics: ACL 2026, pages 5473–5492, San Diego, California, United States, July 2026.
+Association for Computational Linguistics. ISBN 979-8-89176-395-1. doi: 10.18653/v1/2026.findings-acl.270. URL
+https://aclanthology.org/2026.findings-acl.270/.
+[63] Zidi Xiong, Yuping Lin, Wenya Xie, Pengfei He, Zirui Liu, Jiliang Tang, Himabindu Lakkaraju, and Zhen
+Xiang. How memory management impacts LLM agents: An empirical study of experience-following behavior. In
+Maria Liakata, Viviane P. Moreira, Jiajun Zhang, and David Jurgens, editors, Proceedings of the 64th Annual
+Meeting of the Association for Computational Linguistics (Volume 1: Long Papers), pages 623–645, San Diego,
+California, United States, July 2026. Association for Computational Linguistics. ISBN 979-8-89176-390-6. doi:
+10.18653/v1/2026.acl-long.27. URL https://aclanthology.org/2026.acl-long.27/.
+[64] Yingjing Xu, Jie Kong, Jiazhi Wang, Xiao Pan, Bo Lin, and Qiang Liu. Insightedit: Towards better instruction
+following for image editing. In 2025 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR),
+pages 2694–2703, 2025. doi: 10.1109/CVPR52734.2025.00257.
+15
+
+
+[65] Xiangyuan Xue, Zeyu Lu, Di Huang, Zidong Wang, Wanli Ouyang, and Lei Bai. Comfybench: Benchmarking
+llm-based agents in comfyui for autonomously designing collaborative ai systems. In 2025 IEEE/CVF Conference
+on Computer Vision and Pattern Recognition (CVPR), pages 24614–24624, 2025. doi: 10.1109/CVPR52734.2025.
+02292.
+[66] Qifan Yu, Wei Chow, Zhongqi Yue, Kaihang Pan, Yang Wu, Xiaoyang Wan, Juncheng Li, Siliang Tang, Hanwang
+Zhang, and Yueting Zhuang. Anyedit: Mastering unified high-quality image editing for any idea. In 2025
+IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pages 26125–26135, 2025. doi:
+10.1109/CVPR52734.2025.02433.
+[67] Ziyun Zeng, Hang Hua, and Jiebo Luo. Mira: Multimodal iterative reasoning agent for image editing. In
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Findings,
+pages 9563–9573, June 2026.
+[68] Guibin Zhang, Leo Lu, Fangzhou Xie, Kang Zhu, Junhao Wang, Zhifei Xie, Zhaochen Yu, Zihang Liu, Zhongxiang
+Sun, Qiankun Li, Yue Liao, Heng Chang, Xiaobin Hu, Qibing Ren, Wangchunshu Zhou, Chuanrui Hu, Yafeng
+Deng, and Shuicheng Yan. Jit-agent: Scaling harness intelligence via just-in-time harness evolution, 2026. URL
+https://arxiv.org/abs/2608.25593.
+[69] Guibin Zhang, Junhao Wang, Junjie Chen, Wangchunshu Zhou, Kun Wang, and Shuicheng YAN.
+Agen-
+tracer:
+Who is inducing failure in the llm agentic systems?
+In C. Vondrick, B. Hariharan, C. Raf-
+fel, L. Pinto, D. Yang, and A. Faust, editors, International Conference on Learning Representations, vol-
+ume 2026, pages 11377–11399, 2026.
+URL https://proceedings.iclr.cc/paper_files/paper/2026/file/
+134ed7a477770f227f12450ef0cbb8f4-Paper-Conference.pdf.
+[70] Kai Zhang, Lingbo Mo, Wenhu Chen, Huan Sun, and Yu Su. Magicbrush: A manually annotated dataset for
+instruction-guided image editing. In A. Oh, T. Naumann, A. Globerson, K. Saenko, M. Hardt, and S. Levine,
+editors, Advances in Neural Information Processing Systems, volume 36, pages 31428–31449. Curran Associates,
+Inc., 2023.
+doi: 10.52202/075280-1365.
+URL https://proceedings.neurips.cc/paper_files/paper/2023/
+file/64008fa30cba9b4d1ab1bd3bd3d57d61-Paper-Datasets_and_Benchmarks.pdf.
+[71] Shuoshuo Zhang, Zijian Li, Yizhen Zhang, Jingjing Fu, Lei Song, Jiang Bian, Jun Zhang, Yujiu Yang, and Rui
+Wang. Pixelcraft: A multi-agent system for high-fidelity visual reasoning on structured images. In C. Von-
+drick, B. Hariharan, C. Raffel, L. Pinto, D. Yang, and A. Faust, editors, International Conference on Learning
+Representations, volume 2026, pages 77608–77632, 2026. URL https://proceedings.iclr.cc/paper_files/
+paper/2026/file/7d90c28e7820709792d969211815a2b3-Paper-Conference.pdf.
+[72] Yixian Zhang, Huanming Zhang, Feng Gao, Xiao Li, Zhihao Liu, Chunyang Zhu, Jiaxing Qiu, Yuchen Yan,
+Jiyuan Liu, Wenhao Tang, Zhengru Fang, Yi Nie, Changxu Wei, Yu Wang, Wenbo Ding, and Chao Yu. Harness
+vla: Steering frozen vlas into reliable manipulation primitives via memory-guided agents, 2026. URL https:
+//arxiv.org/abs/2607.08448.
+[73] Yuxuan Zhang, Shijia Huang, and Liwei Wang. Intentedit: Multi-agent reasoning for intent-driven complex image
+editing. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)
+Findings, pages 8776–8785, June 2026.
+[74] Weixiang Zhao, Yichen Zhang, Yingshuo Wang, Yang Deng, Yanyan Zhao, Xuda Zhi, Yongbo Huang, Hao
+He, Wanxiang Che, Bing Qin, and Ting Liu. On safety risks in experience-driven self-evolving agents. In
+Maria Liakata, Viviane P. Moreira, Jiajun Zhang, and David Jurgens, editors, Findings of the Association for
+Computational Linguistics: ACL 2026, pages 42145–42169, San Diego, California, United States, July 2026.
+Association for Computational Linguistics. ISBN 979-8-89176-395-1. doi: 10.18653/v1/2026.findings-acl.2091.
+URL https://aclanthology.org/2026.findings-acl.2091/.
+[75] Chenyu Zhou, Tianyi Xu, Jianghao Lin, and Dongdong Ge.
+Steporlm:
+A self-evolving framework with
+generative process supervision for operations research language models.
+In C. Vondrick, B. Hariharan,
+C. Raffel, L. Pinto, D. Yang, and A. Faust, editors, International Conference on Learning Representations,
+volume 2026, pages 6914–6940, 2026.
+URL https://proceedings.iclr.cc/paper_files/paper/2026/file/
+0bcfb525c8f8f07ae10a93d0b2a40e00-Paper-Conference.pdf.
+[76] Zichen Zhu, Yuheng Sun, Mingxuan Zhu, Wenjie Ma, Situo Zhang, Zhexiang Wang, Ziyue Yang, Danyang Zhang,
+Kunyao Lan, Zihan Zhao, Dingye Liu, Siqi Xiang, Lu Chen, and Kai Yu. Iea: Amateur-friendly conversational
+image editing agent via three stages of multitask alignment. In Proceedings of the IEEE/CVF Conference on
+Computer Vision and Pattern Recognition (CVPR) Findings, pages 8672–8683, June 2026.
+16
+
+
+A
+Appendix
+Appendix Contents
+A.1
+Problem Setup and Symbolic Policy Learning
+. . . . . . . . . . . . . . . . . . . . .
+18
+A.1.1
+Problem Formulation and Policy Learning Loop . . . . . . . . . . . . . . . . .
+18
+A.1.2
+Exploration within Reach
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+19
+A.1.3
+Feedback-Guided Execution . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+19
+A.1.4
+Symbolic Policy Learning and Export . . . . . . . . . . . . . . . . . . . . . . .
+20
+A.1.5
+Overall Symbolic Policy Learning Procedure . . . . . . . . . . . . . . . . . . .
+21
+A.2
+Self-Directed Inquiry Configuration . . . . . . . . . . . . . . . . . . . . . . . . . . .
+21
+A.3
+Environment and Evaluation Protocols . . . . . . . . . . . . . . . . . . . . . . . . .
+22
+A.4
+Fine-Grained Ablation Study
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+22
+A.4.1
+Fine-Grained Ablation of Self-Directed Inquiry
+. . . . . . . . . . . . . . . . .
+23
+A.4.2
+Fine-Grained Ablation of Feedback-Guided Execution
+. . . . . . . . . . . . .
+26
+A.4.3
+Symbolic Policy Learning Analysis
+. . . . . . . . . . . . . . . . . . . . . . . .
+27
+A.4.4
+Reasoning Efficiency Analysis . . . . . . . . . . . . . . . . . . . . . . . . . . .
+28
+A.4.5
+Backbone Ablation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+29
+A.4.6
+Source Image Pool Isolation Study
+. . . . . . . . . . . . . . . . . . . . . . . .
+29
+A.5
+Comprehensive Benchmark Evaluation
+. . . . . . . . . . . . . . . . . . . . . . . . .
+30
+A.5.1
+Evaluation on ComfyBench
+. . . . . . . . . . . . . . . . . . . . . . . . . . . .
+30
+A.5.2
+Evaluation on GenEval . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+31
+A.5.3
+Evaluation on GenEval2 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+31
+A.5.4
+Evaluation on Reason-Edit . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+31
+A.5.5
+Evaluation on WISE . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+32
+A.5.6
+Evaluation on KRIS-Bench
+. . . . . . . . . . . . . . . . . . . . . . . . . . . .
+33
+A.6
+Detailed Plug-and-Play Analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+34
+A.7
+Cross-Modal Generalization Evaluation . . . . . . . . . . . . . . . . . . . . . . . . .
+35
+A.8
+User Study . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+36
+A.9
+Limitations
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+38
+A.10
+System Prompts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+43
+17
+
+
+A.1
+Problem Setup and Symbolic Policy Learning
+A.1.1
+Problem Formulation and Policy Learning Loop
+This section details the operations and score computations in the main paper. We distinguish the ComfyUI
+knowledge graph K, the policy library state St, and the frozen policy snapshot Kinquiry.
+A visual workflow agent A receives an external task instruction ℓ, scene context c, and ComfyUI knowledge
+graph K, and produces an executable workflow
+π = A(ℓ, c, K).
+(1)
+The instruction ℓcorresponds to the description qτ in the structured task representation below. OmniHarness
+introduces self-directed inquiry to generate and execute practice tasks before downstream objectives are
+specified.
+Given a generative capability space G, a ComfyUI knowledge graph K, a source image pool X, and N inquiry
+iterations, OmniHarness maintains scene context ct and policy library state St = (Lt, Ft). The workflow
+library Lt stores symbolic policies as reusable workflow templates for visual generation task families, together
+with reliability evidence. The failure library Ft stores failure evidence and corrective strategies. The context ct
+summarizes capability coverage, workflow reliability, and available source images. Initialization sets S1 = (∅, ∅)
+and c1 = InitContext(X).
+At inquiry iteration t, the proposer generates candidate tasks
+Tt = Propose(G, ct, St).
+(2)
+The proposer considers capability coverage, available source images, reusable policies, and observed failures.
+OmniHarness selects the next task according to
+τt = arg max
+τ∈Tt
+N(τ)C(τ).
+(3)
+Capability novelty N(τ) favors underexplored context–capability pairs, while the competence frontier score
+C(τ) favors tasks near the estimated competence frontier. Their product balances novelty with estimated
+learnability. Time indices are omitted from both scores.
+The harness performs feedback-guided execution through
+(πt, ot) = Run(τt, ct, K, St).
+(4)
+Here, πt is the executable workflow for τt, and ot records execution status, verifier feedback, and evidence,
+including intermediate outputs and recovery results. The operation Run includes planning, Code-as-Policy
+synthesis, execution, intermediate verification, and localized recovery. It uses K to construct workflows,
+instantiates, adapts, and composes policies from Lt, and consults failure patterns and remedies in Ft.
+After execution, OmniHarness updates its context and policy library
+(ct+1, St+1) = Update(ct, St, τt, πt, ot).
+(5)
+Verified executions are abstracted into symbolic policies in Lt+1, capturing shared procedures and applicability
+conditions for visual generation task families while removing instance-specific inputs. Failure evidence and
+corrective strategies are recorded in Ft+1. Updates apply to both practice and downstream tasks while model
+parameters remain fixed. The exported snapshot Kinquiry remains frozen for plug-and-play reuse by external
+visual agents.
+18
+
+
+A.1.2
+Exploration within Reach
+Each candidate task is represented as τ = (qτ, mτ, Gτ, xτ), where qτ is the task description, mτ ∈{T2I, I2I}
+is the generation modality, and Gτ ⊆G is the required capability set. The source image is xτ ∈X ∪{⊥}, with
+xτ = ⊥for T2I. Candidate generation encourages diverse capability combinations, filters near-duplicates, and
+avoids known failure patterns in Ft.
+Capability novelty. Let zτ denote the task’s context key. For T2I, zτ = zT2I, where zT2I is a fixed context
+token. For I2I, zτ = xτ. Let nt(z, g) count practice attempts involving context z and capability g before
+iteration t. Capability novelty is
+N(τ) =
+1
+|Gτ|
+X
+g∈Gτ
+1
+p
+nt(zτ, g) + 1
+.
+(6)
+Underexplored pairs receive higher scores. Averaging over Gτ prevents a larger capability set from increasing
+novelty solely through its size.
+Conservative workflow reliability. Novelty alone may favor tasks with insufficient support from the
+workflow library. OmniHarness therefore estimates reliability before computing the competence frontier score.
+For each required capability g ∈Gτ, let Wt(τ, g) ⊆Lt contain applicable, non-suspended workflows that
+support g. Each workflow w records a usage count uw ≥1 and verified success count sw, with empirical
+success rate pw = sw/uw.
+Reliability is the lower endpoint of a 95% Wilson confidence interval
+br(w) =
+pw +
+κ2
+2uw −κ
+q
+pw(1−pw)
+uw
++
+κ2
+4u2w
+1 + κ2
+uw
+,
+κ = 1.96.
+(7)
+This discounts success rates supported by limited execution evidence.
+Capability support is estimated from the most reliable applicable workflow
+rt(τ, g) =
+
+
+
+max
+w∈Wt(τ,g) br(w),
+Wt(τ, g)̸ = ∅,
+ε,
+Wt(τ, g) = ∅,
+(8)
+where ε = 0.05 provides a small prior when no applicable workflow exists.
+Estimated task competence follows the weakest required capability
+¯rt(τ) = min
+g∈Gτ rt(τ, g).
+(9)
+Competence frontier score. Following the Goldilocks principle [1, 26], OmniHarness uses the learnability
+heuristic
+C(τ) = 4¯rt(τ) (1 −¯rt(τ)) .
+(10)
+It peaks at ¯rt(τ) = 0.5 and downweights tasks with very low or high estimated competence. Combined with
+capability novelty in (3), it favors novel tasks near the competence frontier. Task selection adapts as attempts
+accumulate and St changes.
+A.1.3
+Feedback-Guided Execution
+Agents share the task and context (τt, ct, K, St), together with plans, programs, verification results, and
+corrections.
+The planner decomposes τt into an ordered plan ρt = (at,1, . . . , at,Jt), where Jt is the number of steps and
+at,j is the j-th generation step
+ρt = Plan(τt, ct, K, St).
+(11)
+19
+
+
+It uses K to construct the plan and instantiates, adapts, and composes policies from Lt, guided by failure
+patterns and remedies in Ft. The plan specifies step dependencies and verification criteria. A plan verifier
+checks step order, dependencies, and task alignment.
+The workflow writer converts the verified plan into a Python-like Code-as-Policy program
+eπt = Write(ρt, K).
+(12)
+Function calls represent ComfyUI nodes, arguments specify node parameters, and data flow defines their
+connections. Workflows and components are reused when their preconditions hold.
+A reversible interpreter compiles the program into an executable workflow
+πt = Compile(eπt).
+(13)
+The resulting πt is the execution instance for τt, preserving the program’s node types, parameters, dependencies,
+and execution order. The executor runs πt and records intermediate outputs.
+Verification covers four levels. The plan verifier checks the plan before synthesis. The workflow validator
+checks graph validity and executability in the current ComfyUI environment. Intermediate verification checks
+each output against the intended effect of at,j. The goal verifier checks the final output against qτt and the
+constraints in τt. Verifier feedback and evidence are recorded in ot.
+On failure, the diagnoser identifies the affected step, analyzes its cause, and retrieves a correction from Ft.
+The harness repairs that component while preserving verified steps. If the failure persists, a subagent solves
+the affected step and returns a reusable subworkflow. The repaired component is integrated into πt and
+verified again. Verification and recovery repeat until success or the retry budget is exhausted.
+A.1.4
+Symbolic Policy Learning and Export
+When ot confirms success, πt is abstracted into a symbolic policy represented by a workflow entry w in Lt+1.
+The entry stores a reusable workflow template, modality, capability categories, description, preconditions,
+expected effects, and dependencies. The template retains the shared ComfyUI graph structure while removing
+instance-specific inputs, including qτt and xτt. Its procedures and applicability conditions support instantiation,
+adaptation, and composition for new tasks within a visual generation task family.
+Before insertion, OmniHarness compares the entry with existing workflows by function and executable
+structure. Equivalent entries are updated rather than duplicated. Each invocation of w increments uw, while
+sw increases only after verified success.
+A new entry starts in the Provisional tier. It is promoted to Validated when uw ≥3 and pw ≥0.5, and
+assigned to Suspended when uw ≥10 and pw ≤0.2. Validated workflows are prioritized during retrieval, while
+suspended workflows are excluded from normal reuse. The empirical rate pw controls tier updates, whereas
+br(w) provides the conservative reliability estimate for task selection.
+Failures are recorded in Ft+1 with τt, πt, input conditions, generation constraints, intermediate outputs,
+execution feedback, and verifier results from ot. Their analysis yields corrective strategies specifying root
+causes, workflow antipatterns, remedies, and applicable scope. The scope may include modalities, capability
+categories, workflow stages, nodes, or models.
+A curator periodically consolidates Lt and Ft. It merges redundant workflows, refines their preconditions
+and expected effects, consolidates corrective strategies, and updates statistics and reliability tiers. When
+repeated failures reveal a missing capability, it may trigger workflow construction and verification. The
+updated libraries and source image pool X refresh ct+1 to guide future task proposals.
+After N inquiry iterations, OmniHarness exports a frozen copy of the learned policy library
+Kinquiry = Snapshot(SN+1).
+(14)
+The snapshot contains both the workflow library and the failure library. It supports plug-and-play reuse by
+external visual agents and remains fixed during evaluation.
+20
+
+
+For downstream OmniHarness execution, let D = (ℓj)M
+j=1 denote a stream of M external task instructions.
+Execution starts from the final inquiry state
+(c, S) = Execute (D, cN+1, K, SN+1) .
+(15)
+Each instruction is represented as a downstream task τt and processed by the same feedback-guided execution
+and policy update operations. The internal policy library S continues to learn from downstream feedback
+while model parameters remain fixed. The exported snapshot Kinquiry receives no downstream updates.
+A.1.5
+Overall Symbolic Policy Learning Procedure
+Algorithm 1 summarizes the complete OmniHarness procedure. Self-directed inquiry generates practice
+tasks before downstream objectives are specified. Feedback-guided execution provides verified experience for
+learning symbolic policies for visual generation task families. These policies are adapted and refined during
+downstream execution, while a frozen snapshot of the inquiry state supports plug-and-play reuse.
+Algorithm 1 Symbolic Policy Learning in OmniHarness
+Require: Generative capability space G, ComfyUI knowledge graph K, source image pool X,
+inquiry iterations N, and downstream task stream D = (ℓj)M
+j=1
+Ensure: Evolving policy library state S = (L, F) and frozen policy snapshot Kinquiry
+1: S1 ←(∅, ∅),
+c1 ←InitContext(X)
+▷initialize the context and policy library
+2: for t = 1, . . . , N do
+3:
+Tt ←Propose(G, ct, St)
+▷Step 1: propose and select a practice task
+4:
+τt ←arg maxτ∈Tt N(τ)C(τ)
+5:
+(πt, ot) ←Run(τt, ct, K, St)
+▷Step 2: plan, execute, verify, and recover
+6:
+(ct+1, St+1) ←Update(ct, St, τt, πt, ot)
+▷Step 3: update the policy library
+7: end for
+8: (c, S) ←Execute(D, cN+1, K, SN+1)
+▷Step 4a: adapt and refine policies downstream
+9: Kinquiry ←Snapshot(SN+1)
+▷Step 4b: export the frozen inquiry snapshot
+10: return S, Kinquiry
+A.2
+Self-Directed Inquiry Configuration
+Unless otherwise specified by an ablation, experiments start from the policy library state SN+1 learned
+through N = 50 iterations of self-directed inquiry. At each iteration t, the proposer generates ten candidate
+practice tasks, with |Tt| = 10, conditioned on the generative capability space G, scene context ct, and policy
+library state St = (Lt, Ft). The curator consolidates the workflow library Lt and failure library Ft every five
+inquiry iterations. For I2I practice, the source image pool X contains all original ComfyBench images and
+excludes video inputs. These raw images are available during inquiry, while downstream task instructions,
+target outputs, reference workflows, benchmark annotations, and evaluation labels are withheld.
+The full image-only capability space G contains six T2I and six I2I capabilities, listed in Table 9. For GenEval,
+GenEval2, and WISE, inquiry uses only the T2I capabilities without access to benchmark evaluation tasks.
+The policy library St = (Lt, Ft) combines reusable workflow templates with failure evidence and corrective
+strategies. Verified executions are abstracted into symbolic policies in Lt, capturing shared procedures and
+applicability conditions for visual generation task families while removing instance-specific inputs. The harness
+instantiates, adapts, and composes these policies for downstream tasks. Execution feedback continually refines
+the policy library while model parameters remain fixed. External visual agents reuse the frozen snapshot
+Kinquiry, which contains both libraries. Table 10 lists the workflow library schema.
+The failure library Ft stores failure evidence and corrective strategies used during feedback-guided execution.
+Table 11 lists its schema.
+The scene context ct summarizes capability coverage, workflow reliability, and available source images. It is
+updated after each task and refreshed during periodic library consolidation. Table 12 lists its fields.
+21
+
+
+Table 9 Generative capability space G for self-directed inquiry.
+Modality
+Capability Category
+Description
+Text-to-Image (T2I)
+Photorealistic Generation
+Generates realistic people, animals, objects, and
+indoor and outdoor scenes.
+Futuristic & Fantasy Generation
+Generates science-fiction, futuristic, and fantasy
+scenes, objects, and concepts.
+Illustration & Comic Generation
+Generates illustrations, cartoons, comics, and
+multi-panel visual narratives.
+Poster & Graphic Design
+Generates posters, covers, advertisements, and other
+graphic compositions with specified layouts.
+In-Image Text Generation
+Renders specified text with correct content, legibility,
+appearance, and placement.
+Position-Constrained Generation
+Places objects or visual elements in specified image
+regions or locations.
+Image-to-Image (I2I)
+Localized Image Editing
+Inserts, removes, replaces, or modifies selected content
+while preserving unrelated regions.
+Style Transfer & Repainting
+Changes visual style while preserving the main
+semantic content and structure.
+Reference-Guided Generation
+Generates new content using reference properties such
+as pose, structure, style, or semantics.
+Image Super-Resolution
+Improves resolution and detail while preserving
+semantic content and global structure.
+Image Outpainting
+Extends the image beyond its original boundaries
+while preserving semantic, structural, and visual
+consistency.
+Image Restoration & Refinement
+Repairs degraded content, corrects artifacts, and
+restores detail to improve visual quality.
+A.3
+Environment and Evaluation Protocols
+All experiments were conducted within ComfyUI. We evaluated two reasoning configurations, GPT-4o and
+Codex GPT-4o. In the first configuration, GPT-4o directly served as the reasoning engine of OmniHarness.
+Following the planner-instantiation design of Harness VLA [72], the second configuration used Codex as the
+agentic planner and GPT-4o as its underlying inference model. Table 1 reports both GPT-4o + OmniHarness
+and Codex GPT-4o + OmniHarness. Unless otherwise specified, all subsequent OmniHarness results use
+Codex GPT-4o. For all reasoning calls, we set temperature to 0 and top_p to 1. For fair comparison
+across agentic systems, we fixed the maximum number of retries at 4 [37]. Within each evaluation setting,
+workflows constructed by OmniHarness and the compared agents invoked the same underlying generative
+models [18, 37, 65]. Unified generative models and published baselines followed their respective benchmark
+protocols.
+A.4
+Fine-Grained Ablation Study
+Table 6 in the main paper evaluates self-directed inquiry and online policy updates. w/o Self-Directed Inquiry
+removes inquiry while retaining downstream updates to the workflow and failure libraries, assessing the benefit
+of learning before downstream tasks arrive. w/o Online Policy Updates retains the policy library learned
+through inquiry but disables updates to both libraries during downstream execution. Policy instantiation,
+adaptation, composition, and feedback-guided execution remain active. This variant assesses continual policy
+refinement through execution feedback. OmniHarness enables both mechanisms.
+We conduct six fine-grained ablation and diagnostic studies. First, we examine capability novelty N(τ),
+22
+
+
+Table 10 Schema of the workflow library Lt.
+Field
+Description
+Modality
+Specifies whether the workflow supports T2I or I2I generation.
+Capability Categories
+Records the capabilities in G supported by the workflow.
+Workflow Template
+Stores a reusable ComfyUI graph with node types, shared parameters,
+connections, and execution settings. Instance-specific inputs are removed and
+supplied when the policy is instantiated for a new task.
+Workflow Name
+Provides a unique identifier for indexing, retrieval, and invocation.
+Workflow Description
+Summarizes the shared procedure and the task family it supports.
+Preconditions
+Specifies required input modalities, image properties, task conditions, available
+models, and execution resources.
+Expected Effects
+Describes the intended generation or transformation result when the
+preconditions hold.
+Dependencies
+Records required ComfyUI nodes, custom nodes, generative and auxiliary models,
+and external resources.
+Usage Count uw
+Counts invocations of workflow w during inquiry and downstream OmniHarness
+execution.
+Success Count sw
+Counts invocations verified as successful. The empirical success rate is
+pw = sw/uw.
+Reliability Tier
+A new workflow starts as Provisional. It becomes Validated when uw ≥3 and
+pw ≥0.5, and Suspended when uw ≥10 and pw ≤0.2.
+Figure 7 Visualization of the workflow library after 50 iterations of self-directed inquiry. (a) Word cloud summarizing
+the capabilities represented by stored policies. (b) Distribution of workflow entries across capability categories.
+the competence frontier score C(τ), and the number of inquiry iterations. Second, we ablate planning,
+intermediate verification, and localized recovery in feedback-guided execution. Third, we analyze symbolic
+policy learning through workflow library growth, reliability, reuse, composition, capability distribution, and
+modality expansion. Fourth, we measure reasoning efficiency through agent-side token consumption and
+reasoning time across task difficulty levels. Fifth, we evaluate different reasoning backbones and planner
+configurations. Finally, we replace ComfyBench source images with independently generated images from the
+same capability space to assess whether the benefits of inquiry depend on the original source pool.
+A.4.1
+Fine-Grained Ablation of Self-Directed Inquiry
+After selecting τt, OmniHarness constructs or adapts a workflow through feedback-guided execution, including
+planning, Code-as-Policy synthesis, execution, intermediate verification, and localized recovery. When ot
+23
+
+
+Table 11 Schema of the failure library Ft.
+Entry Type
+Field
+Description
+Execution Failure Record
+Task τt
+Stores the description qτt, modality mτt,
+required capabilities Gτt, and source image xτt
+when applicable.
+Failure Context
+Records the input conditions and generation
+constraints under which the failure occurred.
+Failed Workflow πt
+Stores the failed task’s ComfyUI workflow,
+including nodes, parameters, connections, and
+execution settings.
+Failure Evidence ot
+Preserves execution status, intermediate and
+final outputs, source images when applicable,
+execution feedback, and verifier results.
+Corrective Strategies
+Root Cause
+Identifies the workflow or generation factor
+responsible for the failure.
+Workflow Antipattern
+Describes workflow structures, node
+configurations, parameter settings, or generation
+strategies to avoid.
+Remedy
+Specifies a correction or alternative workflow
+strategy for the identified failure.
+Applicable Scope
+Defines the modalities, capabilities, workflow
+stages, nodes, or models to which the corrective
+strategy applies.
+Figure 8 Resolve rates with different numbers of self-directed inquiry iterations on ComfyBench [65].
+confirms success, OmniHarness abstracts the verified workflow πt into a symbolic policy represented by a
+reusable workflow entry w. Distillation removes instance-specific inputs, including the task description qτt and,
+for I2I tasks, the source image xτt. Shared procedures and applicability conditions support reuse across a visual
+generation task family. As summarized in Table 10, each entry records its modality mτt, capability categories
+24
+
+
+Table 12 Fields of the current scene context ct.
+Field
+Description
+Modality Coverage
+Counts stored T2I and I2I workflows to identify imbalances in modality
+coverage.
+Capability Coverage
+Counts workflows associated with each capability in G to identify gaps in
+workflow coverage.
+Reliability Distribution
+Counts Provisional, Validated, and Suspended workflows in Lt.
+Source Image Pool X
+Contains all original ComfyBench images for I2I practice. Video inputs are
+excluded.
+Source Image Metadata
+Records image file names, resolutions, and formats to support image selection
+and task generation.
+Gτt, reusable ComfyUI workflow template, name, description, preconditions, expected effects, dependencies,
+and reliability statistics.
+Before insertion, the distilled entry is compared with workflows in Lt by intended function and executable
+structure. If an equivalent workflow exists, the verified execution updates that entry, incrementing its usage
+count uw and success count sw. The empirical success rate pw = sw/uw, conservative reliability estimate br(w),
+and reliability tier are then updated. Otherwise, w is inserted into Lt+1 as a new Provisional workflow entry.
+After N = 50 inquiry iterations, the workflow library LN+1 contains 43 symbolic policies stored as workflow
+entries, as visualized in Figure 7. The curriculum does not enforce a uniform category distribution. Candidate
+generation considers the modality and capability coverage in ct, while task selection maximizes N(τ)C(τ).
+Capability novelty favors underexplored context–capability combinations. The competence frontier score
+favors intermediate estimated competence, serving as a learnability heuristic. A category may therefore be
+revisited when it contains novel task variants near the current competence frontier.
+Localized Image Editing forms the largest category, accounting for 16.3% of the library. Reference-Guided
+Generation and Style Transfer & Repainting each account for 14.0%. Policies in these categories support
+localized control, content preservation, reference conditioning, and multi-stage workflow composition. Photo-
+realistic Generation also accounts for 14.0%, covering diverse subjects and scenes that require high perceptual
+fidelity.
+As reported in Table 6, removing self-directed inquiry reduces Creative Total Resolve from 95.0% to 72.5%.
+The corresponding T2I and I2I Resolve declines are 33.3 and 20.0 percentage points, respectively. These
+results support acquiring reusable symbolic policies before downstream Creative tasks arrive. Table 7 isolates
+the two task selection criteria. All variants retain a 100.0% Pass rate, with differences appearing in Resolve,
+which measures whether outputs satisfy all task requirements. Removing capability novelty lowers Creative
+Total Resolve to 87.5%. T2I Resolve decreases from 83.3% to 66.7%, while I2I Resolve decreases from 93.3%
+to 86.7%. These declines support N(τ) in directing exploration toward underexplored context–capability
+pairs. Removing the competence frontier score lowers Creative Total Resolve to 85.0%. T2I Resolve remains
+at 83.3%, but I2I Resolve decreases to 80.0%. This larger I2I decline supports using C(τ) to guide practice
+with source images according to estimated capability support. The combined objective N(τ)C(τ) achieves
+the highest Creative Total Resolve, matches the best T2I result, and improves I2I Resolve among the tested
+variants. This supports the complementary roles of novelty and estimated learnability in task selection.
+As shown in Figure 8, increasing self-directed inquiry iterations improves task resolution, with the largest gains
+on Creative tasks. Without inquiry, OmniHarness achieves Resolve rates of 96.0%, 81.7%, and 72.5% on Vanilla,
+Complex, and Creative tasks, respectively, yielding 87.0% overall Resolve. Ten iterations increase Creative
+Resolve to 80.0%, while 20 and 50 iterations further improve it to 87.5% and 95.0%. The corresponding overall
+Resolve rates are 88.5%, 91.0%, and 92.5%. Vanilla reaches 97.0%, while Complex improves modestly to
+83.3% after 50 iterations. These results suggest that policy acquisition before downstream tasks is particularly
+beneficial for creative workflow discovery and composition. Increasing inquiry from 50 to 100 iterations raises
+25
+
+
+Figure 9
+Symbolic policy learning during downstream execution on ComfyBench [65]. (a) Growth in total and
+validated workflow entries in the workflow library, starting after 50 inquiry iterations and continuing through the
+Vanilla, Complex, and Creative subsets. (b) Changes in the proportions of Validated, Provisional, and Suspended
+workflows before and after ComfyBench execution.
+Figure 10 Evolution and reuse of symbolic policies during downstream execution on ComfyBench [65]. (a) Expansion of
+the image-only workflow library acquired after 50 inquiry iterations to include T2I, I2I, T2V, I2V, and V2V workflows
+after ComfyBench execution. (b) Distribution of direct reuse, compositional reuse, and no-prior-match cases among
+resolved Vanilla, Complex, and Creative tasks, together with the overall distribution.
+Creative Resolve to 97.5% and overall Resolve to 93.5%, adding only 1.0 percentage point overall. This
+diminishing performance gain supports using 50 iterations as a practical balance between task resolution and
+additional practice cost.
+A.4.2
+Fine-Grained Ablation of Feedback-Guided Execution
+As shown in Table 8, the full OmniHarness achieves a 100.0% Pass rate and an 83.3% Resolve rate on the
+Complex subset. Removing planning causes the largest Resolve decline, reducing Complex Total Resolve
+from 83.3% to 55.0%. T2I and I2I Resolve fall to 40.0% and 56.5%, respectively. These results support the
+role of the ordered plan ρt in decomposing multi-step objectives, maintaining dependencies, and guiding
+workflow composition and synthesis. Removing intermediate verification causes the largest Pass decline,
+reducing Complex Total Pass from 100.0% to 75.0%, while Resolve falls to 68.3%. Without intermediate
+checks, incorrect outputs from at,j can propagate to later steps. Removing localized recovery produces smaller
+but consistent declines, with Pass and Resolve decreasing to 93.3% and 76.7%, respectively. This supports
+targeted repair that preserves verified steps when adapting symbolic policies to downstream tasks.
+26
+
+
+Figure 11 Capability distribution shift in the image workflow library during downstream execution on ComfyBench [65].
+The bars compare workflow proportions across capability categories after 50 inquiry iterations and after ComfyBench
+execution. Percentages are normalized over T2I and I2I workflows only. The comparison shows how the capabilities
+represented by stored symbolic policies change during downstream execution.
+A.4.3
+Symbolic Policy Learning Analysis
+To examine symbolic policy learning during downstream execution, we keep library updates active while
+OmniHarness processes ComfyBench [65]. Execution starts from the policy library state acquired after 50
+inquiry iterations. We track the workflow library’s size, reliability, modality coverage, reuse patterns, and
+capability distribution during downstream execution.
+As shown in Figure 9, the workflow library grows from 43 entries after inquiry to 48, 62, and 81 entries
+after the Vanilla, Complex, and Creative subsets, respectively. The number of Validated workflows follows a
+different trend. Vanilla adds only five workflows but increases Validated workflows from 14 to 33. This is
+consistent with repeated executions adding validation evidence to existing policies through updates to uw
+and sw. Complex and Creative add 14 and 19 workflows, while Validated workflows increase by only eight
+and four. Library expansion therefore outpaces the accumulation of sufficient validation evidence for newly
+acquired policies. After ComfyBench execution, the Validated proportion increases from 32.6% to 55.6%,
+while the Provisional proportion decreases from 67.4% to 42.0%. Two workflows are assigned the Suspended
+tier. These updates expand the workflow library and adjust retrieval priorities according to accumulated
+execution evidence.
+Figure 10 shows how symbolic policies are expanded and reused. The initial library contains 16 T2I and 27
+I2I workflows. After ComfyBench execution, it contains 22 T2I, 36 I2I, 9 T2V, 7 I2V, and 7 V2V workflows.
+The 23 newly acquired video workflows account for 28.4% of the final library. These additions extend the live
+workflow library from image generation to video generation during downstream execution. Among the 185
+resolved tasks, 110 use direct reuse and 60 use compositional reuse, yielding a combined reuse rate of 91.9%.
+27
+
+
+Figure 12 Reasoning efficiency of OmniHarness on the 200 ComfyBench tasks [65], reported over consecutive groups of
+20 tasks. The bars show the average token consumption per task, while the line shows the average reasoning time
+per task. Tasks 1–100, 101–160, and 161–200 correspond to the Vanilla, Complex, and Creative subsets, respectively.
+Reasoning time includes agent-side planning, workflow synthesis, verification, and recovery, but excludes visual
+generation model execution.
+Reuse patterns also vary with task difficulty. Direct reuse accounts for 90.7% of resolved Vanilla tasks, while
+compositional reuse accounts for 78.0% of resolved Complex tasks. For Creative tasks, the no-prior-match
+rate rises to 26.3%. These patterns suggest that simpler tasks mainly invoke existing policies, while harder
+tasks more often require composition or workflow construction when no applicable policy is available.
+Figure 11 presents the capability distribution shift within the image workflow library, which grows from 43 to
+58 workflows. Localized Image Editing increases from 7 to 10 workflows, and Image Restoration & Refinement
+increases from 5 to 8. Position-Constrained Generation and Poster & Graphic Design each increase from 1 to
+3. These additions expand the library’s representation of localized editing, restoration, spatial constraints, and
+layout-aware generation. Category proportions can decrease even when their workflow counts remain stable
+or increase. Reference-Guided Generation and Style Transfer & Repainting each grow from 6 to 7 workflows,
+although their shares decrease from 14.0% to 12.1%. Photorealistic Generation remains at 6 workflows, while
+its share decreases from 14.0% to 10.3%. The distribution therefore reflects both library growth and changes
+in relative capability coverage.
+A.4.4
+Reasoning Efficiency Analysis
+As shown in Figure 12, OmniHarness reasoning cost varies with task difficulty and modality. Across all 200
+ComfyBench tasks, it consumes an average of 12.03K tokens and 52.9 s of agent-side reasoning time per task.
+For Tasks 1–100 in the Vanilla subset, token consumption ranges from 6.74K to 9.08K, while reasoning time
+ranges from 30.8 s to 45.9 s. The lowest cost occurs in Tasks 1–20, which contain simple T2I requests. Cost
+increases for Tasks 21–60, where T2V and I2V tasks require new modality-specific workflow construction.
+It decreases for Tasks 61–100, which mainly contain I2I tasks suitable for reusing symbolic policies learned
+through self-directed inquiry.
+Tasks 101–160 in the Complex subset require 14.36K–16.28K tokens and 57.9–66.8 s per task. Their dependent
+28
+
+
+Table 13 Backbone ablation of OmniHarness on ComfyBench [65]. The first three rows report representative existing
+agents, followed by OmniHarness instantiated with different reasoning backbones and planner configurations. Pass and
+Resolve are reported as percentages, with higher values indicating better performance.
+Agent
+Vanilla
+Complex
+Creative
+Total
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+GPT-4o + ComfyAgent [65]
+67.0
+46.0
+48.3
+21.7
+40.0
+15.0
+56.0
+32.5
+GPT-4o + ComfyMind [18]
+100.0
+92.0
+100.0
+85.0
+100.0
+57.5
+100.0
+83.0
+Gemini-2.5-Flash + SymbOmni [37]
+100.0
+95.0
+100.0
+83.3
+100.0
+67.5
+100.0
+86.0
+Gemini-2.5-Flash + OmniHarness
+100.0
+96.0
+100.0
+81.7
+100.0
+87.5
+100.0
+90.0
+GPT-4o + OmniHarness
+100.0
+95.0
+100.0
+76.7
+100.0
+95.0
+100.0
+89.5
+GPT-5.5 + OmniHarness
+100.0
+97.0
+100.0
+81.7
+100.0
+97.5
+100.0
+92.5
+Codex GPT-4o + OmniHarness
+100.0
+97.0
+100.0
+83.3
+100.0
+95.0
+100.0
+92.5
+Codex GPT-5.5 + OmniHarness
+100.0
+98.0
+100.0
+88.3
+100.0
+97.5
+100.0
+95.0
+operations require an ordered plan, workflow composition, and intermediate verification. Tasks 121–140 have
+the highest cost within this subset and include many video conversion and interpolation workflows. The
+decrease for Tasks 141–160 coincides with their larger share of I2I tasks, for which symbolic policies learned
+through self-directed inquiry are available.
+Tasks 161–200 in the Creative subset incur the highest reasoning cost. Average token consumption reaches
+16.47K and 18.63K in the final two groups, while reasoning time increases to 69.8 s and 83.5 s. These
+tasks involve longer instructions, stricter content constraints, complex text and layout requirements, and
+identity-preserving transformations. The final group is also dominated by video generation and V2V editing,
+requiring workflow composition, intermediate verification, and localized recovery. Token consumption and
+reasoning time follow similar trends across these task groups.
+A.4.5
+Backbone Ablation
+As shown in Table 13, same-backbone comparisons evaluate agent frameworks while holding the underlying
+reasoning model fixed. With GPT-4o, OmniHarness achieves a 100.0% Total Pass rate and an 89.5% Total
+Resolve rate, compared with 56.0% and 32.5% for ComfyAgent, and 100.0% and 83.0% for ComfyMind. Its
+largest advantage over ComfyMind appears on Creative tasks, where Resolve increases from 57.5% to 95.0%,
+although ComfyMind performs better on Complex tasks. With Gemini-2.5-Flash, OmniHarness improves
+Total Resolve over SymbOmni from 86.0% to 90.0% and Creative Resolve from 67.5% to 87.5%, despite a
+small decrease on Complex tasks from 83.3% to 81.7%. These comparisons show performance differences
+across frameworks using the same reasoning model. Across OmniHarness configurations, all variants achieve a
+100.0% Pass rate, while Resolve varies with the model and planner configuration. Replacing GPT-4o with
+GPT-5.5 increases Total Resolve from 89.5% to 92.5%. Codex GPT-4o also reaches 92.5%, outperforming
+GPT-5.5 on Complex tasks but trailing it on Creative tasks. Codex GPT-5.5 achieves the highest overall
+result of 95.0% among the tested configurations. These results support using OmniHarness across reasoning
+models and planner configurations. Its symbolic policies capture shared procedures for visual generation task
+families, while feedback-guided execution adapts them to new tasks and supplies feedback for continual policy
+learning.
+A.4.6
+Source Image Pool Isolation Study
+To assess whether the benefits of inquiry depend on ComfyBench source images, we replace the original pool
+with 33 independently generated images from the same generative capability space. As shown in Table 14,
+OmniHarness with XGen achieves a Total Resolve rate of 91.5%, compared with 92.5% using XComfyBench.
+Vanilla and Complex results remain unchanged, while Creative Resolve decreases. These results suggest that
+inquiry can acquire useful symbolic policies from independently generated images, with limited dependence on
+the original ComfyBench source pool in this evaluation.
+29
+
+
+Table 14 Source image pool isolation study on ComfyBench [65]. XComfyBench denotes the original ComfyBench source
+image pool, while XGen replaces it with independently generated images from the same generative capability space.
+Agent
+Vanilla
+Complex
+Creative
+Total
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+OmniHarness with XComfyBench
+100.0
+97.0
+100.0
+83.3
+100.0
+95.0
+100.0
+92.5
+OmniHarness with XGen
+100.0
+97.0
+100.0
+83.3
+100.0
+90.0
+100.0
+91.5
+Figure 13 Qualitative comparison on representative I2I tasks from ComfyBench [65]. The examples illustrate target
+localization, instruction following, and preservation of unrelated scene content.
+A.5
+Comprehensive Benchmark Evaluation
+We evaluate OmniHarness on six complementary benchmarks covering diverse visual generation task families.
+ComfyBench [65] assesses autonomous ComfyUI workflow construction and execution across Vanilla, Complex,
+and Creative generation and editing tasks.
+GenEval [17] measures compositional text-to-image fidelity
+through object generation, object co-occurrence, counting, color, relative position, and attribute binding.
+GenEval2 [25] provides a finer-grained assessment of object generation, attribute rendering, counting, spatial
+relations, and transitive verb relations. Reason-Edit [23] evaluates explicit instruction understanding and
+commonsense-driven image editing, emphasizing target localization and preservation of unrelated content.
+WISE [41] examines knowledge-guided synthesis across cultural, temporal, spatial, biological, physical, and
+chemical domains. KRIS-Bench [58] evaluates factual, conceptual, and procedural knowledge in generation
+and editing. Together, these benchmarks assess performance across workflow construction, compositional
+generation, reasoning-guided editing, and knowledge-grounded visual synthesis.
+A.5.1
+Evaluation on ComfyBench
+Figures 13 and 4 present qualitative comparisons on representative ComfyBench tasks. Figure 13 compares
+localized I2I editing using the same input image. In these examples, OmniHarness removes the plate, fork, or
+glass as instructed and replaces the fork with a spoon while preserving unrelated objects and the scene layout.
+Some compared outputs retain the target object, modify non-target content, or change the overall appearance.
+Figure 4 illustrates multi-stage and appearance-sensitive tasks. OmniHarness reconstructs a scribble as a
+realistic red flower and transfers its visual style to a new flower-field image. It also restores and colorizes an
+old photograph while preserving identity and clothing details. In facial appearance editing, it changes the
+30
+
+
+requested attributes while retaining facial structure, pose, and clothing.
+As shown in Table 1, both OmniHarness variants achieve a 100.0% Pass rate across all task categories. Codex
+GPT-4o + OmniHarness obtains a Total Resolve rate of 92.5%, exceeding SymbOmni and ComfyMind by 6.5
+and 9.5 percentage points, respectively. Its largest advantage appears on Creative tasks, where Resolve reaches
+95.0%, compared with 67.5% for SymbOmni and 57.5% for ComfyMind. The ablation results in Tables 6 and 7
+further support the contribution of self-directed inquiry and its task selection criteria to Creative performance.
+Before downstream objectives are specified, OmniHarness selects practice tasks using capability novelty N(τ)
+and the competence frontier score C(τ). Their product favors underexplored context–capability pairs near the
+estimated competence frontier. Verified executions are abstracted into symbolic policies that capture shared
+procedures and applicability conditions for visual generation task families. The harness instantiates, adapts,
+and composes these policies for downstream requirements.
+A.5.2
+Evaluation on GenEval
+As shown in Table 2 and Figure 14, OmniHarness achieves an overall GenEval score of 0.997, exceeding
+SymbOmni, ComfyMind, and GPT-Image-1 by 0.017, 0.097, and 0.157, respectively. It reaches 1.00 on
+single-object generation, two-object co-occurrence, counting, color, and relative position, and 0.98 on attribute
+binding. Compared with SymbOmni, Position improves from 0.97 to 1.00 and Attribute Binding from 0.95
+to 0.98. GPT-Image-1 obtains 0.75 and 0.61 on these categories. The qualitative examples illustrate these
+compositional requirements. OmniHarness generates a clear parking meter, preserves bottle–refrigerator co-
+occurrence, produces exactly two bears, renders the requested red zebra, places the bird below the skateboard,
+and binds the purple and brown attributes to the elephant and sports ball. Some compared outputs violate
+counts, spatial relations, or attribute assignments. These results indicate high compositional fidelity across the
+evaluated dimensions. OmniHarness uses feedback-guided execution to adapt and compose symbolic policies
+for task requirements, with intermediate verification guiding workflow refinement.
+A.5.3
+Evaluation on GenEval2
+As shown in Table 3 and Figure 15, OmniHarness achieves the best results on four of the five GenEval2 skills.
+It obtains 94.0 on Attribute and Count, 76.9 on Position, and 89.0 on Verb, exceeding the strongest competing
+results by 2.6, 19.2, 6.7, and 2.3 points, respectively. Compared with SymbOmni, the gains are 10.4 points on
+Attribute, 19.2 on Count, 8.1 on Position, and 24.5 on Verb. Its Object score of 95.0 matches SymbOmni
+but remains below Qwen-Image and Gemini 2.5 Flash Image. The strongest advantages therefore appear
+on tasks with interacting compositional constraints. In the presented examples, OmniHarness generates six
+cars with one kangaroo, a glass lion with one bear and four kangaroos, five checkered umbrellas with a black
+candle, a lion jumping over a sparkling dog, and five penguins to the left of a striped violin. Some competing
+outputs violate counts, assign attributes to the wrong objects, or miss spatial and action relations. These
+results support strong performance on counting, attributes, spatial relations, and transitive verb relations,
+while isolated object generation remains less competitive.
+A.5.4
+Evaluation on Reason-Edit
+As shown in Table 5, Figure 16, and Figure 6, OmniHarness performs well on instruction understanding and
+reasoning-guided editing. In the Understanding Scenarios, it leads all four metrics, with PSNR of 23.894 dB,
+SSIM of 0.856, LPIPS of 0.053, and CLIP Score of 24.554. Compared with the strongest baseline for each
+metric, PSNR improves by 0.298 dB, SSIM by 0.105, and CLIP Score by 0.820, while LPIPS decreases by
+0.014. In the Reasoning Scenarios, OmniHarness achieves the highest SSIM of 0.796 and CLIP Score of 21.318.
+Its LPIPS is 0.052, compared with the best result of 0.049, and its PSNR remains below SmartEdit-13B
+and InsightEdit. The GPT-score comparison provides another assessment. OmniHarness ranks first on
+Left-Right, Mirror, Color, Multiple-Objects, and Reasoning, reaches 10.00 on Add-supp, and ranks second to
+Nano Banana on Relative-Size. The Understanding examples illustrate target identification through spatial
+position, color, mirror relations, and relative size. OmniHarness replaces or adds the specified object while
+preserving other instances and scene structure. In the Reasoning examples, it identifies implicit targets from
+commonsense descriptions, including a dog bowl, a fruit-cutting knife, vitamin-rich food, an animal lying on
+31
+
+
+Figure 14 Qualitative comparison on representative GenEval [17] tasks covering single-object generation, two-object
+co-occurrence, counting, color, spatial relations, and attribute binding.
+grass, a game ball, and a warning sign. It then performs the requested removal or replacement with limited
+changes to unrelated regions. These results support the effectiveness of OmniHarness on both explicit and
+reasoning-intensive editing instructions.
+A.5.5
+Evaluation on WISE
+As shown in Table 4 and Figure 17, OmniHarness achieves the highest overall WiScore of 0.86, exceeding
+SymbOmni and GPT-Image-1 by 0.06 and ComfyMind by 0.10. It ranks first in Time, Biology, Physics, and
+Chemistry, with scores of 0.85, 0.84, 0.82, and 0.86, respectively. Compared with the strongest competing
+result in each category, the gains are 0.14, 0.01, 0.03, and 0.08, respectively. Its Cultural and Space scores
+reach 0.88 and 0.86, remaining 0.02 and 0.03 below the corresponding best results. The qualitative examples
+32
+
+
+Figure 15 Qualitative comparison on representative GenEval2 [25] tasks covering object generation, attribute rendering,
+counting, spatial relations, and transitive verb relations.
+illustrate the range of knowledge requirements. OmniHarness generates Russian nesting dolls as the requested
+cultural craft, depicts the Sydney Opera House at night, and preserves the depth relation between a nearby
+coin and a distant cityscape. It also depicts the formation of migrating geese, condensation on a cold can
+in humid air, and the precipitate formed by mixing copper sulfate and sodium hydroxide. Some compared
+outputs capture the main objects but miss the implied temporal condition, spatial relation, physical state, or
+scientific consequence. These results support the effectiveness of OmniHarness across the evaluated cultural,
+spatiotemporal, and scientific generation tasks.
+A.5.6
+Evaluation on KRIS-Bench
+As shown in Table 15 and Figure 18, OmniHarness achieves an overall score of 77.33 on KRIS-Bench [58],
+exceeding SymbOmni by 5.15 points and BAGEL-Think, the strongest open-source baseline overall, by 23.97
+points. It trails GPT-Image-1 by 2.76 points. OmniHarness achieves the best Conceptual score of 81.89,
+exceeding GPT-Image-1 and SymbOmni by 0.52 and 9.61 points, respectively. Its Factual and Procedural scores
+reach 74.81 and 73.22, improving over SymbOmni by 1.48 and 2.93 points. The qualitative examples illustrate
+diverse knowledge requirements. OmniHarness completes numerical patterns, applies scientific, geographic,
+and biological knowledge, reasons about physical processes, performs landmark and color transformations,
+33
+
+
+Figure 16 GPT-score comparison on Reason-Edit [23] across seven reasoning-intensive image-editing categories. Higher
+scores indicate better performance.
+composes reference images, annotates geometric and medical content, controls object counts, completes missing
+structures, and follows poster-design constraints. These tasks require knowledge to be translated into visual
+operations under specific constraints. The harness instantiates, adapts, and composes symbolic policies to
+meet these requirements. Intermediate verification guides workflow refinement and localized recovery during
+execution.
+A.6
+Detailed Plug-and-Play Analysis
+To evaluate policy portability, we keep the snapshot Kinquiry learned through self-directed inquiry frozen and
+map its entries to each host agent’s native knowledge interface. The snapshot contains reusable workflow
+templates, failure evidence, and corrective strategies from the workflow and failure libraries. Host model
+weights and original control flow remain unchanged. Host agents retrieve, instantiate, and adapt the exported
+policies through their existing execution procedures. For ComfyAgent [65], each workflow template is converted
+into its native Python-like representation and inserted into the Reference memory with its name, description,
+preconditions, expected effects, and dependencies. The RetrieveAgent selects relevant entries, while the
+CombineAgent and AdaptAgent compose or modify the retrieved workflows. The RefineAgent checks the
+adapted workflow before it enters the Workspace. Failure evidence and corrective strategies provide correction
+references for the PlanAgent and RefineAgent. For ComfyMind [18], each compatible workflow entry is
+wrapped as a Semantic Workflow Interface module. Its description, preconditions, and expected effects
+define the semantic function interface, while its ComfyUI graph template provides the canonical JSON
+implementation. The Planning Agent selects relevant modules, and the Execution Agent supplies task-specific
+parameters before execution. Corrective strategies are appended to the local-feedback context as correction
+guidance. For SymbOmni [37], each workflow entry is converted into a Symbolic Concept. Its description and
+preconditions define the concept semantics, its reusable procedure defines the Symbolic Workflow Instruction,
+its dependencies and parameters define the parameter configuration, and its reliability statistics define the
+concept score. Failure library entries become negative or refinement concepts. The resulting concepts are
+inserted into the Symbolic Concept Box and accessed through the original retrieval and transduction process.
+The exported snapshot receives no updates during evaluation.
+As shown in Table 16, the same Kinquiry improves task resolution in all three host agents without model
+fine-tuning. For ComfyAgent, Total Pass increases from 56.0% to 79.0%, while Total Resolve increases from
+32.5% to 57.0%. Creative Resolve rises from 15.0% to 42.5%, indicating gains in workflow executability and
+34
+
+
+Figure 17 Qualitative comparison on representative WISE [41] tasks spanning cultural, temporal, spatial, biological,
+physical, and chemical knowledge.
+task completion. ComfyMind and SymbOmni retain their 100.0% Pass rates, with improvements appearing
+in Resolve. ComfyMind increases Total Resolve from 83.0% to 88.0% and Creative Resolve from 57.5%
+to 75.0%. SymbOmni increases Total Resolve from 86.0% to 89.0% and Creative Resolve from 67.5% to
+77.5%. The larger Creative gains suggest that the exported symbolic policies are particularly useful for these
+tasks. Improvements through code references, semantic workflow modules, and symbolic concepts support
+plug-and-play reuse across the three evaluated visual agent frameworks.
+A.7
+Cross-Modal Generalization Evaluation
+As shown in Table 17 and Figures 19 and 20, GPT-4o + OmniHarness applies the frozen policy snapshot
+Kinquiry, learned through image-only inquiry, to video generation tasks not encountered during self-directed
+35
+
+
+Table 15 Quantitative comparison on KRIS-Bench [58]. Scores evaluate factual, conceptual, and procedural knowledge,
+together with overall performance. Higher values indicate better performance.
+Method
+Factual↑
+Conceptual↑
+Procedural↑
+Overall↑
+Closed-Source Models
+GPT-Image-1
+79.80
+81.37
+78.32
+80.09
+Gemini 2.0 Flash Experimental
+65.26
+59.65
+62.90
+62.41
+Doubao
+63.30
+62.23
+54.17
+60.70
+Open-Source Models
+BAGEL-Think [10]
+55.77
+59.44
+39.26
+53.36
+BAGEL [10]
+47.71
+52.17
+40.23
+47.76
+Step1X-Edit [39]
+45.52
+48.01
+31.82
+43.29
+Emu2 [48]
+45.40
+37.54
+34.91
+39.70
+AnyEdit [66]
+39.26
+41.88
+31.74
+38.55
+MagicBrush [70]
+41.84
+39.24
+26.54
+37.15
+OmniGen [59]
+33.11
+28.02
+23.89
+28.85
+InsPix2Pix [2]
+23.33
+25.59
+17.28
+22.82
+Collaborative AI Systems
+SymbOmni [37]
+73.33
+72.28
+70.29
+72.18
+OmniHarness
+74.81
+81.89
+73.22
+77.33
+Table 16 Quantitative plug-and-play evaluation on ComfyBench [65]. The first three rows report the original host
+agents, while the last three augment them with the same frozen policy snapshot Kinquiry learned through self-directed
+inquiry, without model fine-tuning.
+Agent
+Vanilla
+Complex
+Creative
+Total
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+ComfyAgent [65]
+67.0
+46.0
+48.3
+21.7
+40.0
+15.0
+56.0
+32.5
+ComfyMind [18]
+100.0
+92.0
+100.0
+85.0
+100.0
+57.5
+100.0
+83.0
+SymbOmni [37]
+100.0
+95.0
+100.0
+83.3
+100.0
+67.5
+100.0
+86.0
+ComfyAgent [65] + Kinquiry
+87.0
+69.0
+73.3
+46.7
+67.5
+42.5
+79.0
+57.0
+ComfyMind [18] + Kinquiry
+100.0
+94.0
+100.0
+86.7
+100.0
+75.0
+100.0
+88.0
+SymbOmni [37] + Kinquiry
+100.0
+96.0
+100.0
+85.0
+100.0
+77.5
+100.0
+89.0
+inquiry. The snapshot remains unchanged during evaluation. OmniHarness achieves a 100.0% Pass rate across
+T2V, I2V, and V2V, with Resolve rates of 84.2%, 92.0%, and 80.0%, respectively. Overall Resolve reaches
+85.9%, exceeding SymbOmni by 5.1 percentage points. The gains are 2.6, 4.0, and 13.3 percentage points on
+T2V, I2V, and V2V, with the largest improvement on V2V tasks combining temporal processing and content-
+preserving editing. The sampled frames illustrate T2V generation, source-conditioned I2V generation, and
+motion-transfer and material-editing tasks in V2V. Invocation statistics document the reuse of image-domain
+symbolic policies within video workflows. Across all video tasks, OmniHarness invokes image workflows 90
+times, including 48 calls for T2V, 27 for I2V, and 15 for V2V. Photorealistic Generation and Reference-Guided
+Generation contribute 33 and 28 calls, while Localized Image Editing and Image Super-Resolution contribute
+10 and 7 calls. These policies support visual content construction, reference preservation, local editing, and
+quality enhancement, while video-specific components handle temporal operations. The results support
+reuse beyond image generation through task-specific adaptation and composition of symbolic policies with
+video-specific components, while the exported snapshot remains fixed.
+A.8
+User Study
+We conduct a blind user study on 40 tasks selected from ComfyBench [65]. A total of 36 participants evaluate
+anonymized outputs from OmniHarness, SymbOmni, BAGEL, and GPT-Image-1. As shown in Figure 21, each
+36
+
+
+Figure 18 Qualitative results of OmniHarness on representative KRIS-Bench tasks [58], covering factual, conceptual, and
+procedural knowledge through knowledge-guided generation, editing, visual reasoning, and multi-image composition.
+questionnaire presents the task instruction, the input image when required, and one anonymized generation
+result. Participants rate each result on a five-point Likert scale from 1 (Strongly disagree) to 5 (Strongly
+agree) across Task Description Alignment, Input-Structure Fidelity, Photorealism, Visual Quality, and Overall
+Satisfaction. Figure 22 reports mean ratings over tasks and participants. OmniHarness achieves the highest
+ratings for Task Description Alignment, Input-Structure Fidelity, and Overall Satisfaction, reaching 4.72,
+4.63, and 4.62, respectively. GPT-Image-1 receives higher Photorealism and Visual Quality ratings of 4.68
+and 4.64, compared with 4.50 and 4.56 for OmniHarness. Averaged across all five criteria, OmniHarness
+37
+
+
+Table 17 Quantitative cross-modal generalization results on the video-generation subset of ComfyBench [65]. T2V,
+I2V, and V2V denote text-to-video, image-to-video, and video-to-video tasks, respectively. GPT-4o + OmniHarness
+uses the frozen policy snapshot Kinquiry, learned through self-directed inquiry in an image-only capability space without
+exposure to video tasks during inquiry.
+Agent
+T2V
+I2V
+V2V
+Total
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+Pass↑
+Res.↑
+GPT-4o + ComfyAgent [65]
+68.4
+47.4
+48.0
+20.0
+40.0
+13.3
+56.4
+32.1
+GPT-4o + ComfyMind [18]
+100.0
+71.1
+100.0
+76.0
+100.0
+53.3
+100.0
+69.2
+Gemini-2.5-Flash + SymbOmni [37]
+100.0
+81.6
+100.0
+88.0
+100.0
+66.7
+100.0
+80.8
+GPT-4o + OmniHarness
+100.0
+84.2
+100.0
+92.0
+100.0
+80.0
+100.0
+85.9
+obtains the highest score of 4.61, followed by GPT-Image-1, SymbOmni, and BAGEL at 4.43, 4.35, and 3.89,
+respectively. These results indicate favorable user assessments of OmniHarness, particularly for instruction
+alignment, input-structure preservation, and overall satisfaction.
+A.9
+Limitations
+OmniHarness combines symbolic policy learning, feedback-guided execution, and self-directed inquiry while
+keeping model parameters fixed. Verified executions yield symbolic policies for visual generation task families,
+which are adapted and refined during downstream execution.
+However, both self-directed inquiry and
+downstream execution incur additional computation. Self-directed inquiry requires repeated task generation,
+workflow construction, execution, verification, and library consolidation. Downstream tasks may trigger
+multiple planning, verification, and recovery cycles as the harness adapts and composes policies for new
+requirements. These operations increase agent-side token consumption and reasoning time, especially for
+complex tasks. Future work should explore lighter execution frameworks, selective verification, adaptive
+recovery, efficient policy retrieval and composition, and reasoning budgets that adapt to task difficulty.
+38
+
+
+Figure 19 Qualitative cross-modal generalization results of OmniHarness on representative video-generation tasks
+from ComfyBench [65]. Sampled frames illustrate generated content and source-content preservation in T2V, I2V, and
+V2V tasks using the frozen policy snapshot Kinquiry learned through image-only inquiry.
+39
+
+
+Figure 20
+Reuse of symbolic policies learned through image-only inquiry during cross-modal generalization on
+ComfyBench [65]. The bars report invocation counts of workflow entries from the frozen image-only workflow library
+for T2V, I2V, and V2V tasks.
+40
+
+
+Figure 21 Web interface used in the 40-task user study. Participants assess an anonymized generation result against
+the task instruction and, when required, the input image. Ratings cover task description alignment, input-structure
+fidelity, photorealism, visual quality, and overall satisfaction on a five-point Likert scale.
+41
+
+
+Figure 22 User-study comparison across five evaluation criteria. Mean ratings over 40 ComfyBench [65] tasks are
+reported on a five-point Likert scale, with higher scores indicating better performance.
+42
+
+
+A.10
+System Prompts
+The following tables reproduce the two developer instructions and eight task-input templates used by the
+implementation. Braced Python expressions denote values inserted at runtime rather than literal prompt
+text. Candidate validation and scoring, context retrieval, structural plan and workflow checks, compilation,
+execution, evidence aggregation, symbolic policy input abstraction, library updates, consolidation, and
+snapshot export are implemented programmatically without separate model prompts. Candidate generation
+reuses a proposer thread across inquiry iterations. Execution roles share a task-scoped thread, while localized
+repair uses a fresh thread with the same generation-team developer instructions.
+Table 18 Shared developer instructions for self-directed inquiry.
+Self-Directed Inquiry Task Proposer
+You are the Self-Directed Inquiry Task Proposer inside OmniHarness. Generate practice tasks before downstream
+objectives are specified. Each task must use the supplied capability space, be feasible with current resources, differ
+from recent tasks, and be independently verifiable. Use failure evidence and corrective strategies to avoid known
+antipatterns. For I2I, use exactly one supplied image ID and state preservation constraints. List applicable_-
+workflow_ids only when the workflow’s preconditions hold for the proposed task and source image.
+Exclude
+suspended workflows; return an empty list when none apply. Use only the supplied context and library. Do not
+inspect downstream task instructions, reference workflows, target outputs, or benchmark annotations. Return only
+the requested JSON object.
+Table 19 Task-input template for candidate task generation.
+Candidate Task Generation
+Generate exactly {candidate_count} candidate tasks. Return {"candidates": [CandidateTask, ...]}. Each Candi-
+dateTask contains task_id, description, modality (T2I or I2I), capability_categories (one to three exact names),
+source_image_id (null for T2I), generation_constraints, preservation_constraints, success_criteria, required_re-
+sources, task_signature, proposal_rationale, safety_flags (empty for acceptable tasks), and applicable_workflow_ids.
+State:
+{json.dumps(compact, ensure_ascii=False, indent=2)}
+Table 20 Shared developer instructions for feedback-guided execution.
+OmniHarness Generation Team
+You are the OmniHarness Generation Team. Operate through explicit roles: Planner, Plan Verifier, Workflow Writer,
+Executor observer, Step Verifier, Goal Verifier, and Failure Diagnoser. Retrieved workflows are symbolic policy
+templates for task families; retrieved failures contain evidence and corrective strategies. Bind the current task’s inputs
+and adapt or compose templates before execution. Respect preconditions, dependencies and component-only retrieval
+roles. Image components require video-specific processing for video outputs. Return only the requested JSON. Never
+edit files, execute ComfyUI, change retry budgets, update memory, or declare technical success. Code-as-Policy is a
+safe DSL with one assignment and one allow-listed ComfyUI node call per line, keyword arguments only, literals or
+earlier variables as inputs, and no imports, attributes, control flow, nested calls, or arbitrary Python.
+43
+
+
+Table 21 Task-input template for planning.
+Planner
+Create a dependency-consistent ordered plan with explicit verification for every step. For each selected workflow,
+check its input roles, preconditions, and dependencies against the request and planned intermediate inputs. In
+task_analysis.policy_applicability return {workflow_id:{satisfied:true,evidence:[specific condition checks]}}. Select a
+policy only when its conditions can be met by the plan. Choose reuse, adapt, compose, or build. Return {plan_-
+id, task_analysis, strategy, selected_workflow_ids, steps:[{step_id, objective, inputs, outputs, required_nodes,
+verification:{type,criteria}, expected_output_nodes, fallback}], rationale}.
+Request:
+{_json(request)}
+Context:
+{_json(context.compact(include_prompts=False))}
+Table 22 Conditional task-input template for plan repair.
+Plan Repair
+Repair this plan and return the same schema.
+Request:
+{_json(request)}
+Plan:
+{_json(plan)}
+Issues:
+{_json(issues)}
+Context:
+{_json(context.compact(include_prompts=False))}
+Table 23 Task-input template for workflow writing and policy adaptation.
+Workflow Writer
+Convert the verified plan to Code-as-Policy. Use $SOURCE_MEDIA_0 placeholders for media inputs; $SOURCE_-
+IMAGE_0 remains accepted for compatibility. Retrieved graphs are templates: replace every $POLICY_* placeholder
+with task-specific text, numeric parameters, output names, or $SOURCE_MEDIA_n bindings. Check input-role
+preconditions and compose component_only image policies with video-specific nodes. Set _meta_title on every
+Code-as-Policy node to its owning plan step_id. Preserve existing assignment variable names during localized repairs.
+Each step must emit an inspectable intermediate output before dependent steps execute; expected_output_nodes
+should identify actual numeric node IDs of those output nodes, matching their one-based Code-as-Policy statement
+positions. A step title refers only to that step’s output nodes; it does not require observing every internal node.
+Every node must contribute to at least one declared step output. If no applicable policy is available, construct a
+workflow from node knowledge. Describe the reusable task-family procedure, not the particular objects, prompt,
+or source filename of this execution, in workflow_name, description, preconditions and expected_effects. Return
+{ir_code, workflow_name, description, preconditions, expected_effects, dependencies:{Nodes,Models,Parameters}}.
+Request:
+{_json(request)}
+Plan:
+{_json(plan)}
+Context:
+{_json(context.compact(include_prompts=True))}
+44
+
+
+Table 24 Conditional task-input template for step verification.
+Step Verifier
+Inspect the supplied step output artifacts using image or video tools. Verify each listed criterion against these artifacts
+and the request. Do not infer an intermediate effect from the final result. Return {criteria:[{criterion,status:pass|fail|
+uncertain,evidence:[string]}]}. Copy each criterion exactly and use uncertain if its evidence cannot be inspected.
+Request:
+{_json(request)}
+Step:
+{_json(step)}
+Step outputs:
+{_json([item.path for item in result.outputs])}
+Table 25 Conditional task-input template for goal verification.
+Goal Verifier
+Inspect every output path with the appropriate image or video tools. Evaluate every success and preservation
+criterion. Use uncertain when evidence is insufficient. Return {status:pass|fail|uncertain, verifier, scores, evidence,
+failed_criteria}.
+Request:
+{_json(request)}
+Plan:
+{_json(plan)}
+Outputs:
+{_json([item.path for item in result.outputs])}
+Table 26 Conditional task-input template for failure diagnosis.
+Failure Diagnoser
+Identify the smallest failed stage.
+Return {failure_class:planning_failure|compilation_failure|infrastructure_-
+failure|execution_failure|verifier_failure|semantic_failure, failed_stage, root_cause, workflow_antipattern, remedy,
+applicable_scope, retry_scope}.
+Request:
+{_json(request)}
+Plan:
+{_json(plan)}
+Draft:
+{_json(draft)}
+Error:
+{_json(error)}
+Verification:
+{_json(verification)}
+45
+
+
+Table 27 Conditional task-input template for localized repair.
+Failure Subagent
+Act as an isolated Failure Subagent. Repair only the diagnosed step and preserve unrelated workflow logic. Preserve
+the assignment variable names and node inputs outside that step and its dependent downstream nodes. Return
+{failed_step_id, root_cause, subworkflow_ir, revised_ir_code, reusable_name, rationale}. The full revised_ir_code
+must integrate the localized component.
+Request:
+{_json(request)}
+Plan:
+{_json(plan)}
+Draft:
+{_json(draft)}
+Diagnosis:
+{_json(diagnosis)}
+Recovery context:
+{_json(context.compact(include_prompts=True))}
+46
