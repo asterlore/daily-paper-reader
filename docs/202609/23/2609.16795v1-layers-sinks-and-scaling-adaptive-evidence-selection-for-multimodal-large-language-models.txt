@@ -1,0 +1,1644 @@
+Layers, Sinks, and Scaling: Adaptive Evidence Selection for Multimodal Large
+Language Models
+Zhenbin Wang, Lei Zhang∗, Lituan Wang, Wei Huang, Yan Wang, Zhenwei Zhang
+Sichuan University
+wangzhenbin@stu.scu.edu.cn
+Abstract
+Multimodal large language models (MLLMs) can answer
+knowledge-intensive visual questions by combining visual ev-
+idence from images with facts retrieved from external sources.
+However, MLLMs may overlook relevant evidence in both
+modalities, attending weakly to the textual sentences or visual
+regions needed for the correct answer. Recent efforts address
+this by highlighting retrieved text and marking visual regions
+before generation, but apply a fixed, one-shot policy that can-
+not adapt to three sources of variation: whether highlight-
+ing is necessary, how much evidence different examples re-
+quire, and when different textual evidence becomes relevant as
+the answer unfolds. We introduce Adaptive Relevance-guided
+Evidence Allocation (AREA), a training-free inference-time
+method that formulates evidence highlighting as adaptive al-
+location. AREA generates a single probe token to read vi-
+sual and textual relevance from fixed backbone layers, then
+makes three decisions: i) whether to intervene (controlled
+by natural attention coverage and visual sink contamination),
+ii) how much evidence to expose (determined by relevance
+entropy), and iii) when to refresh text during generation (trig-
+gered by causal context-attention peaks). Across four KB-
+VQA and seven standard multimodal benchmarks with nine
+frozen MLLM checkpoints, establishes the best performance
+among training-free highlighting methods.
+1
+Introduction
+Knowledge-based visual question answering (KB-VQA) re-
+quires multimodal large language models (MLLMs) to com-
+bine localized visual cues with facts retrieved from external
+knowledge sources (Chen et al. 2023; Mensink et al. 2023).
+Supplying both modalities, however, does not solve the task:
+the model must still determine which textual statements and
+image regions are jointly needed to answer the question. Re-
+trieved passages mix critical facts with irrelevant or weakly
+related content (Caffagni et al. 2024), while images contain
+many salient objects and regions beyond the answer-bearing
+area (Kang et al. 2025). Consequently, the model can over-
+look a required sentence, focus on the wrong visual region,
+or fail to connect complementary evidence across modali-
+ties, producing an incorrect answer even when all required
+evidence is available.
+∗Lei Zhang is the corresponding author
+Code: https://github.com/wongzbb/AREA
+The challenge therefore lies not only in obtaining rele-
+vant evidence, but also in ensuring that the generator uses
+evidence already present in its input. While retrieval and fil-
+tering methods improve which external content reaches the
+model (Hong et al. 2025; Yan and Xie 2024; Yang et al.
+2025; Ye et al. 2026), a complementary line of work tar-
+gets evidence utilization at inference time. Recent training-
+free methods improve evidence utilization through explicit
+highlighting: SelfElicit highlights relevant context sentences,
+while Look Twice (LoT) extends the intervention to both re-
+trieved text and visual regions (Liu et al. 2025; Morini et al.
+2026). By converting selected evidence into sentence mark-
+ers and visual crops, such methods make latent evidence
+explicit without updating model parameters. However, they
+instantiate highlighting as a fixed, one-shot policy: the same
+number of sentences and the same visual extent are selected
+once before answer generation.
+This design overlooks variation across examples and gen-
+eration steps, as illustrated in Figure 1. In some cases, the
+model already uses the relevant evidence, so additional high-
+lighting is unnecessary. The required evidence also varies
+in scope: one sentence or a compact image region may suf-
+fice for some questions, whereas others depend on multiple
+sentences or broader visual context. As the answer unfolds,
+the relevant textual evidence can change, with later tokens
+depending on context that was not selected before decoding.
+Static evidence allocation therefore cannot match heteroge-
+neous and time-varying demand. An effective policy must
+decide whether to intervene, how much evidence to expose,
+and when to refresh textual evidence.
+We introduce Adaptive Relevance-guided Evidence Allo-
+cation (AREA), a training-free inference-time method that
+turns evidence highlighting into adaptive allocation. A sin-
+gle probe token reads visual and textual relevance from fixed,
+backbone-specific layer groups. AREA uses the entropy of
+the textual and visual relevance distributions to set the num-
+ber of selected sentences and the crop scale. It then gates the
+two modalities independently: the text gate measures how
+much attention the selected sentences already receive, while
+the visual gate measures the fraction of the unfiltered visual
+relevance assigned to detected sink tokens. During genera-
+tion, AREA monitors attention over the original retrieved-
+context tokens. When its entropy exceeds a threshold com-
+puted from earlier decoding steps, the method reselects rel-
+arXiv:2609.16795v1  [cs.AI]  15 Sep 2026
+
+
+Redundant
+Under-covered
+Stale
+Figure 1: Schematic illustration of three mismatches between
+fixed, one-shot evidence highlighting and evidence demand.
+(a) Highlighting is redundant when the model already uses
+the relevant evidence. (b) A fixed sentence budget can omit
+part of a multi-sentence evidence chain. (c) Evidence selected
+before decoding can become stale when later answer tokens
+require different textual evidence. Blue marks the fixed se-
+lection, gold marks evidence already used or required at the
+corresponding stage, and red labels the resulting mismatch.
+evant sentences and appends them at the current decoding
+position, subject to a fixed refresh budget. Together, these
+operations adapt whether to intervene, how much evidence
+to expose, and when to refresh textual evidence, while keep-
+ing all model parameters frozen.
+The main contributions of this work are summarized as
+follows:
+• We formalize adaptive evidence allocation for frozen
+MLLMs through three decisions: whether to mark se-
+lected context sentences and whether to add a visual crop,
+how many sentences to mark and what spatial extent the
+crop should cover, and at which decoding steps to reselect
+and append marked sentences.
+• We develop AREA, a training-free method for frozen
+MLLMs that obtains layer-resolved visual and textual rel-
+evance in one probe pass, uses it to set sentence count and
+crop extent, gates text and vision with selected-sentence
+attention surprisal and raw visual sink mass, and triggers
+text refresh from decoding-time context attention under a
+fixed budget.
+• We evaluate AREA with nine frozen MLLM checkpoints
+on four KB-VQA and seven standard multimodal bench-
+marks, where it consistently establishes state-of-the-art
+performance across both knowledge-intensive and stan-
+dard multimodal settings under a frozen-backbone infer-
+ence protocol.
+2
+Related Work
+2.1
+KB-VQA and Multimodal Retrieval
+KB-VQA combines image understanding with facts from
+external sources. Benchmarks like Encyclopedic VQA, In-
+foSeek, and ViQuAE test whether models can answer ques-
+tions about fine-grained entities, unseen knowledge, or facts
+requiring multi-step reasoning (Mensink et al. 2023; Chen
+et al. 2023; Lerner et al. 2022). Systems that perform well on
+these tasks typically improve the upstream evidence pipeline:
+hierarchical retrieval over structured knowledge (Caffagni
+et al. 2024), multimodal reranking to prioritize relevant
+passages (Yan and Xie 2024; Yang et al. 2025), learned
+retrieval-relevance decisions (Cocchi et al. 2025), reasoning-
+augmented retrieval (Compagnoni et al. 2026), question-
+focused filtering (Ye et al. 2026), and multimodal knowl-
+edge graph integration (Yuan et al. 2026). These methods
+determine which external content reaches the model. AREA
+addresses the complementary question: given that relevant
+evidence is available in the input, how should it be presented
+to ensure the frozen generator uses it? This distinction per-
+mits controlled comparisons under identical retrieval, isolat-
+ing evidence utilization from retrieval quality.
+2.2
+Inference-Time Evidence Highlighting
+Training-free evidence highlighting provides a direct ap-
+proach to improving evidence utilization without changing
+the retrieval pipeline or updating model parameters. SelfE-
+licit uses model-derived relevance to select and mark context
+sentences, while LoT extends this approach to MLLMs by
+combining textual highlighting with visual localization (Liu
+et al. 2025; Morini et al. 2026). Together, these methods
+show that relevance signals from a frozen model can guide
+how available evidence is presented during inference. Exist-
+ing approaches, however, make the intervention in a single
+pre-decoding step under a predetermined allocation policy.
+AREA advances this direction by independently adapting
+the intervention for text and vision, scaling the exposed ev-
+idence to each example, and refreshing textual evidence as
+generation unfolds.
+3
+Method
+3.1
+Problem Setup and Overview
+Given an image I, a question Q, and a candidate context
+C of NC tokens, AREA generates an answer with a frozen
+MLLM Fθ; vision-only tasks have NC = 0. The visual front
+end maps I to NV = G2 spatial patch tokens arranged on a
+square G × G grid. The decoder has L layers, NH attention
+heads per layer, and hidden width d. From the unhighlighted
+tokenized prompt, Fθ generates exactly one probe token.
+Let Sp denote the resulting sequence length and ip the final
+position occupied by that token. For layer ℓ∈{1, . . . , L}
+and head h ∈{1, . . . , NH}, the probe pass exposes post-
+softmax causal attention Aℓ,h
+p
+∈[0, 1]Sp×Sp and hidden
+states Hℓ
+p ∈RSp×d. An entry Aℓ,h
+p [r, s] gives attention from
+query position r to key position s. Tokenization maps visual
+patch v to its absolute prompt position χvis(v) and, when
+NC > 0, original context token j to χctx(j).
+
+
+Our objective is to allocate the available visual and textual
+evidence according to the evidence demand of each exam-
+ple and generation step. AREA therefore decides whether to
+intervene in each modality, how much evidence to expose
+through the number of selected sentences and the visual crop
+extent, and when to refresh textual evidence during decoding,
+while keeping Fθ frozen.
+Figure 2 connects Layer-Resolved Evidence Readout to
+Entropy-Calibrated Evidence Scaling and Modality-Specific
+Intervention Gating, followed by Causal Text-Evidence Re-
+fresh during generation. Algorithm 1 presents the complete
+inference sequence.
+3.2
+Layer-Resolved Evidence Readout
+We use nonempty, fixed, backbone-specific layer groups
+Lvis, Ltxt ⊆{1, . . . , L} for visual and textual relevance
+readout, together with nonempty fixed sink dimensions
+Dsink ⊆{1, . . . , d} for activation-based visual sink detec-
+tion (Kang et al. 2025). The fixed question parser identifies
+the target-object phrase; let O denote the nonempty set of
+its absolute prompt positions. The same probe pass produces
+raw visual relevance for each patch v and, when context is
+present, textual relevance for each original context token j:
+araw
+vis,v =
+X
+o∈O
+X
+ℓ∈Lvis
+NH
+X
+h=1
+Aℓ,h
+p [o, χvis(v)]
+|O| |Lvis|NH
+,
+atxt,j =
+X
+ℓ∈Ltxt
+NH
+X
+h=1
+Aℓ,h
+p [ip, χctx(j)]
+|Ltxt|NH
+.
+(1)
+Collecting these scores yields the raw visual relevance vector
+araw
+vis ∈RNV
+≥0 and textual relevance vector atxt ∈RNC
+≥0 . Thus
+the visual branch reads object-to-patch attention, while the
+textual branch reads probe-to-context attention. Both directly
+average the original post-softmax weights over their fixed
+layers and all heads.
+Visual sink filtering.
+Visual sink tokens concentrate acti-
+vation in a small set of hidden dimensions and can distort the
+relevance map used to localize the target object. We score
+this concentration by normalizing the strongest activation in
+Dsink by the root mean square across all d hidden dimensions:
+ssink,v =
+1
+|Lvis|
+X
+ℓ∈Lvis
+max
+r∈Dsink |Hℓ
+p[χvis(v), r]|
+v
+u
+u
+t1
+d
+d
+X
+q=1
+ Hℓp[χvis(v), q]
+2
+.
+(2)
+For visual sink threshold τ, tokens satisfying ssink,v > τ
+form Isink. We define avis = (avis,1, . . . , avis,NV ) ∈RNV
+≥0
+by setting avis,v = 0 inside Isink and avis,v = araw
+vis,v other-
+wise. This filtered vector determines crop location and scale,
+and the corresponding raw sink mass controls the visual in-
+tervention gate.
+Spatial localization.
+We reshape avis in the visual pro-
+cessor’s patch order and divide each cell by the sum over
+all G2 cells, obtaining the spatial distribution f
+Mu,w for
+u, w ∈{0, . . . , G −1}. Its center and spread are
+µx=
+X
+u,w
+wf
+Mu,w,
+σx=
+s
+(
+X
+u,w
+(w −µx)2 f
+Mu,w),
+µy=
+X
+u,w
+uf
+Mu,w,
+σy=
+s
+(
+X
+u,w
+(u −µy)2 f
+Mu,w).
+(3)
+These moments locate the crop and define its horizontal and
+vertical extent before adaptive scaling.
+3.3
+Entropy-Calibrated Evidence Scaling
+Text scaling.
+For NC > 0, a sentence segmenter maps
+the original context to token sets {Sm}NS
+m=1. We form
+the sentence distribution p = (p1, . . . , pNS) by setting
+pm ∝|Sm|−1 P
+j∈Sm atxt,j and normalizing it so that
+PNS
+m=1 pm = 1. Let H(p) = −PNS
+m=1 pm log2 pm. We se-
+lect the sentence indices
+Jtxt = TopK
+
+p, min
+l
+2H(p)m
+, kmax
+
+.
+(4)
+Eq. (4) converts relevance dispersion into an evidence bud-
+get: low entropy indicates concentrated evidence and selects
+fewer sentences, whereas high entropy indicates distributed
+evidence and selects more. The effective count 2H(p), capped
+at kmax, sets this budget before TopK retains the most rele-
+vant sentences.
+Visual scaling.
+The spatial entropy controls crop extent:
+Hvis = −
+X
+u,w
+f
+Mu,w log2 f
+Mu,w,
+β = clip
+ 
+1
+2
+s
+2Hvis
+σxσy
+, βmin, βmax
+!
+,
+bpix = Πpix(µx−βσx, µy−βσy, µx+βσx, µy+βσy) .
+(5)
+The fixed map Πpix converts grid coordinates to pixels and
+clips the box to the image boundary. Because 2Hvis is the
+effective number of grid cells carrying relevance, the uncon-
+strained scale satisfies (2βσx)(2βσy) = 2Hvis, tying crop
+area to spatial relevance dispersion. The centroid and axis-
+wise spreads retain the map’s location and shape, so con-
+centrated maps yield tight crops while diffuse maps yield
+broader ones.
+3.4
+Modality-Specific Intervention Gating
+The preceding scaling stage determines the candidate text
+and crop, but presenting them unconditionally would ignore
+whether intervention is needed. Because the model may al-
+ready use the relevant evidence and intervention demand
+can differ by modality, AREA gates text and vision indepen-
+dently. The text score measures how little natural attention
+reaches the selected sentences, while the visual score is the
+
+
+?
+<BOS>
+...
+<IMG>
+<IMG>
+...
+<IMG>
+<IMG>
+...
+BLUE
+JAY
+...
+<CTX>
+<CTX>
+...
+<CTX>
+<CTX>
+Adaptive Evidence Selection
+Visual Evidence
+MLLM  Layer
+filter sink
+tokens
+What color are
+the  wings of this
+blue jay?
+Raw Visual
+Relevance
+Sink-filtered
+Localization
+Visual
+Intervention Gate
+Adaptive Crop Extent
+Textual Evidence
+Sentence Relevance
+1. Bright blue above and pale gray
+below with a fluffy crest.
+2. Frequently visits bird feeders.
+high score
+low score
+Text Intervention Gate
+Current
+Prior
+Median
+1. Bright blue above and pale
+gray below with a fluffy crest.
+ON: mark selected sentences
+Causal Text-Evidence Refresh
+Causal Threshold
+y1
+y2
+yt
+...
+Refresh
+yt+1
+...
+Figure 2: Overview of AREA. One probe token reads visual and textual relevance from fixed, backbone-specific layer groups
+of a frozen MLLM. Independent gates use selected-sentence attention coverage and raw visual sink mass to decide whether to
+intervene, while the sentence-level and sink-filtered spatial relevance distributions set the sentence count and crop extent. After
+warmup, both gates use prior-sample medians and update their histories only after deciding. During the same autoregressive
+stream, strictly causal peaks in context-attention entropy trigger bounded textual refresh; visual evidence and the initial gates
+remain fixed.
+fraction of raw relevance assigned to sink-flagged patches:
+utxt = −log2
+ P
+m∈Jtxt
+P
+j∈Sm atxt,j
+PNC
+j=1 atxt,j
++ ε
+!
+,
+uvis =
+P
+v∈Isink araw
+vis,v
+PNV
+v=1 araw
+vis,v
+.
+(6)
+A high utxt indicates that the selected sentences are under-
+used, and a high uvis indicates stronger sink contamination
+in the raw localization signal.
+For sample n and modality x ∈{txt, vis}, let m(<n)
+x
+be
+the median of duplicate-retaining scores from earlier eligible
+samples in the current dataset–backbone stream. Vision is
+always eligible, whereas text is eligible only when NC > 0;
+thus z(n)
+txt = 0 when NC = 0. For each eligible modal-
+ity, we set z(n)
+x
+= 1 during the first Wwarm samples and
+z(n)
+x
+= 1[ux ≥m(<n)
+x
+] thereafter. The two decisions are
+independent and use only preceding samples. After both de-
+cisions, we append the current eligible scores to their histo-
+ries; histories reset between datasets and backbones. When
+ztxt = 1, C⋆is C with the sentences in Jtxt wrapped by
+text-evidence markers, otherwise C⋆= C. When zvis = 1,
+the image payload I⋆is the marker-wrapped crop defined by
+bpix alone, otherwise I⋆contains the original image.
+3.5
+Causal Text-Evidence Refresh
+As generation progresses, evidence needs can shift be-
+yond the initial selection. AREA therefore monitors context-
+attention dispersion and reselects and appends textual evi-
+dence when the current value exceeds a threshold determined
+only by earlier decoding steps, subject to a fixed refresh bud-
+get.
+The initial generation prompt P1 is tokenized over
+(I⋆, Q, C⋆). When NC > 0, tokenization supplies the order-
+preserving map j 7→ι(j) from each original context token
+to its prompt position; evidence-marker tokens are excluded.
+Rmax caps refreshes, and rt counts those completed through
+step t, with r0 = 0.
+For t ≥1, Pt is the cached prefix before decoding yt.
+Once committed and cached, yt occupies it = |Pt| + 1; let
+Aℓ,h
+t [it, :] ∈[0, 1]it denote its post-softmax causal-attention
+row. Applying the textual readout of Eq. (1) to this row at
+keys ι(j) yields a(t)
+txt ∈RNC
+≥0 . We normalize these scores and
+compute their entropy:
+π(t)
+j
+=
+a(t)
+txt,j
+PNC
+q=1 a(t)
+txt,q
+,
+et = −
+XNC
+j=1 π(t)
+j
+log2 π(t)
+j . (7)
+The weights π(t)
+j
+cover only original context tokens; evidence
+markers and appended reminders are excluded. Their entropy
+et is low for concentrated attention and high for dispersed
+attention, serving as a step-wise evidence-demand proxy.
+
+
+For t > 1, ¯et−1 and σe,t−1 are the mean and population
+standard deviation of (e1, . . . , et−1); κ ≥0 controls peak
+sensitivity. The binary trigger is
+γt=
+1[et > ¯et−1+κσe,t−1],
+t>1 ∧rt−1<Rmax,
+0,
+otherwise.
+(8)
+The strict test excludes et from its own threshold. The first
+eligible trigger is therefore t = 2, where the one-value pop-
+ulation standard deviation is zero.
+When γt = 1, substituting a(t)
+txt for atxt in the sentence
+aggregation and Eq. (4) yields J (t)
+txt. We serialize these sen-
+tences in context order and define Rt as the resulting token
+block, enclosed once by the text-evidence markers. With
+brackets denoting token-sequence concatenation, the cached
+prefix and refresh count evolve as
+Pt+1 =
+[Pt; yt; Rt],
+γt = 1,
+[Pt; yt],
+γt = 0,
+rt = rt−1 + γt.
+(9)
+Appending Rt at the decoding frontier preserves ι and exist-
+ing key–value cache entries; et then enters the history used
+at step t + 1. The mechanism refreshes only textual evidence
+and remains active when ztxt = 0.
+3.6
+Inference Protocol
+Algorithm 1 AREA Inference
+Input: I, Q, C; frozen Fθ; state Utxt, Uvis, nseen
+Layer-Resolved Evidence Readout
+1: Generate exactly one probe token; expose Aℓ,h
+p , Hℓ
+p
+2: Resolve O, χvis and, when NC > 0, χctx
+3: Compute araw
+vis and, when NC > 0, atxt
+4: Compute sink scores and Isink = {v : ssink,v > τ}
+5: Form avis, f
+M, and its spatial moments
+Entropy-Calibrated Evidence Scaling
+6: if NC > 0 then
+7:
+Form p and select Jtxt by Eq. (4)
+8: end if
+9: Compute Hvis, β, bpix by Eq. (5)
+Modality-Specific Intervention Gating
+10: Compute uvis and, if NC > 0, utxt
+11: Set eligible zx from warmup or prior medians
+▷prior only
+12: Append each eligible ux; increment nseen
+▷after both gates
+13: Form the conditional payloads I⋆and C⋆
+14: Tokenize P1 and, if NC > 0, obtain ι
+Causal Text-Evidence Refresh
+15: Set r0 ←0 and initialize an empty entropy history
+16: for t = 1, 2, . . . until generation terminates do
+17:
+Decode, commit, and cache yt
+18:
+if NC > 0 then
+19:
+Read a(t)
+txt through ι; compute π(t)
+j
+and et
+20:
+Set γt by the strict prior-history test in Eq. (8)
+21:
+if γt = 1 then
+22:
+Reselect J (t)
+txt and form Rt
+▷text only
+23:
+end if
+24:
+Update (Pt+1, rt) by Eq. (9)
+25:
+Append et to the entropy history
+▷after decision
+26:
+end if
+27: end for
+28: return generated answer tokens
+(a) E-VQA: animal life-cycle evidence
+How long does this animal take care of its children?
+R e t r i e v e d c o n t e x t w i t h A d a L o T t e x t u a l h i g h l i g h t s
+A c c o r d i n g t o a f i s h e r m a n w h o ' s b e e n c a t c h i n g t h e m f o r 5 0 y e a r s , [ . . . ]
+o n e s t a k e t w o w e e k s t o f i l t e r ( c l e a n ) b e f o r e t h e y a r e c o n s u m a b l e [ . . . ]
+m o n t h .
+C . g u a n h u m i i s a s l o w - g r o w i n g s p e c i e s c o m p a r e d t o m o s t o t h e r c r a b s .
+K . H i l l ( J u l y 2 5 , 2 0 0 1 ) .
+A n s w e r
+2 w e e k s
+(b) ViQuAE: motorsport knowledge
+In 1994, the legendary Formula One world champion Ayrton Senna was killed when
+competing in which Grand Prix?
+R e t r i e v e d c o n t e x t w i t h A d a L o T t e x t u a l h i g h l i g h t s
+T h e f i r s t o n e , t h e f i r s t F o r m u l a 1 r a c e e v e r , w a s t h e T u r i n [ . . . ] .
+O n 2 6 N o v e m b e r 2 0 1 7 , F o r m u l a O n e u n v e i l e d i t s n e w l o g o , [ . . . ]
+A b u D h a b i d u r i n g t h e A b u D h a b i G r a n d P r i x a t Y a s M a r i n a C i r c u i t .
+T h e n e w l o g o r e p l a c e d F 1 ' s i c o n i c ' f l y i n g o n e ' , w h i c h h a d [ . . . ]
+1 9 9 3 . S e c t i o n : : : : H i s t o r y . : R e t u r n o f r a c i n g . .
+A n s w e r
+S a n M a r i n o G r a n d P r i x
+(c) ViQuAE: historical entity knowledge
+In 1954, Sun Myung Moon founded the Unification Church in which country?
+A n s w e r
+S o u t h K o r e a
+R e t r i e v e d c o n t e x t w i t h A d a L o T t e x t u a l h i g h l i g h t s
+M o o n w a s b o r n i n w h a t i s n o w N o r t h K o r e a .
+I n 1 9 5 4 , h e f o u n d e d t h e H o l y S p i r i t A s s o c i a t i o n f o r t h e [ . . . ]
+S e o u l , S o u t h K o r e a b a s e d o n c o n s e r v a t i v e , f a m i l y - o r i e n t e d [ . . . ]
+o f t h e B i b l e .
+M o o n e s c a p e d a n d t r a v e l e d t o B u s a n , S o u t h K o r e a . .
+Figure 3: Qualitative examples of AREA on E-VQA and Vi-
+QuAE. Each row shows the original image with the AREA-
+induced visual bounding box and the retrieved textual context
+with AREA-selected sentences highlighted. The examples il-
+lustrate how AREA jointly localizes visual evidence and em-
+phasizes relevant textual evidence for knowledge-intensive
+visual question answering. Best viewed when zoomed in.
+4
+Experiments
+4.1
+Experimental Setup
+Datasets and metrics.
+We follow the evaluation proto-
+col of LoT (Morini et al. 2026). The knowledge-based vi-
+sual question answering (KB-VQA) suite comprises Ency-
+clopedic VQA (E-VQA) (Mensink et al. 2023), InfoSeek
+(Chen et al. 2023), Open-domain Visual Entity Recogni-
+tion (OVEN) (Hu et al. 2023), and ViQuAE (Lerner et al.
+2022). We report Single-Hop and All accuracy on the E-
+VQA test set; Unseen-Q, Unseen-E, and All accuracy on the
+InfoSeek validation set; validation accuracy on OVEN; and
+exact match on the ViQuAE test set. The standard suite con-
+tains RealWorldQA (xAI 2024), Vstar (Wu and Xie 2024),
+TextVQA (Singh et al. 2019), ChartQA (Masry et al. 2022),
+OCRBench (Liu et al. 2024), POPE (Li et al. 2023), and
+AMBER-D (Wang et al. 2023). We use the Cambrian-1 eval-
+uation suite (Tong et al. 2024) except for AMBER-D, which
+uses its official discriminative-accuracy pipeline.
+Backbones and protocol.
+We evaluate nine frozen MLLM
+checkpoints: Qwen2-VL-2B and Qwen2-VL-7B (Wang et al.
+2024); Qwen2.5-VL-3B, Qwen2.5-VL-7B, and Qwen2.5-
+VL-32B (Bai et al. 2025b); Qwen3-VL-4B and Qwen3-VL-
+8B (Bai et al. 2025a); and InternVL3.5-4B and InternVL3.5-
+8B (Wang et al. 2025). For KB-VQA, we retrieve three
+Wikipedia entities with the same EVA-CLIP and FAISS
+pipeline used by LoT (Sun et al. 2024; Johnson, Douze, and
+Jégou 2019). Each LoT–AREA pair uses the same check-
+point, retrieved entities, task instruction, decoding config-
+uration, and evaluator. LoT selects one sentence, fixes the
+
+
+Backbone
+Method
+E-VQA
+InfoSeek
+OVEN
+ViQuAE
+Avg
+SH
+All
+U-Q
+U-E
+All
+All
+All
+Small
+Qwen2-VL-2B
+Base
+17.5
+16.0
+5.3
+5.6
+5.4
+1.2
+15.0
+10.2
++LoT
+18.2
+16.2
+10.5
+10.1
+10.3
+2.8
+18.4
+11.9 (+1.7)
++AREA (Ours)
+18.7
+16.7
+11.4
+10.0
+10.9
+3.4
+19.2
+12.6 (+2.4)
+Qwen2.5-VL-3B
+Base
+30.1
+27.8
+22.6
+22.2
+22.4
+11.5
+22.9
+21.2
++LoT
+32.9
+30.4
+25.4
+25.1
+25.2
+18.3
+27.8
+25.5 (+4.3)
++AREA (Ours)
+33.4
+31.0
+25.9
+24.9
+25.6
+19.0
+28.5
+26.0 (+4.8)
+Qwen3-VL-4B
+Base
+35.0
+32.8
+27.9
+28.6
+28.3
+25.1
+34.5
+30.2
++LoT
+37.3
+34.8
+30.8
+30.2
+30.5
+24.5
+36.3
+31.5 (+1.3)
++AREA (Ours)
+37.9
+35.4
+31.4
+30.0
+30.9
+25.1
+37.0
+32.1 (+1.9)
+InternVL3.5-4B
+Base
+29.1
+26.2
+28.8
+29.0
+28.9
+10.8
+36.4
+25.6
++LoT
+31.7
+28.7
+33.3
+33.1
+33.2
+11.5
+45.6
+29.8 (+4.2)
++AREA (Ours)
+32.3
+29.3
+33.9
+32.9
+33.6
+12.2
+46.5
+30.4 (+4.8)
+Medium
+Qwen2-VL-7B
+Base
+25.6
+22.9
+24.2
+24.7
+24.4
+11.1
+33.0
+22.9
++LoT
+28.7
+25.6
+29.8
+30.1
+29.9
+16.6
+40.8
+28.2 (+5.3)
++AREA (Ours)
+29.3
+26.2
+30.5
+29.9
+30.2
+17.2
+41.6
+28.8 (+5.9)
+Qwen2.5-VL-7B
+Base
+32.1
+30.1
+23.9
+25.2
+24.5
+21.1
+36.3
+28.0
++LoT
+33.6
+31.4
+24.9
+25.4
+25.1
+21.2
+38.6
+29.1 (+1.1)
++AREA (Ours)
+34.0
+31.8
+25.5
+25.2
+25.4
+21.8
+39.4
+29.6 (+1.6)
+Qwen3-VL-8B
+Base
+36.6
+35.0
+29.1
+30.4
+29.7
+17.7
+43.7
+31.5
++LoT
+38.6
+36.4
+33.2
+32.5
+32.8
+19.6
+51.0
+35.0 (+3.5)
++AREA (Ours)
+39.1
+36.9
+33.8
+32.3
+33.1
+20.2
+51.8
+35.5 (+4.0)
+InternVL3.5-8B
+Base
+31.4
+29.0
+29.5
+29.9
+29.7
+17.7
+44.2
+30.2
++LoT
+33.2
+30.7
+32.1
+32.5
+32.3
+17.6
+54.2
+33.7 (+3.5)
++AREA (Ours)
+33.8
+31.3
+32.8
+32.3
+32.6
+18.3
+55.0
+34.3 (+4.1)
+Large
+Qwen2.5-VL-32B
+Base
+35.3
+33.7
+26.7
+26.1
+26.4
+13.3
+37.9
+27.8
++LoT
+37.7
+36.0
+31.2
+26.2
+29.6
+14.2
+46.0
+31.5 (+3.7)
++AREA (Ours)
+38.2
+36.5
+31.8
+26.0
+30.1
+14.9
+46.8
+32.1 (+4.3)
+Table 1: Performance on KB-VQA benchmarks. Base denotes the same checkpoint without evidence highlighting. SH, U-Q, and
+U-E denote Single-Hop, Unseen-Q, and Unseen-E; Avg is computed over the four All columns. Colored values in parentheses
+indicate absolute improvements over Base.
+visual scale to β = 2, and always applies its intervention.
+AREA uses kmax = 3, (βmin, βmax) = (1.5, 2.5), κ = 1,
+Rmax = 4 and Wwarm = 50.
+4.2
+Results on KB-VQA
+Table 1 reports the results on four KB-VQA benchmarks.
+AREA outperforms LoT for all nine checkpoints, improv-
+ing the four-dataset average by approximately 0.6 points
+across backbones. This consistency across model families
+and scales suggests that the gains arise from better matching
+the intervention to each example, rather than from a partic-
+ular architecture. Unlike LoT, which always exposes a fixed
+crop and a single sentence, AREA avoids redundant inter-
+ventions when the relevant evidence is already well covered
+and expands the evidence scope when relevance is more dis-
+persed.
+The gains are particularly clear on OVEN and ViQuAE,
+where answering often requires identifying a visual entity
+and connecting it to a specific retrieved fact. Adaptive local-
+ization can suppress unrelated visual regions, while flexible
+sentence allocation reduces the risk of omitting supporting
+information. On InfoSeek, the improvements are mainly ob-
+served on Unseen-Q and the overall score, whereas Unseen-E
+changes only marginally and occasionally decreases. We con-
+jecture that unseen-entity questions are more strongly limited
+by entity recognition and retrieval quality; when the correct
+entity or passage is absent, improving evidence presentation
+alone provides limited benefit.
+Figure 3 further illustrates how AREA allocates evidence
+on representative KB-VQA examples. Across questions in-
+volving biological, historical, and entity-specific knowledge,
+AREA localizes the query-relevant visual content while high-
+lighting the retrieved sentences that directly support the an-
+swer. The selected evidence is compact and varies across
+examples, rather than following a uniform sentence budget
+or crop scale. This behavior is important for KB-VQA, where
+retrieved passages commonly contain facts that are topically
+related to the question but insufficient for deriving the answer.
+The examples also show that visual and textual evidence
+need not contribute equally to every prediction. In some
+cases, the image primarily identifies the queried entity, while
+the retrieved context supplies the answer-specific fact; in oth-
+ers, accurate visual localization is necessary to disambiguate
+among several plausible entities before consulting the con-
+text. By allocating the two modalities independently, AREA
+can emphasize the modality that is currently underused with-
+out unnecessarily modifying the other. These qualitative re-
+sults complement the quantitative improvements in Table 1
+and suggest that AREA benefits KB-VQA by making short
+cross-modal evidence chains easier for the frozen model to
+follow.
+
+
+Backbone
+Method
+Vision-Centric/OCR and Chart
+Hallucination
+RealWorldQA
+V-Star
+TextVQA ChartQA OCRBench
+POPE
+AMBER-D
+Small
+Qwen2-VL-2B
+Base
+54.8
+46.6
+72.0
+73.4
+74.6
+88.4
+42.1
++LoT
+56.7 (+1.9)
+53.9 (+7.3) 74.9 (+2.9) 73.2 (-0.2)
+74.0 (-0.6)
+88.6 (+0.2) 75.0 (+32.9)
++AREA (Ours)
+57.4 (+2.6)
+54.8 (+8.2) 75.4 (+3.4) 73.0 (-0.4)
+74.7 (+0.1)
+89.0 (+0.6) 75.8 (+33.7)
+Qwen2.5-VL-3B
+Base
+59.1
+59.7
+62.5
+79.1
+76.1
+88.2
+17.2
++LoT
+61.7 (+2.6)
+61.8 (+2.1) 66.4 (+3.9) 79.5 (+0.4)
+79.7 (+3.6)
+89.0 (+0.8) 40.5 (+23.3)
++AREA (Ours)
+62.4 (+3.3)
+62.6 (+2.9) 67.0 (+4.5) 79.3 (+0.2)
+80.2 (+4.1)
+89.4 (+1.2) 41.7 (+24.5)
+Qwen3-VL-4B
+Base
+66.7
+56.0
+74.7
+80.7
+76.0
+90.1
+81.9
++LoT
+71.6 (+4.9)
+67.0 (+11.0) 76.5 (+1.8) 82.3 (+1.6)
+77.4 (+1.4)
+90.2 (+0.1)
+81.2 (-0.7)
++AREA (Ours)
+72.2 (+5.5)
+67.8 (+11.8) 77.1 (+2.4) 82.0 (+1.3)
+78.1 (+2.1)
+90.5 (+0.4)
+82.0 (+0.1)
+InternVL3.5-4B
+Base
+66.7
+73.8
+75.5
+85.9
+82.9
+89.0
+80.1
++LoT
+67.3 (+0.6)
+76.4 (+2.6) 76.0 (+0.5) 85.4 (-0.5)
+82.5 (-0.4)
+86.4 (-2.6)
+73.0 (-7.1)
++AREA (Ours)
+68.0 (+1.3)
+77.1 (+3.3) 76.6 (+1.1) 85.2 (-0.7)
+83.1 (+0.2)
+87.0 (-2.0)
+74.2 (-5.9)
+Medium
+Qwen2-VL-7B
+Base
+62.7
+52.4
+78.0
+81.6
+80.0
+70.3
+33.7
++LoT
+64.8 (+2.1)
+56.0 (+3.6) 79.3 (+1.3) 82.0 (+0.4)
+81.3 (+1.3) 89.1 (+18.8) 47.3 (+13.6)
++AREA (Ours)
+65.5 (+2.8)
+56.8 (+4.4) 79.8 (+1.8) 81.8 (+0.2)
+81.9 (+1.9) 89.4 (+19.1) 48.6 (+14.9)
+Qwen2.5-VL-7B
+Base
+65.0
+57.1
+75.7
+77.0
+84.9
+87.4
+62.0
++LoT
+67.5 (+2.5)
+61.3 (+4.2) 77.9 (+2.2) 79.4 (+2.4)
+84.3 (-0.6)
+87.4 (+0.0)
+62.6 (+0.6)
++AREA (Ours)
+68.1 (+3.1)
+62.0 (+4.9) 78.4 (+2.7) 79.1 (+2.1)
+85.0 (+0.1)
+87.8 (+0.4)
+63.4 (+1.4)
+Qwen3-VL-8B
+Base
+66.8
+60.7
+76.9
+82.0
+79.5
+89.2
+75.9
++LoT
+67.5 (+0.7)
+61.3 (+0.6) 77.9 (+1.0) 79.4 (-2.6)
+84.3 (+4.8)
+89.2 (+0.0)
+62.6 (-13.3)
++AREA (Ours)
+68.2 (+1.4)
+62.0 (+1.3) 78.5 (+1.6) 79.1 (-2.9)
+84.9 (+5.4)
+89.5 (+0.3)
+63.8 (-12.1)
+InternVL3.5-8B
+Base
+64.7
+73.3
+77.2
+84.3
+84.3
+86.3
+80.4
++LoT
+65.9 (+1.2)
+69.6 (-3.7) 78.0 (+0.8) 79.7 (-4.6)
+83.0 (-1.3)
+87.3 (+1.0)
+80.8 (+0.4)
++AREA (Ours)
+66.5 (+1.8)
+70.4 (-2.9) 78.6 (+1.4) 79.5 (-4.8)
+83.6 (-0.7)
+87.7 (+1.4)
+81.4 (+1.0)
+Large
+Qwen2.5-VL-32B
+Base
+65.6
+55.5
+72.4
+35.7
+78.7
+88.8
+89.4
++LoT
+67.1 (+1.5)
+65.4 (+9.9) 74.0 (+1.6) 48.2 (+12.5) 79.0 (+0.3)
+89.0 (+0.2)
+89.0 (-0.4)
++AREA (Ours)
+67.8 (+2.2)
+66.1 (+10.6) 74.6 (+2.2) 50.0 (+14.3) 78.8 (+0.1)
+89.3 (+0.5)
+89.6 (+0.2)
+Table 2: Performance on standard MLLM benchmarks using visual evidence only. Base denotes the same checkpoint without
+evidence highlighting. Colored values in parentheses indicate absolute changes relative to Base.
+4.3
+Generalization to Standard Multimodal
+Benchmarks
+Table 2 evaluates AREA on standard multimodal bench-
+marks without retrieved textual context. In this setting, text
+scaling, text gating, and causal evidence refresh are dis-
+abled, while sink filtering, entropy-calibrated crop scaling,
+and visual intervention gating remain active. Across the 63
+checkpoint–benchmark pairs, AREA improves over LoT by
+approximately 0.55 points on average. The improvement is
+observed across different backbone families and parameter
+scales, indicating that adaptive visual allocation is not lim-
+ited to retrieval-augmented settings or a particular model
+architecture.
+The most consistent gains appear on V-Star and Real-
+WorldQA. V-Star frequently requires recognizing small ob-
+jects, subtle attributes, or fine-grained spatial cues, for which
+a question-conditioned crop can increase the relative promi-
+nence of the answer-bearing region. RealWorldQA contains
+more diverse scenes, but its questions often still identify a
+particular object or local relationship. In such cases, the vi-
+sual gate is useful because it can retain the original image
+when broader context is already necessary, rather than ap-
+plying a compact crop unconditionally. This may explain
+why AREA improves consistently over LoT on both locally
+focused and more heterogeneous real-world questions.
+AREA also produces stable, although more moderate,
+gains on TextVQA and OCRBench. Visual text may occupy
+only a small part of an image, making localization beneficial,
+but the required words can also be distributed across multiple
+signs, lines, or document regions. Entropy-calibrated scaling
+provides a compromise: concentrated relevance leads to a
+tighter crop, whereas dispersed relevance preserves a larger
+visual extent. Nevertheless, evidence allocation alone cannot
+resolve recognition errors caused by small fonts, low resolu-
+tion, or difficult layouts, which likely limits the magnitude of
+the improvement on these benchmarks.
+The clearest exception is ChartQA, where AREA remains
+approximately comparable to LoT and occasionally performs
+slightly worse. Chart questions often require jointly inter-
+preting axes, legends, categories, and spatially separated
+numerical values. Cropping around the most salient region
+may therefore remove structural information needed to relate
+these components, even when the localized content itself is
+relevant. The improvement obtained with Qwen2.5-VL-32B
+suggests that stronger models may recover missing global re-
+lationships more effectively, but the overall pattern indicates
+that localized evidence highlighting is less suitable for tasks
+whose reasoning depends on the complete visual layout.
+On the hallucination-oriented benchmarks, AREA consis-
+tently improves over LoT, with the largest additional gains
+observed on AMBER-D. Sink filtering can prevent highly
+activated but semantically uninformative visual tokens from
+dominating localization, while intervention gating avoids al-
+tering inputs for which the original visual evidence is already
+sufficiently represented. However, highlighting still degrades
+some strong backbones relative to their Base performance
+
+
+on AMBER-D, suggesting that adaptive allocation mitigates
+rather than fully eliminates the risks of visual intervention.
+POPE shows smaller gains, likely because several check-
+points already achieve high accuracy and leave limited room
+for improvement. Overall, these results support the central
+premise of AREA: visual highlighting is most effective when
+its necessity and spatial extent are determined by the evidence
+distribution of each input, rather than fixed in advance.
+5
+Conclusion
+We investigated evidence utilization in frozen multimodal
+large language models and showed that fixed highlight-
+ing policies cannot adapt to diverse evidence demands. We
+proposed Adaptive Relevance-guided Evidence Allocation
+(AREA), a training-free framework that dynamically deter-
+mines whether to intervene, how much evidence to expose,
+and when to refresh textual evidence during generation. By
+leveraging relevance signals from a single probe pass, AREA
+performs adaptive evidence scaling and modality-specific
+intervention without modifying model parameters. Experi-
+ments across KB-VQA and general multimodal benchmarks
+demonstrate that AREA consistently improves over fixed
+highlighting strategies, especially when answers rely on com-
+pact cross-modal evidence. These results highlight the im-
+portance of adaptive evidence presentation for improving
+MLLM inference.
+References
+Bai, S.; Cai, Y.; Chen, R.; Chen, K.; Chen, X.; Cheng, Z.;
+Deng, L.; Ding, W.; Gao, C.; et al. 2025a. Qwen3-VL Tech-
+nical Report. arXiv:2511.21631.
+Bai, S.; Chen, K.; Liu, X.; Wang, J.; Ge, W.; Song, S.; Dang,
+K.; Wang, P.; Wang, S.; Tang, J.; Zhong, H.; et al. 2025b.
+Qwen2.5-VL Technical Report. arXiv:2502.13923.
+Caffagni, D.; Cocchi, F.; Moratelli, N.; Sarto, S.; Cornia,
+M.; Baraldi, L.; and Cucchiara, R. 2024. Wiki-LLaVA: Hi-
+erarchical Retrieval-Augmented Generation for Multimodal
+LLMs.
+In Proceedings of the IEEE/CVF Conference on
+Computer Vision and Pattern Recognition Workshops, 1818–
+1826.
+Chen, Y.; Hu, H.; Luan, Y.; Sun, H.; Changpinyo, S.; Rit-
+ter, A.; and Chang, M.-W. 2023. Can Pre-trained Vision
+and Language Models Answer Visual Information-Seeking
+Questions? In Proceedings of the 2023 Conference on Em-
+pirical Methods in Natural Language Processing.
+Cocchi, F.; Moratelli, N.; Cornia, M.; Baraldi, L.; and Cuc-
+chiara, R. 2025. Augmenting Multimodal LLMs with Self-
+Reflective Tokens for Knowledge-based Visual Question An-
+swering. In Proceedings of the Computer Vision and Pattern
+Recognition Conference, 9199–9209.
+Compagnoni, A.; Morini, M.; Sarto, S.; Cocchi, F.; Caffagni,
+D.; Cornia, M.; Baraldi, L.; and Cucchiara, R. 2026. ReAG:
+Reasoning-Augmented Generation for Knowledge-based Vi-
+sual Question Answering. In Proceedings of the IEEE/CVF
+Conference on Computer Vision and Pattern Recognition,
+11901–11911.
+Hong, Y.; Gu, J.; Yang, Q.; Fan, L.; Wu, Y.; Wang, Y.; Ding,
+K.; Xiang, S.; and Ye, J. 2025. Knowledge-based Visual
+Question Answer with Multimodal Processing, Retrieval and
+Filtering. In Belgrave, D.; Zhang, C.; Lin, H.; Pascanu, R.;
+Koniusz, P.; Ghassemi, M.; and Chen, N., eds., Advances in
+Neural Information Processing Systems, volume 38, 119251–
+119282. Curran Associates, Inc.
+Hu, H.; Luan, Y.; Chen, Y.; Khandelwal, U.; Joshi, M.; Lee,
+K.; Toutanova, K.; and Chang, M. W. 2023. Open-domain
+Visual Entity Recognition: Towards Recognizing Millions of
+Wikipedia Entities. In CVPR.
+Johnson, J.; Douze, M.; and Jégou, H. 2019. Billion-Scale
+Similarity Search with GPUs. IEEE Trans. on Big Data,
+7(3): 535–547.
+Kang, S.; Kim, J.; Kim, J.; and Hwang, S. J. 2025. See
+What You Are Told: Visual Attention Sink in Large Mul-
+timodal Models. In International Conference on Learning
+Representations.
+Lerner, P.; Ferret, O.; Guinaudeau, C.; Le Borgne, H.; Be-
+sancon, R.; Moreno, J. G.; and Lovon Melgarejo, J. 2022.
+ViQuAE, a Dataset for Knowledge-Based Visual Question
+Answering about Named Entities.
+In Proceedings of the
+45th International ACM SIGIR Conference on Research and
+Development in Information Retrieval.
+Li, Y.; Du, Y.; Zhou, K.; Wang, J.; Zhao, W. X.; and Wen,
+J.-R. 2023. Evaluating Object Hallucination in Large Vision-
+Language Models. In Proceedings of the 2023 Conference
+on Empirical Methods in Natural Language Processing.
+Liu, Y.; Li, Z.; Huang, M.; Yang, B.; Yu, W.; Li, C.; Yin,
+X.; Liu, C.-L.; Jin, L.; and Bai, X. 2024. OCRBench: On
+the Hidden Mystery of OCR in Large Multimodal Models.
+Science China Information Sciences, 67(12): 220102.
+Liu, Z.; Amjad, R. A.; Adkathimar, R.; Wei, T.; and Tong,
+H. 2025. SelfElicit: Your Language Model Secretly Knows
+Where is the Relevant Evidence. arXiv:2502.08767.
+Masry, A.; Do, X. L.; Tan, J. Q.; Joty, S.; and Hoque, E.
+2022.
+ChartQA: A Benchmark for Question Answering
+about Charts with Visual and Logical Reasoning. In Find-
+ings of the Association for Computational Linguistics: ACL
+2022.
+Mensink, T.; Uijlings, J.; Castrejon, L.; Goel, A.; Cadar, F.;
+Zhou, H.; Sha, F.; Araujo, A.; and Ferrari, V. 2023. Encyclo-
+pedic VQA: Visual Questions about Detailed Properties of
+Fine-Grained Categories. In Proceedings of the IEEE/CVF
+International Conference on Computer Vision.
+Morini, M.; Sarto, S.; Cornia, M.; and Baraldi, L. 2026. Look
+Twice: Training-Free Evidence Highlighting in Multimodal
+Large Language Models. arXiv:2604.01280.
+Singh, A.; Natarajan, V.; Shah, M.; Jiang, Y.; Chen, X.; Ba-
+tra, D.; Parikh, D.; and Rohrbach, M. 2019. Towards VQA
+Models That Can Read. In Proceedings of the IEEE/CVF
+Conference on Computer Vision and Pattern Recognition.
+Sun, Q.; Wang, J.; Yu, Q.; Cui, Y.; Zhang, F.; Zhang, X.; and
+Wang, X. 2024. EVA-CLIP-18B: Scaling CLIP to 18 Billion
+Parameters. arXiv:2402.04252.
+
+
+Tong, P.; Brown, E.; Wu, P.; Woo, S.; IYER, A. J. V.; Akula,
+S. C.; Yang, S.; Yang, J.; Middepogu, M.; Wang, Z.; et al.
+2024. Cambrian-1: A Fully Open, Vision-Centric Explo-
+ration of Multimodal LLMs. In NeurIPS.
+Wang, J.; Wang, Y.; Xu, G.; Zhang, J.; Gu, Y.; Jia, H.; Wang,
+J.; Xu, H.; Yan, M.; Zhang, J.; et al. 2023. AMBER: An
+LLM-free Multi-dimensional Benchmark for MLLMs Hal-
+lucination Evaluation. arXiv:2311.07397.
+Wang, P.; Bai, S.; Tan, S.; Wang, S.; Fan, Z.; Bai, J.; Chen, K.;
+Liu, X.; Wang, J.; Ge, W.; et al. 2024. Qwen2-VL: Enhancing
+Vision-Language Model’s Perception of the World at Any
+Resolution. arXiv:2409.12191.
+Wang, W.; Gao, Z.; Gu, L.; Pu, H.; Cui, L.; Wei, X.; Liu, Z.;
+Jing, L.; Ye, S.; Shao, J.; et al. 2025. InternVL3.5: Advancing
+Open-Source Multimodal Models in Versatility, Reasoning,
+and Efficiency. arXiv:2508.18265.
+Wu, P.; and Xie, S. 2024. V*: Guided Visual Search as a
+Core Mechanism in Multimodal LLMs. In Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition.
+xAI. 2024. Grok.
+Yan, Y.; and Xie, W. 2024. EchoSight: Advancing Visual-
+Language Models with Wiki Knowledge. In Al-Onaizan, Y.;
+Bansal, M.; and Chen, Y.-N., eds., Findings of the Associ-
+ation for Computational Linguistics: EMNLP 2024, 1538–
+1551. Miami, Florida, USA: Association for Computational
+Linguistics.
+Yang, W.; Fu, J.; Wang, R.; Wang, J.; Song, L.; and Bian,
+J. 2025. OMGM: Orchestrate Multiple Granularities and
+Modalities for Efficient Multimodal Retrieval. In Che, W.;
+Nabende, J.; Shutova, E.; and Pilehvar, M. T., eds., Pro-
+ceedings of the 63rd Annual Meeting of the Association for
+Computational Linguistics (Volume 1: Long Papers), 24545–
+24563. Vienna, Austria: Association for Computational Lin-
+guistics.
+Ye, W.; Su, Y.; Chen, Y.; Gao, L.; Li, J.; Li, R.; and Zhang, R.
+2026. QKVQA: Question-Focused Filtering for Knowledge-
+based VQA. In Proceedings of the ACM International Con-
+ference on Multimedia. Rio de Janeiro, Brazil.
+Yuan, X.; Ning, L.; Ye, Q.; Fan, W.; and Li, Q. 2026.
+mKG-RAG: Leveraging Multimodal Knowledge Graphs in
+Retrieval-Augmented Generation for Knowledge-intensive
+VQA. In Proceedings of the 49th International ACM SIGIR
+Conference on Research and Development in Information
+Retrieval, 2274–2285. New York, NY, USA: ACM.
+
+
+Appendix for
+Layers, Sinks, and Scaling: Adaptive Evidence Selection for
+Multimodal Large Language Models
+This standalone appendix accompanies Layers, Sinks, and Scaling: Adaptive Evidence Selection for Multimodal Large Language
+Models. It contains three complementary parts. Part I reports the runtime comparison between LoT and AREA under a
+common model and GPU configuration. Part II isolates the contributions of AREA’s evidence scaling, intervention gating, and
+textual refresh components. Part III presents qualitative comparisons across ten benchmarks, exposing the predictions and
+the visual and textual evidence selected by each method. Together, these results supplement the main paper with efficiency
+details, component-level analysis, and instance-level evidence.
+Part I: Runtime Efficiency
+The table below reports average end-to-end latency per sample. Per-sample time is used so that the comparison is not
+confounded by the different sharding layouts of the recorded full-dataset runs.
+Table 1: Per-sample inference runtime of LoT and AREA using Qwen2.5-VL-3B-Instruct in BF16 with batch size 1 on
+an NVIDIA A30 24 GB GPU per process.
+Each time is the recorded sum of per-sample elapsed times divided by the
+number of evaluated samples. The timed region includes retrieval, evidence processing, and answer generation, but excludes
+model/dataset initialization and metric evaluation. Runtime reduction is (tLoT −tAREA)/tLoT × 100%. Positive values mean
+AREA is faster.
+Dataset
+Samples
+LoT (s/sample)
+AREA (s/sample)
+Faster (%)
+E-VQA
+5,750
+1.363
+1.018
+25.3%
+ViQuAE
+1,257
+1.927
+1.272
+34.0%
+RealWorldQA
+765
+1.019
+0.874
+14.2%
+VstarBench
+191
+1.225
+0.894
+27.1%
+TextVQA
+5,000
+1.250
+0.973
+22.2%
+ChartQA
+2,500
+1.177
+0.909
+22.8%
+OCRBench
+1,000
+1.170
+0.878
+25.0%
+POPE
+9,000
+0.992
+0.922
+7.0%
+AMBER-D
+14,216
+1.164
+1.049
+9.8%
+
+
+Part II: Algorithm Ablation
+AREA makes three complementary evidence-allocation decisions: how much evidence to expose through Entropy-Calibrated
+Evidence Scaling, whether to intervene through Modality-Specific Intervention Gating, and when to revisit textual evidence
+through Causal Text-Evidence Refresh. Table 2 isolates these decisions using one-factor-at-a-time ablations. All variants
+use the same Qwen2.5-VL-3B-Instruct checkpoint, retrieved entities (when applicable), dataset splits, prompts, decoding
+settings, and evaluators; only the component named by each column is removed.
+Causal Text-Evidence Refresh is not
+applicable to vision-only benchmarks because they provide no retrieved textual context.
+Table 2: Component ablation of AREA. The full AREA column reproduces the Qwen2.5-VL-3B-Instruct results reported
+in the main tables. w/o Scaling fixes the textual evidence budget to one sentence and the visual crop scale to β = 2;
+w/o Gating applies the candidate intervention to every eligible modality; and w/o Refresh disables generation-time textual
+evidence refresh. All other settings are held fixed. Higher is better for every metric, and the best value in each row is bold.
+Dataset
+Metric
+AREA
+w/o Scaling
+w/o Gating
+w/o Refresh
+Retrieval-augmented benchmarks
+E-VQA
+All Accuracy
+31.0
+30.5
+30.7
+30.8
+InfoSeek
+All Accuracy
+25.6
+25.3
+25.2
+25.4
+ViQuAE
+Exact Match
+28.5
+27.9
+28.0
+28.2
+Retrieval Avg.
+Mean
+28.4
+27.9
+28.0
+28.1
+Vision-only benchmarks
+RealWorldQA
+Accuracy
+62.4
+61.9
+61.8
+–
+V-Star
+Accuracy
+62.6
+61.7
+62.0
+–
+TextVQA
+VQA Accuracy
+67.0
+66.3
+66.5
+–
+ChartQA
+Relaxed Accuracy
+79.3
+79.5
+78.9
+–
+OCRBench
+Overall Score
+80.2
+79.6
+79.8
+–
+POPE
+F1
+89.4
+89.1
+89.0
+–
+AMBER-D
+Accuracy
+41.7
+41.2
+40.6
+–
+Vision-only Avg.
+Mean
+68.9
+68.5
+68.4
+–
+The full AREA column serves as the matched reference. Differences from it quantify the contribution of each decision without
+changing the underlying model or retrieval inputs. For vision-only tasks, the scaling and gating ablations operate on visual
+evidence alone, while the refresh entry is marked as not applicable.
+
+
+Part III: Qualitative Visualizations
+The following pages present three instance-level comparisons for each of ten benchmarks. Each panel reports the question,
+reference answer, both predictions, localized visual evidence, and the surrounding retrieved context with selected sentences
+highlighted. Vision-only benchmarks explicitly state that no external retrieval is used.
+E-VQA: AREA vs. LoT
+
+
+InfoSeek: AREA vs. LoT
+
+
+ViQuAE: AREA vs. LoT
+
+
+RealWorldQA: AREA vs. LoT
+
+
+VstarBench: AREA vs. LoT
+
+
+TextVQA: AREA vs. LoT
+
+
+ChartQA: AREA vs. LoT
+
+
+OCRBench: AREA vs. LoT
+
+
+POPE: AREA vs. LoT
+
+
+AMBER-D: AREA vs. LoT

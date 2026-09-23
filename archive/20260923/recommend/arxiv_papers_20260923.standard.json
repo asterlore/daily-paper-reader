@@ -1,0 +1,653 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-23T22:08:27.500867+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 28,
+    "deep_cap": 6,
+    "deep_selected": 6,
+    "quick_candidates": 75,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2609.16710v1",
+      "source": "arxiv",
+      "title": "Continuous-Time Machine Learning: A Unified Mathematical Perspective",
+      "abstract": "Continuous-time (CT) machine learning has emerged as a principled framework for modeling temporal dynamics as a continuous process, particularly when observations are sampled at arbitrary time points or span long-range horizons. However, major branches of CT machine learning have matured in separate research communities, leaving their mathematical relationships and design trade-offs insufficiently characterized. In this survey, we develop a unified, concept-driven view of major CT machine learning branches through a taxonomy that organizes families according to their underlying base mathematical formulations. We present a canonical mathematical formulation that relates these families through different architectural choices of vector-field parameterization, stochasticity, memory mechanisms, and discretization. We compare training algorithms, optimization strategies, and failure modes, highlighting the trade-offs across families. We further provide a comparative analysis of theoretical computational complexity alongside an illustrative architecture-controlled benchmark analysis on representative architectures from each family. We also review software ecosystems supporting their implementation. Finally, we identify open challenges in approximation theory, training stability, hardware-efficient implementations, benchmarking, foundation models, and scientific machine learning, and discuss an agenda for future research.",
+      "authors": [
+        "Waleed Razzaq",
+        "Yun-Sheng Zhao",
+        "Yun-Bo Zhao"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-15T06:34:11+00:00",
+      "link": "https://arxiv.org/pdf/2609.16710v1",
+      "tags": [
+        "keyword:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "unified mathematical taxonomy of continuous-time machine learning",
+      "llm_evidence_cn": "连续时间机器学习的统一数学分类",
+      "llm_evidence": "连续时间机器学习的统一数学分类",
+      "canonical_evidence": "连续时间机器学习的统一数学分类",
+      "llm_tldr_en": "Continuous-time machine learning has matured in separate communities without clear mathematical relations. This survey builds a taxonomy around base mathematical formulations, presenting a canonical formulation that links families through vector-field parameterization choices.",
+      "llm_tldr_cn": "连续时间机器学习把时间动态建模为连续过程，适用于任意采样点或长时程观测，但其各分支在不同社区独立发展，数学关系与设计权衡缺乏统一刻画。本文以基础数学表述为纲构建分类体系，提出一个规范数学形式，通过向量场参数化等架构选择把各分支联系起来。综述系统梳理了这些家族的异同与折衷，为连续时间机器学习提供了统一的数学视角与设计指南。",
+      "llm_tldr": "连续时间机器学习把时间动态建模为连续过程，适用于任意采样点或长时程观测，但其各分支在不同社区独立发展，数学关系与设计权衡缺乏统一刻画。本文以基础数学表述为纲构建分类体系，提出一个规范数学形式，通过向量场参数化等架构选择把各分支联系起来。综述系统梳理了这些家族的异同与折衷，为连续时间机器学习提供了统一的数学视角与设计指南。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "fundamentals of machine learning theory and algorithms",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.16795v1",
+      "source": "arxiv",
+      "title": "Layers, Sinks, and Scaling: Adaptive Evidence Selection for Multimodal Large Language Models",
+      "abstract": "Multimodal large language models (MLLMs) can answer knowledge-intensive visual questions by combining visual evidence from images with facts retrieved from external sources. However, MLLMs may overlook relevant evidence in both modalities, attending weakly to the textual sentences or visual regions needed for the correct answer. Recent efforts address this by highlighting retrieved text and marking visual regions before generation, but apply a fixed, one-shot policy that cannot adapt to three sources of variation: whether highlighting is necessary, how much evidence different examples require, and when different textual evidence becomes relevant as the answer unfolds. We introduce Adaptive Relevance-guided Evidence Allocation (AREA), a training-free inference-time method that formulates evidence highlighting as adaptive allocation. AREA generates a single probe token to read visual and textual relevance from fixed backbone layers, then makes three decisions: i) whether to intervene (controlled by natural attention coverage and visual sink contamination), ii) how much evidence to expose (determined by relevance entropy), and iii) when to refresh text during generation (triggered by causal context-attention peaks). Across four KB-VQA and seven standard multimodal benchmarks with nine frozen MLLM checkpoints, establishes the best performance among training-free highlighting methods.",
+      "authors": [
+        "Zhenbin Wang",
+        "Lei Zhang",
+        "Lituan Wang",
+        "Wei Huang",
+        "Yan Wang",
+        "Zhenwei Zhang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-15T08:02:52+00:00",
+      "link": "https://arxiv.org/pdf/2609.16795v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "multimodal LLM combining visual evidence and retrieved text with adaptive evidence selection",
+      "llm_evidence_cn": "多模态大模型融合视觉证据与检索文本并自适应选择证据",
+      "llm_evidence": "多模态大模型融合视觉证据与检索文本并自适应选择证据",
+      "canonical_evidence": "多模态大模型融合视觉证据与检索文本并自适应选择证据",
+      "llm_tldr_en": "MLLMs may overlook relevant visual or textual evidence for knowledge-intensive visual questions. This work proposes Adaptive Relevance-guided Evidence Allocation, replacing fixed one-shot highlighting with adaptive selection across variation sources, improving grounded multimodal answering.",
+      "llm_tldr_cn": "多模态大模型在回答知识密集型视觉问题时，常会忽略图像区域或检索文本中的关键证据，现有高亮方法采用固定的一次性策略，无法适应不同样本对证据需求的变化。本文提出自适应相关性引导证据分配方法，依据是否需要高亮、证据需求量及文本证据随答案展开的相关性动态调整。实验表明该方法能更有效地定位跨模态证据，提升多模态问答的准确性与可解释性，为多模态学习中的证据融合提供了新思路。",
+      "llm_tldr": "多模态大模型在回答知识密集型视觉问题时，常会忽略图像区域或检索文本中的关键证据，现有高亮方法采用固定的一次性策略，无法适应不同样本对证据需求的变化。本文提出自适应相关性引导证据分配方法，依据是否需要高亮、证据需求量及文本证据随答案展开的相关性动态调整。实验表明该方法能更有效地定位跨模态证据，提升多模态问答的准确性与可解释性，为多模态学习中的证据融合提供了新思路。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "integrating multiple modalities like text and images in learning systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.17251v1",
+      "source": "arxiv",
+      "title": "Persistent Recurrent Memory Between Transformer Layers - Improves Language Model Generalization",
+      "abstract": "We introduce a simple architectural modification to decoder-only transformers: a persistent recurrent state that observes hidden representations via cross-attention, updates itself through a GRU, and modulates subsequent processing via gated addition. Inserted between the lower and upper halves of a 6-layer transformer, this module adds only 3.7\\% additional parameters while reducing evaluation loss from $2.438 \\pm 0.004$ to $1.743 \\pm 0.018$, corresponding to a 28.5\\% reduction on held-out language modeling data. The improvement is statistically significant across 5 random seeds ($p < 0.01$) and corresponds to reduced overfitting (generalization gap 0.12 vs 0.26). Through controlled ablations, we demonstrate that the improvement stems entirely from the persistent memory topology, not from auxiliary self-prediction objectives. A model with identical topology but no auxiliary loss performs equivalently, while a random auxiliary loss provides no benefit. Representation probing reveals that the persistent state encodes narrative position (52\\% vs 33\\% chance level)---information that standard attention maintains less efficiently. Our results suggest that bridging transformer layers with a lightweight recurrent memory is a simple, effective approach to improving generalization in small-scale language models.",
+      "authors": [
+        "Eduardo Novaes Hering"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-09-15T14:31:43+00:00",
+      "link": "https://arxiv.org/pdf/2609.17251v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "architectural modification to transformer layers improving language model generalization",
+      "llm_evidence_cn": "改进Transformer层结构以提升语言模型泛化",
+      "llm_evidence": "改进Transformer层结构以提升语言模型泛化",
+      "canonical_evidence": "改进Transformer层结构以提升语言模型泛化",
+      "llm_tldr_en": "Decoder-only transformers lack persistent memory across layers, contributing to overfitting and a wide generalization gap in language modeling. This work inserts a persistent recurrent state between transformer layers that observes hidden representations via cross-attention, updates through a GRU, and modulates processing by gated addition, cutting evaluation loss 28.5% with only 3.7% more parameters.",
+      "llm_tldr_cn": "解码器式Transformer各层之间缺乏持久的记忆机制，语言建模容易出现过拟合并拉大泛化差距。本文提出一种简单架构改动：在层间插入持久循环状态，通过交叉注意力观察隐藏表示，用GRU更新自身并以门控加法调制后续处理。在6层Transformer中该模块仅增加3.7%参数，却把评估损失从2.438降到1.743（降低28.5%），泛化差距由0.26降到0.12，跨5个随机种子显著。这表明轻量循环记忆可有效提升语言模型泛化。",
+      "llm_tldr": "解码器式Transformer各层之间缺乏持久的记忆机制，语言建模容易出现过拟合并拉大泛化差距。本文提出一种简单架构改动：在层间插入持久循环状态，通过交叉注意力观察隐藏表示，用GRU更新自身并以门控加法调制后续处理。在6层Transformer中该模块仅增加3.7%参数，却把评估损失从2.438降到1.743（降低28.5%），泛化差距由0.26降到0.12，跨5个随机种子显著。这表明轻量循环记忆可有效提升语言模型泛化。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "deep neural network architectures and training methods",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.17443v1",
+      "source": "arxiv",
+      "title": "BrainFocus: EEG-Guided ROI Selection for Efficient Vision-Language Models",
+      "abstract": "Vision-language models (VLMs) achieve strong visual question answering (VQA) performance, but processing large cluttered images is computationally expensive when only a small region is relevant. Electroencephalography (EEG) signals, which capture human neural responses to visual stimuli, can provide a human-derived semantic cue about the region of interest (ROI). However, EEG-guided visual category decoding remains imperfect, making direct ROI routing unreliable. In this work, we propose BrainFocus, a reliable EEG-guided efficient VLM framework for VQA. An EEG classifier predicts a target category, and a YOLO detector localizes the matching ROI. The VLM receives the cropped ROI only when both predictions pass confidence thresholds; otherwise, it processes the full image. For evaluation, we build on EEG-ImageNet to construct a 40-class benchmark comprising generated cluttered images and real object-centric images, with target-ROI annotations and 600 English visual question-answer pairs. Across Qwen3.5-VL 2B, 4B, and 9B models, BrainFocus improves VQA accuracy by 4.14-9.87 percentage points (pp) on cluttered scenes while reducing input tokens and total tokens by 23.2%-39.4% and 23.2%-39.3%, and end-to-end floating-point operations (FLOPs) by 23.2%-39.5%. These results demonstrate that EEG can guide efficient VLM inference even when its semantic decoding is imperfect.",
+      "authors": [
+        "Yihui Peng",
+        "Guorui Lu",
+        "Qinyu Chen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-15T16:51:13+00:00",
+      "link": "https://arxiv.org/pdf/2609.17443v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "multimodal vision-language model efficiency for VQA",
+      "llm_evidence_cn": "面向视觉问答的多模态视觉语言模型效率",
+      "llm_evidence": "面向视觉问答的多模态视觉语言模型效率",
+      "canonical_evidence": "面向视觉问答的多模态视觉语言模型效率",
+      "llm_tldr_en": "VLMs are costly on large cluttered images when only a small region matters. BrainFocus uses EEG category prediction and YOLO ROI localization, routing cropped regions to the VLM only when both pass confidence thresholds.",
+      "llm_tldr_cn": "视觉语言模型在视觉问答中表现优异，但处理大尺寸杂乱图像时计算开销巨大，而实际仅小部分区域相关。本文提出脑电引导的高效框架BrainFocus，利用脑电分类器预测目标类别、YOLO检测器定位匹配的感兴趣区域，仅当两者置信度均达标时才将裁剪区域送入视觉语言模型。实验表明该框架在保持问答性能的同时显著降低计算量，为多模态模型的高效推理提供人脑信号引导的新思路。",
+      "llm_tldr": "视觉语言模型在视觉问答中表现优异，但处理大尺寸杂乱图像时计算开销巨大，而实际仅小部分区域相关。本文提出脑电引导的高效框架BrainFocus，利用脑电分类器预测目标类别、YOLO检测器定位匹配的感兴趣区域，仅当两者置信度均达标时才将裁剪区域送入视觉语言模型。实验表明该框架在保持问答性能的同时显著降低计算量，为多模态模型的高效推理提供人脑信号引导的新思路。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "integrating multiple modalities like text and images in learning systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.17443v1"
+    },
+    {
+      "id": "2609.21815v1",
+      "source": "arxiv",
+      "title": "Matrix AdaGrad: Row-wise and Column-wise Adaptive Subgradient Methods",
+      "abstract": "Adaptive optimization methods such as AdaGrad and Adam are widely used in modern neural-network training, but their adaptive scaling is primarily designed for vector-valued parameters and does not explicitly exploit matrix structure. Recent matrix-aware optimizers demonstrate the benefits of structured optimization, yet a general theoretical framework for deriving matrix-aware adaptivity comparable to that of AdaGrad remains lacking. In this work, we develop a general Online Mirror Descent framework with adaptive proximal functions for matrix-valued parameters, providing a principled approach to deriving matrix-aware adaptive optimization through online regret minimization. By introducing row-wise and column-wise matrix proximal functions and analyzing the resulting regret trade-off, we derive Row-wise Matrix AdaGrad (Row-AdaGrad) and Column-wise Matrix AdaGrad (Column-AdaGrad), with adaptive scaling determined by the accumulated row-wise or column-wise gradient norms. We establish regret guarantees and show that these matrix-aware bounds can be strictly tighter than those of entry-wise AdaGrad under structured gradients. Experiments on matrix factorization and deep neural-network training further demonstrate the benefits of aligning adaptive scaling with matrix structure, including improved optimization stability and trainability at larger learning rates and greater network depths.",
+      "authors": [
+        "Wenpeng Zhang",
+        "Runsheng Yu",
+        "Peilin Zhao"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-18T14:22:26+00:00",
+      "link": "https://arxiv.org/pdf/2609.21815v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "matrix-aware adaptive subgradient optimization for neural network training",
+      "llm_evidence_cn": "面向神经网络训练的矩阵感知自适应次梯度优化",
+      "llm_evidence": "面向神经网络训练的矩阵感知自适应次梯度优化",
+      "canonical_evidence": "面向神经网络训练的矩阵感知自适应次梯度优化",
+      "llm_tldr_en": "Adaptive optimizers like AdaGrad and Adam scale vector-valued parameters but ignore matrix structure. This paper develops an Online Mirror Descent framework with row-wise and column-wise matrix proximal functions, giving a principled derivation of matrix-aware adaptive optimization via regret minimization.",
+      "llm_tldr_cn": "AdaGrad与Adam等自适应优化方法广泛用于神经网络训练，但其自适应缩放主要针对向量参数，未显式利用矩阵结构。本文提出面向矩阵值参数的在线镜像下降框架，引入行向与列向的矩阵近端函数，通过在线遗憾最小化为矩阵感知自适应优化提供原理化推导。该方法将AdaGrad式自适应性推广到矩阵情形，并给出理论分析。这为深度学习训练中的结构化优化器设计奠定了理论基础。",
+      "llm_tldr": "AdaGrad与Adam等自适应优化方法广泛用于神经网络训练，但其自适应缩放主要针对向量参数，未显式利用矩阵结构。本文提出面向矩阵值参数的在线镜像下降框架，引入行向与列向的矩阵近端函数，通过在线遗憾最小化为矩阵感知自适应优化提供原理化推导。该方法将AdaGrad式自适应性推广到矩阵情形，并给出理论分析。这为深度学习训练中的结构化优化器设计奠定了理论基础。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "fundamentals of machine learning theory and algorithms",
+      "matched_requirement_id": "req-1",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.21815v1"
+    },
+    {
+      "id": "2609.23393v1",
+      "source": "arxiv",
+      "title": "Structured Spatio-Temporal Evidence Graphs for Open-Vocabulary Object Retrieval in Videos",
+      "abstract": "Open-vocabulary object retrieval in videos requires answering free-form object queries under bounded query-time cost. Existing index-based systems typically store independent frame-level regions and retrieve them with vision-language similarity, which is effective for appearance queries but mismatched with predicates whose evidence is temporal or relational, such as stopped state, scene-region occupancy, persistence, and object interactions. We identify this gap as an evidence-unit mismatch: the query is expressed over tracklets or object tuples, while the index stores isolated boxes. To address it, we propose STEG-OVR, a structured spatio-temporal evidence graph for open-vocabulary object retrieval. STEG-OVR represents persistent objects as tracklet nodes and temporally compatible object pairs as relation edges, storing appearance, motion, scene occupancy, relative geometry, velocity compatibility, and symbolic relation evidence. A query is decomposed into entity, state, scene, temporal, and relation slots, which activate only the corresponding retrieval channels before soft score fusion and fixed-budget consistency verification. Diagnostic experiments on three object-centric settings show AP improvements from 0.0882 to 0.2073 on Beach, from 0.0834 to 0.1505 on Shibuya, and from 0.701 to 0.743 in a LOVO-style comparison. The gains are strongest for stopped-state and scene-region-occupancy queries, while sustained relations remain sensitive to tracking continuity and predicate calibration.",
+      "authors": [
+        "Jingdan Wang",
+        "Chuanwen Li"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB"
+      ],
+      "published": "2026-09-20T06:17:30+00:00",
+      "link": "https://arxiv.org/pdf/2609.23393v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "video object retrieval and spatio-temporal understanding",
+      "llm_evidence_cn": "视频目标检索与时空理解",
+      "llm_evidence": "视频目标检索与时空理解",
+      "canonical_evidence": "视频目标检索与时空理解",
+      "llm_tldr_en": "Video open-vocabulary retrieval needs temporal and relational evidence, but index systems store isolated frame regions, causing evidence-unit mismatch. STEG-OVR builds a structured spatio-temporal evidence graph over tracklets and object tuples.",
+      "llm_tldr_cn": "视频开放词汇目标检索需在有限查询成本下回答自由形式查询，但现有索引系统存储孤立的帧级区域，与依赖时序或关系证据的谓词查询存在证据单元错配。本文提出结构化时空证据图STEG-OVR，以轨迹和对象元组为单位组织持久目标的时空证据。实验表明其能更好支持停驻状态、区域占用与对象交互等谓词查询，为视频检索提供以证据为中心的结构化索引新范式。",
+      "llm_tldr": "视频开放词汇目标检索需在有限查询成本下回答自由形式查询，但现有索引系统存储孤立的帧级区域，与依赖时序或关系证据的谓词查询存在证据单元错配。本文提出结构化时空证据图STEG-OVR，以轨迹和对象元组为单位组织持久目标的时空证据。实验表明其能更好支持停驻状态、区域占用与对象交互等谓词查询，为视频检索提供以证据为中心的结构化索引新范式。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "algorithms for image and video understanding",
+      "matched_requirement_id": "req-6",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.23393v1"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.18057v1",
+      "source": "arxiv",
+      "title": "Anchoring What Matters: A Dual-Level Learning Framework for Visually-Grounded Multimodal Reasoning",
+      "abstract": "Reinforcement learning with verifiable rewards (RLVR) has significantly improved the reasoning capabilities of large vision-language models (LVLMs). However, standard on-policy RLVR algorithms face a critical optimization bottleneck in preserving and reinforcing visually grounded reasoning behaviors: valuable visually-grounded reasoning trajectories are discarded after a single update, while uniform token advantage allocation prevents the model from reinforcing critical perception or reasoning steps. To bridge this gap, we propose PIVOT, a dual-level learning framework that anchors policy optimization around informative visual reasoning signals. Specifically, PIVOT introduces a self-calibrated experience replay mechanism, which selectively collects and replays visually-grounded historical experiences as stable reference anchors for policy optimization. Building upon this, we further design a vision-guided advantage allocation mechanism to allocate additional vision-aware advantages to tokens based on their local visual support and impact on downstream reasoning. Extensive experiments across diverse benchmarks demonstrate that PIVOT achieves highly competitive performance in enhancing the multimodal reasoning capabilities of LVLMs.",
+      "authors": [
+        "Xinxin Song",
+        "Siyuan Li",
+        "Tingxiong Xiao",
+        "Jinli Suo"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-09-16T03:00:32+00:00",
+      "link": "https://arxiv.org/pdf/2609.18057v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "RLVR for visually-grounded multimodal reasoning",
+      "llm_evidence_cn": "面向视觉基础多模态推理的RLVR",
+      "llm_evidence": "面向视觉基础多模态推理的RLVR",
+      "canonical_evidence": "面向视觉基础多模态推理的RLVR",
+      "llm_tldr_en": "On-policy RLVR discards valuable visually grounded reasoning trajectories after one update and allocates token advantages uniformly. The paper proposes PIVOT, a dual-level learning framework with self-calibrated experience replay that anchors policy optimization on informative visual reasoning signals.",
+      "llm_tldr_cn": "带可验证奖励的强化学习显著提升了大型视觉语言模型的推理能力，但标准在线RLVR存在优化瓶颈：有价值的视觉基础推理轨迹在一次更新后即被丢弃，且均匀的token优势分配无法强化关键的感知或推理步骤。为弥补这一不足，作者提出PIVOT双层学习框架，围绕信息量大的视觉推理信号锚定策略优化，并引入自校准经验回放机制。该框架强化了视觉基础推理行为的保持与巩固。该工作为多模态推理中的强化学习优化提供了新思路。",
+      "llm_tldr": "带可验证奖励的强化学习显著提升了大型视觉语言模型的推理能力，但标准在线RLVR存在优化瓶颈：有价值的视觉基础推理轨迹在一次更新后即被丢弃，且均匀的token优势分配无法强化关键的感知或推理步骤。为弥补这一不足，作者提出PIVOT双层学习框架，围绕信息量大的视觉推理信号锚定策略优化，并引入自校准经验回放机制。该框架强化了视觉基础推理行为的保持与巩固。该工作为多模态推理中的强化学习优化提供了新思路。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "integrating multiple modalities like text and images in learning systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.16656v1",
+      "source": "arxiv",
+      "title": "Channel-Wise and Token-Aware Post-Training Quantization for Visual State Space Duality",
+      "abstract": "State space models (SSMs), particularly Mamba, have emerged as efficient alternatives to attention-based architectures and have been extended to vision through ViM, VMamba, and Visual State Space Duality (VSSD). Yet the low-bit post-training quantization (PTQ) behavior of VSSD remains insufficiently understood. A weight-activation split on VSSD-Tiny identifies activation quantization as the dominant low-bit bottleneck, while representative inputs to selected VSSD-backbone linear layers exhibit strong channel-wise magnitude variation and token-localized extremes. We propose the Channel-wise Token-balanced Output-Aware Clipping (CTOAC) method, which learns per-input-channel clipping bounds by minimizing a token-balanced reconstruction loss on the corresponding linear outputs. Only the selected linear layers and their input activations are quantized; other backbone operations retain their original precision. Across VSSD-Tiny, VSSD-Small, and VSSD-Base, the proposed CTOAC method retains ImageNet-1K accuracy and remains substantially more robust than the evaluated baselines at more aggressive precision settings. Applying the same quantization scope to VSSD backbones on COCO and ADE20K preserves strong object detection, instance segmentation, and semantic segmentation performance. An optimized RTX 4090 deployment configuration achieves up to 1.42x end-to-end speedup over FP32.",
+      "authors": [
+        "Jonghyeon Lim",
+        "Changhoon Yim"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-15T05:21:09+00:00",
+      "link": "https://arxiv.org/pdf/2609.16656v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "post-training quantization for visual state space models",
+      "llm_evidence_cn": "视觉状态空间模型的训练后量化",
+      "llm_evidence": "视觉状态空间模型的训练后量化",
+      "canonical_evidence": "视觉状态空间模型的训练后量化",
+      "llm_tldr_en": "The paper analyzes low-bit post-training quantization of Visual State Space Duality models, identifies activation quantization as the bottleneck, and proposes channel-wise token-balanced output-aware clipping.",
+      "llm_tldr_cn": "论文研究视觉状态空间对偶模型VSSD在低比特训练后量化下的行为，发现激活量化是主要瓶颈，且部分线性层输入存在显著通道幅度差异与令牌局部极值。为此作者提出通道级令牌平衡输出感知裁剪方法CTOAC，通过最小化令牌平衡重建损失学习逐输入通道的裁剪边界。实验表明该方法有效缓解了低比特量化误差，为状态空间模型的压缩部署提供了可行方案。",
+      "llm_tldr": "论文研究视觉状态空间对偶模型VSSD在低比特训练后量化下的行为，发现激活量化是主要瓶颈，且部分线性层输入存在显著通道幅度差异与令牌局部极值。为此作者提出通道级令牌平衡输出感知裁剪方法CTOAC，通过最小化令牌平衡重建损失学习逐输入通道的裁剪边界。实验表明该方法有效缓解了低比特量化误差，为状态空间模型的压缩部署提供了可行方案。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "deep neural network architectures and training methods",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.17067v1",
+      "source": "arxiv",
+      "title": "Bio-Inspired Palette Evolution in Indirectly Encoded Substrates: Timescale Compatibility Shapes Activation Function Discovery",
+      "abstract": "Indirectly encoded neural networks can assign different activation functions to individual nodes, but the right functions are rarely known in advance. When the available set contains only standard monotonic functions, problems like parity become unsolvable, yet an all-inclusive palette underperforms a curated one. How should evolution discover which functions to use? We address this as a meta-learning problem, designing 13 strategies (11 inspired by biological adaptation mechanisms, plus baseline and oracle controls) that modify the set of available activation functions during evolution. Each strategy translates a biological principle into an evolutionary operator: for example, circadian-inspired oscillatory gating cycles functions in and out of the palette on a fixed schedule, while immune-inspired Clonal Selection permanently protects functions that consistently correlate with fitness. We evaluate all strategies across more than 3,000 runs on parity and non-parity problems, first evolving the activation palette alone, then co-evolving a per-node aggregation palette on harder problems; an independent replication with new seeds confirms a stable high-reliability tier, with Circadian holding its top rank. Bio-inspired strategies match the solve rate of a tuned baseline but converge up to twice as fast, with Circadian halving total compute. Strategy rankings reverse across problem types, with no strategy dominating all domains. Strategy success is largely shaped by timescale compatibility: strategies whose characteristic timescale matches the evolutionary evaluation window consistently outperform those that operate too slowly. The practical guideline: match the mechanism's timescale to the evaluation budget. Rescaling the slowest strategy bypasses the oscillatory barrier entirely: all nine solutions solve parity with non-oscillatory activations paired with min or max aggregation.",
+      "authors": [
+        "Romain Claret",
+        "Michael O'Neill",
+        "Paul Cotofrei",
+        "Kilian Stoffel"
+      ],
+      "primary_category": "cs.NE",
+      "categories": [
+        "cs.NE",
+        "cs.LG"
+      ],
+      "published": "2026-09-15T12:10:19+00:00",
+      "link": "https://arxiv.org/pdf/2609.17067v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "evolving activation functions in indirectly encoded neural networks",
+      "llm_evidence_cn": "间接编码神经网络中激活函数的进化发现",
+      "llm_evidence": "间接编码神经网络中激活函数的进化发现",
+      "canonical_evidence": "间接编码神经网络中激活函数的进化发现",
+      "llm_tldr_en": "This work treats activation-function selection in indirectly encoded networks as meta-learning, designing 13 bio-inspired evolutionary operators that adapt the available function palette during evolution to improve network trainability.",
+      "llm_tldr_cn": "间接编码神经网络可为每个节点分配不同激活函数，但合适函数往往未知，仅含单调函数时奇偶等问题不可解，而全包含函数集又表现不佳。本文将激活函数集的选择建模为元学习问题，设计13种策略在进化过程中动态调整可用函数集，其中11种借鉴生物适应机制。实验揭示了时间尺度兼容性对激活函数发现的影响，为神经网络结构与训练方法的自动搜索提供了新视角。",
+      "llm_tldr": "间接编码神经网络可为每个节点分配不同激活函数，但合适函数往往未知，仅含单调函数时奇偶等问题不可解，而全包含函数集又表现不佳。本文将激活函数集的选择建模为元学习问题，设计13种策略在进化过程中动态调整可用函数集，其中11种借鉴生物适应机制。实验揭示了时间尺度兼容性对激活函数发现的影响，为神经网络结构与训练方法的自动搜索提供了新视角。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "deep neural network architectures and training methods",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.18393v1",
+      "source": "arxiv",
+      "title": "MSR: Multiple Subject Reference for Video Generation",
+      "abstract": "Conditioning a video generator on multiple images requires preserving appearance while associating each reference with its intended role. We present MSR (Multiple Subject Reference), a slot-aware conditioning scheme for LTX-based video generation. Each reference image is independently encoded as a static clip and represented by a separate latent-token group. A compact Fourier-feature multilayer perceptron adds a numeric slot embedding, while slot-dependent temporal offsets modify the group's rotary coordinates. The reference groups are prepended to noisy target tokens and serve as clean context during target-only flow-matching training. We implement this scheme through low-rank adaptation and release the resulting weights and inference workflows. Qualitative examples demonstrate compositions containing distinct characters and referenced environments in realistic and stylized scenes. Development observations suggest reduced reference confusion relative to an earlier continuous-reference baseline, while similar clothing, complex garments, and viewpoint changes remain challenging. We describe the conditioning mechanism, the retained training configuration, and the observed strengths and limitations of the released system. A supplementary audio-reference experiment adds voice conditioning while keeping the visual parameters frozen.",
+      "authors": [
+        "Guannan Li",
+        "Jiaji Chen",
+        "Jingyuan Liao",
+        "Yu Geng",
+        "Baolan Qiu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-16T09:51:50+00:00",
+      "link": "https://arxiv.org/pdf/2609.18393v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "multi-image conditioned video generation with slot-aware reference",
+      "llm_evidence_cn": "面向多图像条件的槽感知视频生成",
+      "llm_evidence": "面向多图像条件的槽感知视频生成",
+      "canonical_evidence": "面向多图像条件的槽感知视频生成",
+      "llm_tldr_en": "Conditioning a video generator on multiple images requires preserving appearance while associating each reference with its intended role. MSR is a slot-aware conditioning scheme for LTX-based video generation that encodes each reference as a separate latent-token group, adds numeric slot embeddings via a Fourier-feature MLP, and applies slot-dependent temporal offsets through low-rank adaptation.",
+      "llm_tldr_cn": "以多张图像为条件生成视频时，模型既要保持各主体的外观一致，又要把每张参考图关联到其预期角色，现有条件方式难以同时满足。本文提出MSR槽感知条件方案，把每张参考图独立编码为静态片段与单独的潜令牌组，用紧凑的傅里叶特征多层感知机加入数字槽嵌入，并以槽相关时间偏移修改旋转坐标。通过低秩适配实现后，定性示例显示该方法能在多主体视频生成中稳定保留外观与角色对应关系，推动了多模态生成式内容创作。",
+      "llm_tldr": "以多张图像为条件生成视频时，模型既要保持各主体的外观一致，又要把每张参考图关联到其预期角色，现有条件方式难以同时满足。本文提出MSR槽感知条件方案，把每张参考图独立编码为静态片段与单独的潜令牌组，用紧凑的傅里叶特征多层感知机加入数字槽嵌入，并以槽相关时间偏移修改旋转坐标。通过低秩适配实现后，定性示例显示该方法能在多主体视频生成中稳定保留外观与角色对应关系，推动了多模态生成式内容创作。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "What are the key advances in generative artificial intelligence for multimodal content generation?",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.16909v1",
+      "source": "arxiv",
+      "title": "PiPS: Post-Hoc Prototypical Explanations for Interpretable Semantic Segmentation",
+      "abstract": "With the increasing deployment of deep neural networks in critical systems, such as medical diagnostics and autonomous vehicles, ensuring their interpretability is crucial to building trust in decision-making systems. In the field of explainable artificial intelligence, prototype-based reasoning has gained particular popularity, as it mimics human cognitive processes by explaining model decisions based on visual similarity under the looks like this paradigm. While this paradigm has been thoroughly investigated in the context of global image classification, the interpretability of dense predictions, particularly semantic segmentation, remains largely unexplored despite its immense importance in tasks requiring precise object localization. Existing prototype-based interpretable segmentation models rely on ante-hoc architectures, which entails significant limitations because they require costly training from scratch and modifications to the network structure, ultimately leading to a noticeable drop in predictive performance compared to standard black-box models. To address this issue, we propose PiPS (Post-hoc interpretable Prototypical Segmentation), the first fully post-hoc solution for generating prototypical explanations for semantic segmentation models. Our method enables the extraction of intuitive, spatially localized explanations from any pre-trained network without modification or fine-tuning, thereby preserving 100% of the model's original predictive performance. This approach opens a new avenue for the safe and cost-effective deployment of transparent systems in advanced computer vision tasks. Codebase available at https://github.com/gmum/PIPS.",
+      "authors": [
+        "Miłosz Adamczyk",
+        "Tymoteusz Zapala",
+        "Piotr Borycki",
+        "Przemysław Spurek"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-15T09:40:37+00:00",
+      "link": "https://arxiv.org/pdf/2609.16909v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "post-hoc prototypical explanations for semantic segmentation",
+      "llm_evidence_cn": "面向语义分割的事后可原型解释",
+      "llm_evidence": "面向语义分割的事后可原型解释",
+      "canonical_evidence": "面向语义分割的事后可原型解释",
+      "llm_tldr_en": "Prototype-based interpretability is well studied for image classification but largely unexplored for dense prediction. The authors propose PiPS, a post-hoc prototypical explanation method for semantic segmentation, explaining decisions via visual similarity for precise localization tasks.",
+      "llm_tldr_cn": "原型推理在图像分类可解释性中已被广泛研究，但面向语义分割等稠密预测的解释仍很欠缺，而这类任务在医疗诊断与自动驾驶中至关重要。本文提出PiPS事后可原型解释方法，基于相似外观的视觉相似性为分割决策提供解释，兼顾精确目标定位需求。该工作填补了稠密预测可解释性的空白，有助于提升关键系统中深度模型决策的可信度。",
+      "llm_tldr": "原型推理在图像分类可解释性中已被广泛研究，但面向语义分割等稠密预测的解释仍很欠缺，而这类任务在医疗诊断与自动驾驶中至关重要。本文提出PiPS事后可原型解释方法，基于相似外观的视觉相似性为分割决策提供解释，兼顾精确目标定位需求。该工作填补了稠密预测可解释性的空白，有助于提升关键系统中深度模型决策的可信度。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "algorithms for image and video understanding",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.17376v1",
+      "source": "arxiv",
+      "title": "Large Language Models Develop Belief State Geometry In-Context",
+      "abstract": "Large language models (LLMs) trained on next-token prediction exhibit remarkable in-context learning (ICL) abilities, yet the representations that support ICL remain poorly understood. We consider such representations in a controlled setting: prompting LLMs with data emitted from hidden Markov models (HMMs) and probing for the corresponding belief state -- the posterior distribution over the HMM's hidden states given the observed token history. Across six open-source LLMs prompted with data from 40 HMMs selected for non-trivial belief structure, we find that belief states are linearly decodable from residual stream activations, with peak probe $R^2$-values from 0.83-0.99 across HMM and LLM combinations, ranging from early to late layers. To establish functional relevance, we intervene directly on the probe-identified subspace via patching and steering, resulting in downstream prediction quality on the order of the untampered model, while controls degrade performance substantially. Together, these results provide representation-level evidence that ICL in open-source LLMs approximates optimal Bayesian prediction over a context-inferred generative model. More broadly, our findings extend prior results linking input-distribution structure to activation geometry: from toy networks trained explicitly on HMM data to production-scale LLMs.",
+      "authors": [
+        "Daniel Balcells",
+        "Andrew Jun Lee",
+        "Chirag Rastogi",
+        "Paul M. Riechers",
+        "Adam Shai",
+        "Xavier Poncini"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-09-15T16:17:59+00:00",
+      "link": "https://arxiv.org/pdf/2609.17376v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "probing LLM residual streams for belief states in-context",
+      "llm_evidence_cn": "探测大语言模型上下文中的信念状态表示",
+      "llm_evidence": "探测大语言模型上下文中的信念状态表示",
+      "canonical_evidence": "探测大语言模型上下文中的信念状态表示",
+      "llm_tldr_en": "This study probes six open-source LLMs prompted with hidden Markov model data and finds that belief states are linearly decodable from residual stream activations, revealing the geometry supporting in-context learning.",
+      "llm_tldr_cn": "大语言模型展现出强大的上下文学习能力，但支撑这种能力的内部表示仍不清楚。本文用隐马尔可夫模型生成的数据提示六种开源LLM，探测其残差流激活中是否编码对应的信念状态后验分布。结果显示在40个非平凡HMM上，信念状态可从各层激活中线性解码，峰值R方达0.83至0.99，且进一步验证了其功能作用。该发现揭示了LLM上下文学习背后的表示几何结构。",
+      "llm_tldr": "大语言模型展现出强大的上下文学习能力，但支撑这种能力的内部表示仍不清楚。本文用隐马尔可夫模型生成的数据提示六种开源LLM，探测其残差流激活中是否编码对应的信念状态后验分布。结果显示在40个非平凡HMM上，信念状态可从各层激活中线性解码，峰值R方达0.83至0.99，且进一步验证了其功能作用。该发现揭示了LLM上下文学习背后的表示几何结构。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "What methods in natural language processing leverage large language models?",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.18527v1",
+      "source": "arxiv",
+      "title": "Provable Guarantees for Spectral Structured Prediction",
+      "abstract": "Structured prediction is the simultaneous prediction of multiple labels, and is widely used in various fields, such as natural language processing and computer vision. In this paper, we study binary node label recovery on signed graphs with edge-flip noise, a model introduced by (Globerson et al., 2015), via a simple spectral method that decodes node labels from the signs of the principal eigenvector of the noisy signed adjacency matrix. We develop graph structure-agnostic theoretical guarantees for approximate inference of node labels as well as guarantees for maximum angle deviation with respect to the ground truth node labels. By leveraging tools from matrix concentration theory and eigenvector perturbation analysis, we derive new concentration inequalities that explicitly quantify the effect of the spectral gap of the adjacency matrix, number of nodes, degree distribution, and noise level. As a corollary, we relate our general results to the Cheeger constant and provide results for different classes of graphs. We perform several synthetic experiments to validate our theory. To the best of our knowledge, we are the first to provide theoretical guarantees for the spectral-based approach. As a byproduct of our analysis, we derive technical results that might be of independent interest and useful for other machine learning problems.",
+      "authors": [
+        "Violet Zheng",
+        "Jean Honorio"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-16T11:55:16+00:00",
+      "link": "https://arxiv.org/pdf/2609.18527v1",
+      "tags": [
+        "keyword:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "theoretical guarantees for spectral structured prediction",
+      "llm_evidence_cn": "谱结构化预测的理论保证",
+      "llm_evidence": "谱结构化预测的理论保证",
+      "canonical_evidence": "谱结构化预测的理论保证",
+      "llm_tldr_en": "This paper gives graph-agnostic theoretical guarantees for recovering node labels on signed graphs with edge-flip noise via a simple spectral decoding method.",
+      "llm_tldr_cn": "结构化预测需要同时预测多个标签，广泛用于自然语言处理与计算机视觉，但在带边翻转噪声的符号图上缺乏严格的理论保证。本文研究该模型下的二值节点标签恢复问题，采用简单谱方法，从含噪符号邻接矩阵主特征向量的符号解码节点标签，并借助矩阵集中理论与特征向量扰动分析推导新的集中不等式。研究给出了与图结构无关的节点标签近似推断保证以及相对真值的最大角度偏差界，为谱方法在结构化预测中的可靠性提供了理论支撑。",
+      "llm_tldr": "结构化预测需要同时预测多个标签，广泛用于自然语言处理与计算机视觉，但在带边翻转噪声的符号图上缺乏严格的理论保证。本文研究该模型下的二值节点标签恢复问题，采用简单谱方法，从含噪符号邻接矩阵主特征向量的符号解码节点标签，并借助矩阵集中理论与特征向量扰动分析推导新的集中不等式。研究给出了与图结构无关的节点标签近似推断保证以及相对真值的最大角度偏差界，为谱方法在结构化预测中的可靠性提供了理论支撑。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "fundamentals of machine learning theory and algorithms",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.16946v2",
+      "source": "arxiv",
+      "title": "High-Fidelity Video Quality Assessment with VQA-Specific Saliency",
+      "abstract": "No-reference video quality assessment (NR VQA) has recently seen promising progress with deep learning. However, video data is inherently large, and processing them with deep models incurs high computational cost. This challenge is particularly acute in VQA, where preserving original-resolution cues and dense temporal information is critical for accuracy. Existing efficiency-driven preprocessing strategies, such as fragmenting, reduce computation but alter the input data distribution, limiting effective reuse of pretrained video foundation models (ViFMs). To address these challenges, we propose \\textbf{H}igh-\\textbf{F}idelity \\textbf{V}ideo \\textbf{Q}uality \\textbf{A}ssessment (\\textbf{HFVQA}), a framework built on fixed-size spatio-temporal (ST) patches that is fully compatible with pretrained ViFMs. HFVQA samples ST patches across multiple scales, including the original resolution, with minimal temporal subsampling to preserve low-level quality cues and semantic context. To limit computation, HFVQA introduces a lightweight auxiliary network trained end-to-end with the ViFM encoder to learn \\textit{VQA-specific saliency}. Distilled directly from quality supervision, this saliency captures task-specific importance patterns, reflecting that video quality perception is dominated by a small subset of spatio-temporal regions. By combining high-fidelity spatio-temporal cues with learned, task-specific saliency, HFVQA achieves SOTA performance on standard NR VQA benchmarks while processing as little as 12\\% of candidate ST patches, making high-fidelity ViFM-based VQA computationally tractable.",
+      "authors": [
+        "Hakan Emre Gedik",
+        "Shashank Gupta",
+        "Alan Bovik"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-15T10:23:05+00:00",
+      "link": "https://arxiv.org/pdf/2609.16946v2",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "deep learning for no-reference video quality assessment",
+      "llm_evidence_cn": "深度学习用于无参考视频质量评估",
+      "llm_evidence": "深度学习用于无参考视频质量评估",
+      "canonical_evidence": "深度学习用于无参考视频质量评估",
+      "llm_tldr_en": "No-reference video quality assessment suffers high computation and distorted inputs from fragmenting. The authors propose HFVQA built on fixed-size spatio-temporal patches with VQA-specific saliency, preserving resolution and temporal cues while reusing video foundation models.",
+      "llm_tldr_cn": "无参考视频质量评估在深度模型下计算代价高，现有分片预处理虽省算力却改变数据分布，妨碍复用预训练视频基础模型。本文提出HFVQA框架，基于固定尺寸时空块并引入面向质量评估的显著性机制，在保留原始分辨率与密集时序信息的同时提升效率。实验显示该方法在准确性与计算成本间取得更好平衡，为高质量视频理解与评估提供了新思路。",
+      "llm_tldr": "无参考视频质量评估在深度模型下计算代价高，现有分片预处理虽省算力却改变数据分布，妨碍复用预训练视频基础模型。本文提出HFVQA框架，基于固定尺寸时空块并引入面向质量评估的显著性机制，在保留原始分辨率与密集时序信息的同时提升效率。实验显示该方法在准确性与计算成本间取得更好平衡，为高质量视频理解与评估提供了新思路。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "algorithms for image and video understanding",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.17825v1",
+      "source": "arxiv",
+      "title": "NObSP: Functional Decomposition of Neural Networks via Oblique Subspace Projections",
+      "abstract": "Understanding how deep neural networks make decisions remains a fundamental challenge. We present NObSP (Nonlinear Oblique Subspace Projections), a framework that decomposes predictions into explicit per feature contribution functions and an interaction residual. NObSP exploits the linear final layer of a trained network and uses oblique projections in sample space to reduce double counting when learned feature subspaces overlap, thereby supporting both local explanations and global functional analysis. We establish connections to functional ANOVA and the Kolmogorov-Arnold representation theorem and derive an efficient partial regression algorithm for out of sample evaluation. For convolutional networks, NObSP-CAM produces class activation maps without backward passes after a one time calibration. Experiments on tabular and vision benchmarks show faithfulness comparable to established attribution methods. On a synthetic benchmark with known component functions, NObSP obtains a Function Reproduction Score of 0.989, compared with 0.966 for KernelSHAP and 0.922 for Integrated Gradients. On TinyImageNet, contribution vector embeddings improve mean nearest neighbor class purity from 0.654 for raw activations to 0.713 and reduce mean neighbor distance by more than half. These results indicate that NObSP complements scalar attribution methods by recovering functional contribution profiles with separable positive and negative evidence.",
+      "authors": [
+        "Alexander Caicedo",
+        "Víctor De La Hoz",
+        "Santiago Alférez"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-15T20:40:44+00:00",
+      "link": "https://arxiv.org/pdf/2609.17825v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "functional decomposition of deep neural network predictions via oblique subspace projections",
+      "llm_evidence_cn": "通过斜子空间投影对深度神经网络预测进行功能分解",
+      "llm_evidence": "通过斜子空间投影对深度神经网络预测进行功能分解",
+      "canonical_evidence": "通过斜子空间投影对深度神经网络预测进行功能分解",
+      "llm_tldr_en": "Understanding how deep networks make decisions remains challenging. NObSP decomposes predictions into per-feature contribution functions and an interaction residual using oblique projections, supporting local and global analysis and producing class activation maps for CNNs.",
+      "llm_tldr_cn": "理解深度神经网络如何做出决策仍是基础性难题，现有解释方法难以在特征子空间重叠时避免贡献重复计算。本文提出NObSP框架，利用网络末层线性结构在样本空间做斜投影，将预测分解为逐特征贡献函数与交互残差，并与函数方差分析及Kolmogorov-Arnold表示定理建立联系。该方法支持局部解释与全局功能分析，还衍生出面向卷积网络的类激活映射，为深度模型可解释性提供了通用工具。",
+      "llm_tldr": "理解深度神经网络如何做出决策仍是基础性难题，现有解释方法难以在特征子空间重叠时避免贡献重复计算。本文提出NObSP框架，利用网络末层线性结构在样本空间做斜投影，将预测分解为逐特征贡献函数与交互残差，并与函数方差分析及Kolmogorov-Arnold表示定理建立联系。该方法支持局部解释与全局功能分析，还衍生出面向卷积网络的类激活映射，为深度模型可解释性提供了通用工具。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "deep neural network architectures and training methods",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.18578v1",
+      "source": "arxiv",
+      "title": "Learning Where to Focus: Self-Supervised Multi-Scale ViTs for Histopathology",
+      "abstract": "Pathologists diagnose diseases by first locating suspicious tissue and then examining it at higher magnification, whereas self-supervised vision transformers (ViTs) allocate the same spatial resolution to every image region despite diagnostic evidence being sparse and spanning multiple biological scales. Recent pathology foundation models have substantially improved representation quality by scaling training data and model capacity, but largely retain uniform tokenization. We instead investigate whether pathology representations can be improved by learning where to allocate spatial resolution during self-supervised learning. To this end, we propose CRAFT (Coarse-to-fine Region-Adaptive Feature Tokenization), a DINO-based framework that learns image-dependent mixed-scale representations by using self-supervised attention to selectively refine informative regions while preserving coarse context, together with a symmetric cross-scale regularization objective that encourages complementary coarse and fine representations. Across CAMELYON16, TCGA-Lung subtype classification, and TCGA-LUAD survival prediction, CRAFT consistently outperforms comparable-scale self-supervised methods while requiring lower inference computation. Despite using only a compact 22M parameter backbone trained on comparatively small pathology datasets, CRAFT remains competitive with, and often surpasses, substantially larger pathology foundation models.",
+      "authors": [
+        "Anabel Stammer",
+        "Valay Bundele",
+        "Mehran Hosseinzadeh",
+        "Hendrik P. A. Lensch"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-16T12:38:41+00:00",
+      "link": "https://arxiv.org/pdf/2609.18578v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "self-supervised ViTs for histopathology representation learning",
+      "llm_evidence_cn": "面向组织病理学表征学习的自监督ViT",
+      "llm_evidence": "面向组织病理学表征学习的自监督ViT",
+      "canonical_evidence": "面向组织病理学表征学习的自监督ViT",
+      "llm_tldr_en": "Pathologists zoom into sparse, multi-scale evidence, but self-supervised ViTs use uniform tokenization. CRAFT, a DINO-based framework, learns coarse-to-fine region-adaptive tokenization, allocating spatial resolution where diagnostic evidence lies to improve histopathology representations.",
+      "llm_tldr_cn": "病理医生诊断时先定位可疑组织再放大观察，而自监督视觉Transformer却对图像每个区域分配相同空间分辨率，尽管诊断证据稀疏且跨越多个生物尺度。现有病理基础模型虽通过扩大数据与模型规模提升了表征质量，却仍沿用均匀令牌化。为此，本文提出CRAFT，一种基于DINO的粗到细区域自适应特征令牌化框架，在自监督学习中学习把空间分辨率分配到证据所在区域，从而提升病理表征质量。",
+      "llm_tldr": "病理医生诊断时先定位可疑组织再放大观察，而自监督视觉Transformer却对图像每个区域分配相同空间分辨率，尽管诊断证据稀疏且跨越多个生物尺度。现有病理基础模型虽通过扩大数据与模型规模提升了表征质量，却仍沿用均匀令牌化。为此，本文提出CRAFT，一种基于DINO的粗到细区域自适应特征令牌化框架，在自监督学习中学习把空间分辨率分配到证据所在区域，从而提升病理表征质量。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "machine learning applications in biological data analysis",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.17398v1",
+      "source": "arxiv",
+      "title": "Enhancing Accessibility of Medical Texts through Large Language Model-Driven Plain Language Adaptation",
+      "abstract": "This paper addresses the challenge of making complex healthcare information more accessible through automated Plain Language Adaptation (PLA). PLA aims to simplify technical medical language, bridging a critical gap between the complexity of healthcare texts and patients' reading comprehension. Recent advances in Large Language Models (LLMs), such as GPT and BART, have opened new possibilities for PLA, especially in zero-shot and few-shot learning contexts where task-specific data is limited. In this work, we leverage the capabilities of LLMs such as GPT-4o-mini, Gemini-1.5-pro, and LLaMA for text simplification. Additionally, we incorporate Mixture-of-Agents (MoA) techniques to enhance adaptability and robustness in PLA tasks. Key contributions include a comparative analysis of prompting strategies, finetuning with QLoRA on different LLMs, and the integration of MoA technique. Our findings demonstrate the effectiveness of LLM-driven PLA, showcasing its potential in making healthcare information more comprehensible while preserving essential content.",
+      "authors": [
+        "Ting-Wei Chang",
+        "Hen-Hsen Huang",
+        "Hsin-Hsi Chen"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-09-15T16:33:38+00:00",
+      "link": "https://arxiv.org/pdf/2609.17398v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "large language models for medical text simplification",
+      "llm_evidence_cn": "利用大语言模型进行医学文本简化",
+      "llm_evidence": "利用大语言模型进行医学文本简化",
+      "canonical_evidence": "利用大语言模型进行医学文本简化",
+      "llm_tldr_en": "Complex healthcare texts exceed patients' reading comprehension, motivating automated plain language adaptation. This work leverages large language models such as GPT-4o-mini, Gemini-1.5-pro and LLaMA for medical text simplification, adding Mixture-of-Agents techniques to improve adaptability and robustness in zero-shot and few-shot settings.",
+      "llm_tldr_cn": "医疗文本术语复杂，远超普通患者的阅读水平，自动化通俗化改写成为弥合理解鸿沟的关键需求。本文利用GPT-4o-mini、Gemini-1.5-pro和LLaMA等大语言模型执行医学文本简化，并引入多智能体混合技术提升零样本与少样本场景下的适应性和稳健性。实验显示在任务数据有限时该方法仍能有效简化专业医学术语，提升了医疗信息的可及性，为大语言模型在健康传播中的应用提供了实践路径。",
+      "llm_tldr": "医疗文本术语复杂，远超普通患者的阅读水平，自动化通俗化改写成为弥合理解鸿沟的关键需求。本文利用GPT-4o-mini、Gemini-1.5-pro和LLaMA等大语言模型执行医学文本简化，并引入多智能体混合技术提升零样本与少样本场景下的适应性和稳健性。实验显示在任务数据有限时该方法仍能有效简化专业医学术语，提升了医疗信息的可及性，为大语言模型在健康传播中的应用提供了实践路径。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "What methods in natural language processing leverage large language models?",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

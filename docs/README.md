@@ -48,7 +48,7 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-22</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-23</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 17 篇</strong>
@@ -58,7 +58,7 @@
     <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>6</dd></div>
     <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>11</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-22 21:49:08 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-23 22:11:59 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今天从17篇推荐中筛出6篇精读、11篇速读，头条是两篇9分工作：深度ReLU表示的Brownian Heads与</p>
+<p>2026-09-23日报完成：从17篇中精读6篇、速读11篇，主打连续时间机器学习与多模态自适应证据选择。</p>
+<p>最值得看的是两篇8.0精读：《Continuous-Time Machine Learning》给统一数学视角，《Layers, Sinks, and Scaling》聚焦多模态大模型证据选择。</p>
+<p>普通读者可先读这两篇精读，再按兴趣从速读中的视频生成、多模态推理或谱结构化预测切入。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -81,7 +83,7 @@
     <strong class="dpr-home-dashboard-count">6 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Brownian Heads for Deep ReLU Representations: Activation Mass and the Cost of Same-Sample Selection">Brownian Heads for Deep ReLU Representations: Activation Mass and the Cost of Same-Sample Selection</span></li><li><span class="dpr-home-dashboard-paper-title" title="QLoRA Fine-Tuning of Ministral LLM for Sequence-to-Function Protein Annotation">QLoRA Fine-Tuning of Ministral LLM for Sequence-to-Function Protein Annotation</span></li><li><span class="dpr-home-dashboard-paper-title" title="PACE: Progressive Angular-to-Norm Contrastive Embedding">PACE: Progressive Angular-to-Norm Contrastive Embedding</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Continuous-Time Machine Learning: A Unified Mathematical Perspective">Continuous-Time Machine Learning: A Unified Mathematical Perspective</span></li><li><span class="dpr-home-dashboard-paper-title" title="Layers, Sinks, and Scaling: Adaptive Evidence Selection for Multimodal Large Language Models">Layers, Sinks, and Scaling: Adaptive Evidence Selection for Multimodal Large Language Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="Persistent Recurrent Memory Between Transformer Layers - Improves Language Model Generalization">Persistent Recurrent Memory Between Transformer Layers - Improves Language Model Generalization</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">demo <strong>6</strong></span></div>
 </section>
@@ -94,7 +96,7 @@
     <strong class="dpr-home-dashboard-count">11 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="GPCR Ligand Bioactivity Prediction with Physics-Informed Dual-State Query Learning">GPCR Ligand Bioactivity Prediction with Physics-Informed Dual-State Query Learning</span></li><li><span class="dpr-home-dashboard-paper-title" title="Smarter by the Moment: Environment-Driven Dynamic Policies for Continual LLM Improvement">Smarter by the Moment: Environment-Driven Dynamic Policies for Continual LLM Improvement</span></li><li><span class="dpr-home-dashboard-paper-title" title="Can We Do Interpretable NLI with Graphs Based on Atomic Propositions?">Can We Do Interpretable NLI with Graphs Based on Atomic Propositions?</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Anchoring What Matters: A Dual-Level Learning Framework for Visually-Grounded Multimodal Reasoning">Anchoring What Matters: A Dual-Level Learning Framework for Visually-Grounded Multimodal Reasoning</span></li><li><span class="dpr-home-dashboard-paper-title" title="MSR: Multiple Subject Reference for Video Generation">MSR: Multiple Subject Reference for Video Generation</span></li><li><span class="dpr-home-dashboard-paper-title" title="Provable Guarantees for Spectral Structured Prediction">Provable Guarantees for Spectral Structured Prediction</span></li></ul>
   </div>
   <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">demo <strong>11</strong></span></div>
 </section>

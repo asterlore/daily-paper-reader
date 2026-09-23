@@ -1,0 +1,281 @@
+{
+  "date": "20260923",
+  "date_label": "",
+  "generated_at": "2026-09-23 22:11:59 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.16710v1",
+      "route": "202609/23/2609.16710v1-continuous-time-machine-learning-a-unified-mathematical-perspective",
+      "title": "Continuous-Time Machine Learning: A Unified Mathematical Perspective",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "连续时间机器学习的统一数学分类",
+      "first_seen_at": "2026-09-23 22:11:59 UTC",
+      "updated_at": "2026-09-23 22:11:59 UTC"
+    },
+    {
+      "paper_id": "2609.16795v1",
+      "route": "202609/23/2609.16795v1-layers-sinks-and-scaling-adaptive-evidence-selection-for-multimodal-large-language-models",
+      "title": "Layers, Sinks, and Scaling: Adaptive Evidence Selection for Multimodal Large Language Models",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "多模态大模型融合视觉证据与检索文本并自适应选择证据",
+      "first_seen_at": "2026-09-23 22:11:59 UTC",
+      "updated_at": "2026-09-23 22:11:59 UTC"
+    },
+    {
+      "paper_id": "2609.17251v1",
+      "route": "202609/23/2609.17251v1-persistent-recurrent-memory-between-transformer-layers---improves-language-model-generalization",
+      "title": "Persistent Recurrent Memory Between Transformer Layers - Improves Language Model Generalization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "改进Transformer层结构以提升语言模型泛化",
+      "first_seen_at": "2026-09-23 22:11:59 UTC",
+      "updated_at": "2026-09-23 22:11:59 UTC"
+    },
+    {
+      "paper_id": "2609.17443v1",
+      "route": "202609/23/2609.17443v1-brainfocus-eeg-guided-roi-selection-for-efficient-vision-language-models",
+      "title": "BrainFocus: EEG-Guided ROI Selection for Efficient Vision-Language Models",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向视觉问答的多模态视觉语言模型效率",
+      "first_seen_at": "2026-09-23 22:11:59 UTC",
+      "updated_at": "2026-09-23 22:11:59 UTC"
+    },
+    {
+      "paper_id": "2609.18057v1",
+      "route": "202609/23/2609.18057v1-anchoring-what-matters-a-dual-level-learning-framework-for-visually-grounded-multimodal-reasoning",
+      "title": "Anchoring What Matters: A Dual-Level Learning Framework for Visually-Grounded Multimodal Reasoning",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向视觉基础多模态推理的RLVR",
+      "first_seen_at": "2026-09-23 22:11:59 UTC",
+      "updated_at": "2026-09-23 22:11:59 UTC"
+    },
+    {
+      "paper_id": "2609.18393v1",
+      "route": "202609/23/2609.18393v1-msr-multiple-subject-reference-for-video-generation",
+      "title": "MSR: Multiple Subject Reference for Video Generation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向多图像条件的槽感知视频生成",
+      "first_seen_at": "2026-09-23 22:11:59 UTC",
+      "updated_at": "2026-09-23 22:11:59 UTC"
+    },
+    {
+      "paper_id": "2609.18527v1",
+      "route": "202609/23/2609.18527v1-provable-guarantees-for-spectral-structured-prediction",
+      "title": "Provable Guarantees for Spectral Structured Prediction",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "谱结构化预测的理论保证",
+      "first_seen_at": "2026-09-23 22:11:59 UTC",
+      "updated_at": "2026-09-23 22:11:59 UTC"
+    },
+    {
+      "paper_id": "2609.18578v1",
+      "route": "202609/23/2609.18578v1-learning-where-to-focus-self-supervised-multi-scale-vits-for-histopathology",
+      "title": "Learning Where to Focus: Self-Supervised Multi-Scale ViTs for Histopathology",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向组织病理学表征学习的自监督ViT",
+      "first_seen_at": "2026-09-23 22:11:59 UTC",
+      "updated_at": "2026-09-23 22:11:59 UTC"
+    },
+    {
+      "paper_id": "2609.21815v1",
+      "route": "202609/23/2609.21815v1-matrix-adagrad-row-wise-and-column-wise-adaptive-subgradient-methods",
+      "title": "Matrix AdaGrad: Row-wise and Column-wise Adaptive Subgradient Methods",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向神经网络训练的矩阵感知自适应次梯度优化",
+      "first_seen_at": "2026-09-23 22:11:59 UTC",
+      "updated_at": "2026-09-23 22:11:59 UTC"
+    },
+    {
+      "paper_id": "2609.23393v1",
+      "route": "202609/23/2609.23393v1-structured-spatio-temporal-evidence-graphs-for-open-vocabulary-object-retrieval-in-videos",
+      "title": "Structured Spatio-Temporal Evidence Graphs for Open-Vocabulary Object Retrieval in Videos",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "视频目标检索与时空理解",
+      "first_seen_at": "2026-09-23 22:11:59 UTC",
+      "updated_at": "2026-09-23 22:11:59 UTC"
+    },
+    {
+      "paper_id": "2609.16656v1",
+      "route": "202609/23/2609.16656v1-channel-wise-and-token-aware-post-training-quantization-for-visual-state-space-duality",
+      "title": "Channel-Wise and Token-Aware Post-Training Quantization for Visual State Space Duality",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "视觉状态空间模型的训练后量化",
+      "first_seen_at": "2026-09-23 22:11:59 UTC",
+      "updated_at": "2026-09-23 22:11:59 UTC"
+    },
+    {
+      "paper_id": "2609.16909v1",
+      "route": "202609/23/2609.16909v1-pips-post-hoc-prototypical-explanations-for-interpretable-semantic-segmentation",
+      "title": "PiPS: Post-Hoc Prototypical Explanations for Interpretable Semantic Segmentation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向语义分割的事后可原型解释",
+      "first_seen_at": "2026-09-23 22:11:59 UTC",
+      "updated_at": "2026-09-23 22:11:59 UTC"
+    },
+    {
+      "paper_id": "2609.16946v2",
+      "route": "202609/23/2609.16946v2-high-fidelity-video-quality-assessment-with-vqa-specific-saliency",
+      "title": "High-Fidelity Video Quality Assessment with VQA-Specific Saliency",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "深度学习用于无参考视频质量评估",
+      "first_seen_at": "2026-09-23 22:11:59 UTC",
+      "updated_at": "2026-09-23 22:11:59 UTC"
+    },
+    {
+      "paper_id": "2609.17398v1",
+      "route": "202609/23/2609.17398v1-enhancing-accessibility-of-medical-texts-through-large-language-model-driven-plain-language-adaptation",
+      "title": "Enhancing Accessibility of Medical Texts through Large Language Model-Driven Plain Language Adaptation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "利用大语言模型进行医学文本简化",
+      "first_seen_at": "2026-09-23 22:11:59 UTC",
+      "updated_at": "2026-09-23 22:11:59 UTC"
+    },
+    {
+      "paper_id": "2609.17067v1",
+      "route": "202609/23/2609.17067v1-bio-inspired-palette-evolution-in-indirectly-encoded-substrates-timescale-compatibility-shapes-activation-function-discovery",
+      "title": "Bio-Inspired Palette Evolution in Indirectly Encoded Substrates: Timescale Compatibility Shapes Activation Function Discovery",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "间接编码神经网络中激活函数的进化发现",
+      "first_seen_at": "2026-09-23 22:11:59 UTC",
+      "updated_at": "2026-09-23 22:11:59 UTC"
+    },
+    {
+      "paper_id": "2609.17376v1",
+      "route": "202609/23/2609.17376v1-large-language-models-develop-belief-state-geometry-in-context",
+      "title": "Large Language Models Develop Belief State Geometry In-Context",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "探测大语言模型上下文中的信念状态表示",
+      "first_seen_at": "2026-09-23 22:11:59 UTC",
+      "updated_at": "2026-09-23 22:11:59 UTC"
+    },
+    {
+      "paper_id": "2609.17825v1",
+      "route": "202609/23/2609.17825v1-nobsp-functional-decomposition-of-neural-networks-via-oblique-subspace-projections",
+      "title": "NObSP: Functional Decomposition of Neural Networks via Oblique Subspace Projections",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "通过斜子空间投影对深度神经网络预测进行功能分解",
+      "first_seen_at": "2026-09-23 22:11:59 UTC",
+      "updated_at": "2026-09-23 22:11:59 UTC"
+    }
+  ]
+}

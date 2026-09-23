@@ -1,0 +1,1167 @@
+Title: Provable Guarantees for Spectral Structured Prediction
+
+URL Source: https://arxiv.org/pdf/2609.18527v1
+
+Published Time: Thu, 17 Sep 2026 01:05:01 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+# Provable Guarantees for Spectral Structured Prediction 
+
+## Violet Zheng CIS, The University of Melbourne 
+
+## violet.zheng@student.unimelb.edu.au 
+
+## Jean Honorio CIS, The University of Melbourne 
+
+## jean.honorio@unimelb.edu.au 
+
+Abstract 
+
+Structured prediction is the simultaneous prediction of multiple labels, and is widely used in various fields, such as natural language processing and computer vision. In this paper, we study binary node label recovery on signed graphs with edge-flip noise, a model introduced by [12], via a simple spectral method that decodes node labels from the signs of the principal eigenvector of the noisy signed adjacency matrix. We develop graph structure-agnostic theoretical guarantees for approximate inference of node labels as well as guarantees for maximum angle deviation with respect to the ground truth node labels. By leveraging tools from matrix concentration theory and eigenvector perturbation analysis, we derive new concentration inequalities that explicitly quantify the effect of the spectral gap of the adjacency matrix, number of nodes, degree distribution, and noise level. As a corollary, we relate our general results to the Cheeger constant and provide results for different classes of graphs. We perform several synthetic experiments to validate our theory. To the best of our knowledge, we are the first to provide theoretical guarantees for the spectral-based approach. As a byproduct of our analysis, we derive technical results that might be of independent interest and useful for other machine learning problems. 
+
+# 1 Introduction 
+
+Inference in complex models drives much of the research in machine learning applications in many diverse domains, such as natural language processing, computer vision and speech processing. Structured prediction refers to the prediction of complex structures from a given input. Structured prediction has been shown to be useful in applications such as dependency parsing [19, 29], part-of-speech tagging [30], object detection [10], scene understanding [17, 25], phoneme/speech recognition [15, 28] and text-to-speech mapping [22]. In the context of Markov random fields (MRFs), for an undirected graph G = ( V, E ) of n nodes, one is interested in finding a solution to the following inference problem: 
+
+max 
+
+> y∈Ln
+
+X
+
+> i∈V,l ∈L
+
+ϕi(m)1[ yi = l] + X
+
+> (i,j )∈E,l,m ∈L
+
+ϕij (l, m )1[ yi = l, y j = m], (1) where L is the set of possible labels, ϕi(l) is the (unary) utility of assigning label l to node i, and ϕij (l, m ) is the (pairwise) utility of assigning labels l and m to the neighbors i and j, respectively. Very few cases of the optimization problem in eq. (1) are known to be solvable in polynomial time. For example, eq. (1) is solvable in polynomial time for graphs with low treewidth via the junction tree algorithm [7]. For binary labels, i.e., 
+
+|L| = 2 , eq. (1) is solvable in polynomial time for planar graphs via perfect matchings [21]. Finally, eq. (1) is solvable in polynomial time via graph cuts for binary labels and submodular pairwise potentials [6]. Given the above, prior research has focused on theoretical guarantees for binary labels, i.e., |L| = 2 , on various classes of graphs for the correct recovery of all node labels [4] and the correct recovery of a fraction of node labels [11, 12, 14]. Most importantly, the foundational paper of [12] defines a model for the study of binary node label recovery on signed graphs with edge-flip noise. This serves as a meaningful special case of eq. (1) that allows to analyze the impact of structural properties of graphs on inference. Our contributions are as follows. We study binary node label recovery on signed graphs with edge-flip noise [12], via a simple spectral method. We develop graph structure-agnostic theoretical guarantees for approximate inference of node labels and for maximum angle deviation with respect to the ground truth. To 1arXiv:2609.18527v1 [cs.LG] 16 Sep 2026 the best of our knowledge, we are the first to provide theoretical guarantees for the spectral-based approach as well as angle deviation results within the inference in structured prediction context. Interestingly, our success rates resemble those of [4, 14] but our spectral method is arguably more computationally efficient than semidefinite programming. Our spectral method can be applied to various graph classes, and it is not limited to planar graphs [12] or graphs with low treewidth [11]. Finally, we provide results for different classes of graphs and perform several synthetic experiments to validate our theory. 
+
+# 2 Preliminaries 
+
+In this section, we introduce the main model and notations that are used throughout the paper. 
+
+## 2.1 Notation 
+
+We use lowercase bold letters for vectors (e.g., b) and uppercase bold letters for matrices (e.g., M), and subscripts of non-bold letters to denote respective entries of a vector or matrix (e.g., bi and Mij ). The Euclidean norm of a vector b is denoted as ∥b∥. The inner product of two vectors a and b is denoted as 
+
+⟨a, b⟩. A vector of all ones (or all zeros) is denoted as 1 (or 0). The spectral norm of a matrix M is denoted as ∥M∥. For a matrix M ∈ Rn×n, we denote the dominant eigenvalue as λ1(M), second dominant eigenvalue as λ2(M) and so on, with the smallest eigenvalue being λn(M). That is, λ1(M) ≥ λ2(M) ≥ ... ≥ λn(M).Meanwhile, v1(M) refers to the eigenvector associated with λ1(M). For a vector b, Diag( b) is the matrix containing b on its diagonal, and zero everywhere else. The Hadamard product M = F ◦ H represents an entrywise multiplication, i.e., Mij = Fij Hij .We assume graph G = ( V, E ) has node set V = {1, . . . , n } and edge set E ⊆ V × V . For convenience, we also represent the edge set as an adjacency matrix E. That is, (i, j ) ∈ E iff Eij = 1 , and (i, j ) /∈ E iff Eij = 0 .Matrix D is a diagonal degree matrix with Dii = di where di = |{ j | (i, j ) ∈ E}| = Pnj=1 Eij is the degree of the i-th node. The Laplacian of graph G is L = D − E. In addition, dmax = max ni=1 di refers to the maximum node degree and davg = 1
+
+> n
+
+Pni=1 di refers to the average node degree. We also define d∆ = dmax − davg .Our main results focus on both angle deviations and the proportion of sign agreements. We define 
+
+θ : Rn × Rn → [0 , π ] to be a function that returns the angle between two vectors. More formally, cos θ(a, b) = D a 
+
+> ∥a∥
+
+, b
+
+> ∥b∥
+
+E
+
+. We also define ρ : Rn ×Rn → [0 , 1] to be a function that returns the proportion of sign agreements between two vectors. More formally, ρ(a, b) = 1 
+
+> n
+
+max ( Pni=1 1[ aibi > 0] , Pni=1 1[ −aibi > 0]) .
+
+## 2.2 Inference in Structured Prediction 
+
+Next, we present the model introduced by [12], for the study of binary node label recovery on signed graphs with edge-flip noise. Consider a graph G = ( V, E ) with node set V = {1, . . . , n } and edge set E ⊆ V × V .Each node i ∈ V has a ground truth node label y∗ 
+
+> i
+
+∈ {− 1, +1 }. We also write y∗ ∈ {− 1, +1 }n to refer to the ground truth node labels for all nodes. A noisy signed adjacency matrix A and noisy node observation vector c are generated as follows, using noise parameters p, q ∈ [0 , 12 ). Aij = 0 if there is no edge between nodes i and j in G, otherwise Aij = y∗ 
+
+> i
+
+y∗
+
+> j
+
+with probability 1 − p and Aij = −y∗ 
+
+> i
+
+y∗ 
+
+> j
+
+with probability p. ci = y∗ 
+
+> i
+
+with probability 1 − q and ci = −y∗ 
+
+> i
+
+with probability q.The inference problem seeks to recover the true node-label vector y∗ from the given A and c. As the noise level p (or q) increases, exact recovery becomes more difficult. The maximum likelood estimator (MLE) for exact recovery of the node labels is: 
+
+max 
+
+> y∈{− 1,+1 }n
+
+12 y⊤Ay + log(1 − q)/q 
+
+log(1 − p)/p c⊤y,
+
+which is a special case of eq. (1). Unfortunately, since the noise parameters p, q are unknown and so the factor  
+
+> log(1 −q)/q
+> log(1 −p)/p
+
+, one cannot solve the above problem directly. To tackle this issue, [12] introduced a two-stage 2approach, loosely based on the MLE. A first stage solves the following optimization problem: 
+
+ˆy = arg max 
+
+> y∈{− 1,+1 }n
+
+12 y⊤Ay , (2) for which two possible results, ˆy and −ˆy are equivalent in the sense of their objective function value being the same. 1 A second (disambiguation) stage decides which of the two solutions ( ˆy or −ˆy) leads to the optimal solution of the following problem: 
+
+max  
+
+> y∈{ ˆy,−ˆy}
+
+c⊤y. (3) The second stage was already analyzed in [12, 4]. This allows us to concentrate only on the first-stage optimization problem in eq. (2) in this paper by proposing a spectral approach. 
+
+# 3 Main Results 
+
+In this section, we provide the algorithm, proofs and statements of our main results. We present these findings in the order of significance, with intermediate lemmas used in proofs presented at the end of the section. Our spectral method uses the dominant eigenvector v1(A) of the noisy signed adjacency matrix A, in order to decide which labels are assigned to the nodes. For each node i, we declare yi = −1 if v1(A)i < 0,and yi = +1 if v1(A)i > 0. There exist highly efficient methods to compute the dominant eigenvector [27]. For n nodes and |E| edges, computing the dominant eigenvector takes O(n + |E|) time, which is very efficient for sparse graphs. For dense graphs, |E| ∈ O(n2) and thus, computing the dominant eigenvector takes O(n2)
+
+time. Our main result in Theorem 1 explicitly provides a concentration inequality for the angle deviation between v1(A) and y∗, while Theorem 2 connects this angle deviation discovery to a probabilistic guarantee in the proportion of correctly recovered node labels. 
+
+## 3.1 Angle Deviation Guarantees 
+
+We start by stating our first main result. 
+
+Theorem 1. For any 0 < γ < 1, the probability that v1(A) aligns closely with y∗ is lower bounded by some function dependent on the number of nodes n, the maximum node degree dmax , the edge-noise parameter p,and the dominant eigen gap of E, i.e., λ1(E) − λ2(E). More formally, we have that 
+
+P (| cos θ(v1(A), y∗)| ≥ 1 − γ)
+
+≥ 1 − 2n exp 
+
+ −Cδ,γ (1 − 2p)2(λ1(E) − λ2(E)) 2
+
+32(1 − p)2dmax 
+
+
+
+− 2n exp 
+
+ −(1 − 2p)2(λ1(E) − λ2(E)) 2
+
+128(1 − p)2dmax 
+
+
+
+,
+
+where δ = | cos θ(v1(E), 1)| and Cδ,γ = 1 − δ + δγ − pγ(δ2 − 1)( γ − 1) is a nonnegative constant. 
+
+(Omitted proofs are included in Appendix B.) 
+
+Proof sketch. We split | cos θ(v1(A), y∗)| into two terms: one random variable | cos θ(v1(A), v1(EA)) | and one constant | cos θ(v1(EA), y∗)|. To bound the random variable, we use Davis-Kahan sin θ Theorem [9] and Lemma 1. To bound the constant, we use Lemma 3. Finally, to ensure the uniqueness of v1(A) (up to sign), we need to ensure that λ1(A) − λ2(A) > 0, which occurs with the probability bound in Lemma 2. 
+
+Remark 1. The dominant eigenvector v1(E) captures the centrality of each node, i.e., their recursive importance. Since 1 represents the case where all nodes are equally central/important, δ = | cos θ(v1(E), 1)|
+
+in Theorem 1 quantitatively measures how "equally central" nodes are.                
+
+> 1Note that ˆy⊤Aˆy= ( −ˆy)⊤A(−ˆy), and thus we focus our analysis on |cos θ(ˆ y,y∗)|=|cos θ(−ˆy,y∗)|, and defined the proportion of sign agreements such that ρ(ˆ y,y∗) = ρ(−ˆy,y∗).
+
+3Next, we provide a result using the Fiedler value, i.e., second minimum eigenvalue of the Laplacian 
+
+λn−1(L). Our main motivation for this is the vast literature regarding properties of a graph G in terms of the Cheeger constant hG. In particular, Cheeger’s inequality implies that λn−1(L) ≥ h2 
+
+> G
+> 2dmax
+
+[8]. Thus, the next result with respect to the Fiedler value has implications for different classes of graphs, as shown in Section 4. 
+
+Corollary 1. For any 0 < γ < 1, the probability that v1(A) aligns closely with y∗ is lower bounded by some function dependent on the number of nodes n, the maximum node degree dmax , the edge-noise parameter p,and the Fiedler value, i.e., λn−1(L). More formally, we have that 
+
+P (| cos θ(v1(A), y∗)| ≥ 1 − γ)
+
+≥ 1 − 2n exp 
+
+ −Cδ,γ (1 − 2p)2(λn−1(L) − d∆)2
+
+32(1 − p)2dmax 
+
+
+
+− 2n exp 
+
+ −(1 − 2p)2(λn−1(L) − d∆)2
+
+128(1 − p)2dmax 
+
+
+
+,
+
+where δ and Cδ,γ are defined as in Theorem 1. Proof. We use Lemma 3 and Lemma 4 to bound (from below) the dominant eigen gap of E in Theorem 1 with an expression that depends on the Fiedler value and d∆.
+
+Remark 2. To the best of our knowledge, our angle deviation results are novel. We first recall that the work of [4] focused on recovery of y∗ exactly, by using semidefinite programming, an arguably much less efficient algorithm than ours. Having said that, it is quite interesting that the success rate of our Corollary 1 is similar to that of [4]. For more details and to make the comparison easier, assuming d∆ = 0 (i.e., davg = dmax ) our success rate is 
+
+1−O
+
+
+
+n exp 
+
+
+
+− (1 −2p)2λ2
+
+> n−1(L)(1 −p)2dmax
+
+ 
+
+. Theorem 2 in [4] shows a success rate of 1−O
+
+
+
+n exp 
+
+
+
+− (1 −2p)2h4
+
+> G
+> p(1 −p)d3max +(1 −2p)(1 −p)h2
+> Gdmax
+
+ 
+
+.For simplicity, assume λn−1(L) = h2 
+
+> G
+> dmax
+
+, which fulfills Cheeger’s inequality [8] and implies h2 
+
+> G
+
+= λn−1(L) dmax .Then the success rate of [4] is 1 − O
+
+
+
+n exp 
+
+
+
+− (1 −2p)2λ2
+
+> n−1(L)
+> p(1 −p)dmax +(1 −2p)(1 −p)λn−1(L)
+
+ 
+
+, which can be upper bounded by the success rate of 1 − O
+
+
+
+n exp 
+
+
+
+− (1 −2p)2λ2
+
+> n−1(L)
+> p(1 −p)dmax
+
+ 
+
+. Thus, our success rate and the success rate of [4] have the same behavior with respect to n, λ2
+
+> n−1
+
+(L) and dmax .
+
+Remark 3. Our paper focuses only on the first stage described in eq. (2) . As shown in Theorem 3 in [4], the second stage described in eq. (3) has error rate exp 
+
+
+
+− n(1 −2q)2
+
+> 2
+
+
+
+. To compute the total success rate for our spectral method as well as for [12, 11, 4, 14], one should subtract this error rate from the success rate of the first stage. 
+
+## 3.2 Correct Proportion Recovery Guarantees 
+
+Although Theorem 1 gave us guarantees that v1(A) and y∗ are close in terms of their angle deviation, we would also like to find more direct guarantees in the proportion of correctly recovered node labels. This gives us a nice way of generalizing the recovery guarantees to not just perfect recovery but also for approximate recovery, particularly meaningful on real world applications where we can tolerate certain level of mistakes. In what follows, we state our second main result. 
+
+Theorem 2. For any 12 < α < 1, the probability that v1(A) agrees closely with y∗ is lower bounded by some function dependent on the number of nodes n, the maximum node degree dmax , the edge-noise parameter p,and the dominant eigen gap of E, i.e., λ1(E) − λ2(E). More formally, we have that 
+
+P(ρ(v1(A), y∗) ≥ α)
+
+≥ 1 − 2n exp 
+
+ −Cδ,α (1 − 2p)2(λ1(E) − λ2(E)) 2
+
+32(1 − p)2dmax 
+
+
+
+− 2n exp 
+
+ −(1 − 2p)2(λ1(E) − λ2(E)) 2
+
+128(1 − p)2dmax 
+
+
+
+,
+
+where δ = | cos θ(v1(E), 1)| and Cδ,α = 1 − δ + δ(1 − √α) − p−(1 − √α)( δ2 − 1) √α is a nonnegative constant. 
+
+4Proof sketch. By reasoning about the maximum angle deviation in order to guarantee a minimum proportion of correctly recovered node labels α, we get: 
+
+P(ρ(v1(A), y∗) ≥ α) ≥ P  | cos θ(v1(A), y∗)| ≥ √α .
+
+Then, we invoke Theorem 1 with γ = 1 − √α.As discussed before Corollary 1, we also provide a result using the Fiedler value, which allows us to have implications for different classes of graphs in Section 4. 
+
+Corollary 2. For any 12 < α < 1, the probability that v1(A) agrees closely with y∗ is lower bounded by some function dependent on the number of nodes n, the maximum node degree dmax , the edge-noise parameter p,and the Fiedler value, i.e., λn−1(L). More formally, we have that 
+
+P(ρ(v1(A), y∗) ≥ α)
+
+≥ 1 − 2n exp 
+
+ −Cδ,α (1 − 2p)2(λn−1(L) − d∆)2
+
+32(1 − p)2dmax 
+
+
+
+− 2n exp 
+
+ −(1 − 2p)2(λn−1(L) − d∆)2
+
+128(1 − p)2dmax 
+
+
+
+,
+
+where δ and Cδ,α are defined as in Theorem 2. Proof. We use Lemma 3 and Lemma 4 to bound (from below) the dominant eigen gap of E in Theorem 2 with an expression that depends on the Fiedler value and d∆.
+
+Remark 4. Regarding guarantees of a proportion of correctly recovered node labels, the work of [12, 11] use tractable combinatorial algorithms that only work for specific classes of graphs: planar graphs [12] and graphs with low treewidth [11]. The work of [14] uses semidefinite programming, an arguably much less efficient algorithm than ours, and provides success rates that are not easy to interpret. Still, to make the comparison easier, one can consider k = n in Theorem 1 in [14] and proceed as in Remark 2. 
+
+## 3.3 Intermediate Lemmas 
+
+The following matrix concentration inequality bounds the spectral deviation of A from its expectation E[A],and serves as a major step in the proof of Theorem 1 and Lemma 2. 
+
+Lemma 1. The noisy signed adjacency matrix A concentrates around E[A] in spectral norm with the rate controlled by the number of nodes n, edge-noise parameter p, and the maximum degree dmax . More formally, we have that 
+
+P(∥A − EA∥ ≥ t) ≤ 2ne −t232(1 −p)2dmax .
+
+Proof sketch. We express A as the sum of independent random matrices and then invoke the matrix Hoeffding inequality [24]. The following result follows on from Lemma 1 and examines the stability of the spectral structure (dominant eigen gap) of A under randomness. A nonzero dominant eigen gap is a necessary condition to ensure the uniqueness of v1(A) (up to sign) in Theorem 1 and Theorem 2. Next, we state our lemma. 
+
+Lemma 2. The probability that the dominant eigen gap of A is nonzero is lower bounded by an exponential function dependent on dmax , p, n, and the dominant eigen gap of E[A].
+
+P(λ1(A) − λ2(A) > 0) ≥ 1 − 2ne −(λ1(E[A]) −λ2(E[A])) 2128(1 −p)2dmax 
+
+Proof sketch. By Weyl’s inequality [23] and Lemma 1. The next lemma examines notable spectral properties of E[A] and E, used in major steps of the proofs for Theorems 1 and 2. 5Lemma 3. The expected signed adjacency matrix E[A] fulfills: 
+
+E[A] = (1 − 2p) Diag( y∗) E Diag( y∗).
+
+Furthermore, E[A] is similar to (1 − 2p) E. That is, λi(E[A]) = (1 − 2p)λi(E) for all i = 1 , . . . , n .Proof. The generative model presented in Section 2.2 can be equivalently described by using the adjacency matrix E and “Bernoulli” variables. We have Aij = Eij y∗ 
+
+> i
+
+y∗ 
+
+> j
+
+zij , where zij = 1 with probability 1 − p, and 
+
+zij = −1 with probability p. Note that E[zij ] = 1 − 2p and therefore E[Aij ] = Eij y∗ 
+
+> i
+
+y∗ 
+
+> j
+
+E[zij ] = (1 − 2p)Eij y∗ 
+
+> i
+
+y∗ 
+
+> j
+
+.In matrix form we can write: 
+
+E[A] = (1 − 2p)
+
+
+
+E ◦ (y∗y∗⊤ )
+
+
+
+.
+
+By using properties of the Hadamard product, this is equivalent to E[A] = (1 − 2p) Diag( y∗) E Diag( y∗).Since Diag( y∗) = Diag( y∗)−1, E[A] is similar [20] to (1 − 2p) E and thus both matrices have the same eigenvalues. As discussed before, the next result is pivotal for obtaining Corollaries 1 and 2, which allows us to take advantage of the prior literature regarding the Fiedler value and Cheeger constant. 
+
+Lemma 4. The dominant eigen gap of E is lower bounded by a linear function of the Fiedler value λn−1(L),the average degree davg , and the maximum degree dmax of the graph. More formally, we have that 
+
+λ1(E) − λ2(E) ≥ λn−1(L) − d∆.
+
+Proof sketch. By Rayleigh quotients to analyze λ1(E) and the Courant-Fischer Theorem [20] to analyze 
+
+λ2(E).
+
+# 4 Guarantees for Different Classes of Graphs 
+
+Armed with the results in the previous section, and by using Cheeger’s inequality [8], we now provide corollaries with explicit guarantees for complete, d-regular expanders and graphs with bad expansion properties with few extra Erdös–Rényi edges. Next, we show guarantees in angle deviation and proportion of correct labels for complete graphs. Note that the higher the number of nodes n, the higher the probability of success. 
+
+Corollary 3. For any 0 < γ < 1, any 12 < α < 1 and for a complete graph G, the angle deviation fulfills: 
+
+P (| cos θ(v1(A), y∗)| ≥ 1 − γ) ≥ 1 − O
+
+
+
+n exp 
+
+ − max(1 , C δ,γ )(1 − 2p)2n
+
+(1 − p)2
+
+ 
+
+,
+
+and the proportion of correct labels fulfills: 
+
+P(ρ(v1(A), y∗) ≥ α) ≥ 1 − O
+
+
+
+n exp 
+
+ − max(1 , C δ,α )(1 − 2p)2n
+
+(1 − p)2
+
+ 
+
+,
+
+where δ and Cδ,γ are defined as in Theorem 1, and Cδ,α is defined as in Theorem 2. Proof. In a complete graph, dmax = davg = n − 1, and Cheeger’s inequality gives λn−1(L) ≥ h2 
+
+> G
+> 2dmax
+
+[8]. We also know that h2 
+
+> G
+> dmax
+
+∈ Ω( n). We then invoke Corollaries 1 and 2. For completeness, we start by providing some definitions. A d-regular graph is a graph where each node has d neighbors. A d-regular graph with n nodes is an expander with constant c > 0 if, for every set of nodes 
+
+S ⊂ { 1, ..., n } with |S| ≤ n/ 2, the number of edges from nodes in S to nodes outside S is greater than or equal to cd |S|.In what follows, we show guarantees for expander graphs. Again, the higher the number of nodes n, the higher the probability of success. 6Corollary 4. For any 0 < γ < 1, any 12 < α < 1 and for a d-regular expander graph G with d ∈ Ω(log 2 n)
+
+and constant c > 0, the angle deviation fulfills: 
+
+P (| cos θ(v1(A), y∗)| ≥ 1 − γ) ≥ 1 − O
+
+
+
+n exp 
+
+ − max(1 , C δ,γ )(1 − 2p)2c4 log 2 n
+
+(1 − p)2
+
+ 
+
+,
+
+and the proportion of correct labels fulfills: 
+
+P(ρ(v1(A), y∗) ≥ α) ≥ 1 − O
+
+
+
+n exp 
+
+ − max(1 , C δ,α )(1 − 2p)2c4 log 2 n
+
+(1 − p)2
+
+ 
+
+,
+
+where δ and Cδ,γ are defined as in Theorem 1, and Cδ,α is defined as in Theorem 2. Proof. For a d-regular expander graph, dmax = davg = d. Cheeger’s inequality gives λn−1(L) ≥ h2 
+
+> G
+> 2dmax
+
+[8]. We also know that h2 
+
+> G
+> dmax
+
+∈ Ω( c4d) [13]. We then invoke Corollaries 1 and 2. The following result holds for any connected graph G, even those with bad expansion properties, such as grid graphs, for instance. We first state a result that appeared in [16], although in a slightly more general form. 
+
+Lemma 5 (Theorem 2 in [16]) . Let G′ = ( V, E ′) be a connected graph. Let G′′ = ( V, E ′′ ) be an Erdös–Rényi graph with edge probability ϵ/n where ϵ ∈ [1 , n ]. Consider G = ( V, E ′ ∪ E′′ ). We have that hG ≥ ϵ 
+
+> 256+256 log n
+
+with probability at least 1 − n−2.2− log ϵ 
+
+> 2
+
+.
+
+Finally, we show guarantees for graphs with few extra Erdös–Rényi edges. As before, the higher the number of nodes n, the higher the probability of success. 
+
+Corollary 5. Let G′ = ( V, E ′) be a connected graph. Let G′′ = ( V, E ′′ ) be an Erdös–Rényi graph with edge probability Ω
+
+ log 6 nn
+
+
+
+. Consider G = ( V, E ′ ∪ E′′ ). For any 0 < γ < 1, any 12 < α < 1 and for graph G, the angle deviation fulfills: 
+
+P (| cos θ(v1(A), y∗)| ≥ 1 − γ) ≥ 1 − O
+
+
+
+n exp 
+
+ − max(1 , C δ,γ )(1 − 2p)2 log 2 n
+
+(1 − p)2
+
+ 
+
+,
+
+and the proportion of correct labels fulfills: 
+
+P(ρ(v1(A), y∗) ≥ α) ≥ 1 − O
+
+
+
+n exp 
+
+ − max(1 , C δ,α )(1 − 2p)2 log 2 n
+
+(1 − p)2
+
+ 
+
+,
+
+where δ and Cδ,γ are defined as in Theorem 1, and Cδ,α is defined as in Theorem 2. Proof. For graph G, dmax ∈ Ω( ϵ) and davg ∈ Ω( ϵ). Cheeger’s inequality gives λn−1(L) ≥ h2 
+
+> G
+> 2dmax
+
+[8]. By Lemma 5 we have that hG ∈ Ω
+
+ ϵ 
+
+> log n
+
+
+
+. We then invoke Corollaries 1 and 2. 
+
+# 5 Experimental Validation 
+
+We validate our theory and confirm the benefits of spectral structured prediction through synthetic experiments. We conducted these experiments through various parameters of interest, such as number of nodes n, edge-noise probability p, and the structural term (λn−1(L)−dmax +davg )2 
+
+> dmax
+
+involved in the theoretical results in Corollaries 1 and 2. We generated different classes of graphs, including Erdös–Rényi graphs, regular expander graphs and complete graphs. 
+
+Validation of Our Theory. In Figure 1, we show that the structural term (λn−1(L)−dmax +davg )2 
+
+> dmax
+
+indeed drives the accuracy of structured prediction. As predicted by Corollary 1, the higher the structural term, the lower the angle deviation. As predicted by Corollary 2, the higher the structural term, the higher the proportion of correctly recovered node labels. 7(a) (b) 
+
+Figure 1: Effect of the structural term (λn−1(L)−dmax +davg )2 
+
+> dmax
+
+on the angle deviation (a) and proportion of correctly recovered node labels (b) for Erdös–Rényi graphs (with varying edge density and n) with p = 0 .4.Error bars at 95% confidence level over 30 repetitions. As predicted by Corollaries 1 and 2, the higher the structural term, the lower the angle deviation and the higher the proportion of correctly recovered node labels. 
+
+Figure 2: Effect of number of nodes n on the runtime of our spectral method (Spectral) and semidefinite programming (SDP) for Erdös–Rényi graphs (60% edge density) for p = 0 .4. Error bars at 95% confidence level over 10 repetitions. Spectral structured prediction is a far more efficient algorithm. SDP was run only up to graphs of size 500 nodes due its high runtime. 
+
+Runtime Comparison. Next, we tested how the number of nodes n affect the runtime of our spectral method, and that of semidefinite programming. We chose semidefinite programming since this method has theoretical guarantees that we discuss in Remarks 2 and 4. More specifically, semidefinite programming was analyzed in [4, 14]. Unfortunately, the methods of [12, 11] apply only to specific classes of graphs. We normalize each method (our spectral method and semidefinite programming) independently to the runtime for n = 20 , to account for differences in implementations. That is, both methods have runtime 1 for n = 20 .Figure 2 shows that our spectral method runs significantly faster than semidefinite programming. 
+
+Comparison Across Different Classes of Graphs. Given that our spectral method is considerably faster, we then ask whether it produces comparable results to those of semidefinite programming, regarding the effect of the edge-noise parameter p in the angle deviation and proportion of correctly recovered node labels. In order to do this, we run experiments on different classes of graphs. Figure 3 shows that our spectral method and semidefinite programming produce comparable results for regular expander graphs. (Erdös–Rényi graphs and complete graphs shown in Appendix C.1.) In Appendix C.1, we also show additional experiments regarding the effect of the number of nodes n
+
+8(a) (b) 
+
+Figure 3: Effect of edge-noise parameter p on the angle deviation (a) and proportion of correctly recovered node labels (b) for d-regular expanders ( d = 6 ) of n = 200 nodes. Error bars at 95% confidence level over 30 repetitions. Our spectral method (Spectral) and semidefinite programming (SDP) produced comparable results. in the angle deviation and proportion of correctly recovered node labels for Erdös–Rényi graphs, regular expanders graphs, as well as for complete graphs. Notably, while the dominant eigenvector is a simpler relaxation of eq. (2) as compared to SDP, our empirical results demonstrate that our method may actually recover node labels better than SDP in high noise (high p) regimes since SDP may overfit upon the noise as it is a tighter relaxation of eq. (2). 
+
+Real-World Experiments. In Appendix C.2, we include an experiment on a large real-world case with 131,828 nodes and 841,372 edges. Our spectral algorithm runs in 0.1484 seconds while SDP would struggle at this scale in commercial solvers. 
+
+# 6 Concluding Remarks 
+
+There are parallels with our spectral approach with spectral clustering within the context of stochastic block models [18], [1]. However, the fundamental model that we consider is different to stochastic block models, and existing guarantees rely on k-means, a problem that is NP-hard [2] and NP-hard to approximate in polynomial time [3]. In contrast, our spectral method is polynomial time. There are several ways of extending our results. A first compelling avenue is to analyze social network models, such as stochastic block models [1, 26] in which the noisy adjacency matrix is nonnegative. Currently, our probabilistic guarantees apply to only k = 2 node labels. In order to extend this model to account for 
+
+k > 2 node labels, we would need to analyze the k − 1 leading eigenvectors of A, similar in spirit to prior work in social networks [18]. While we currently focus on pairwise interactions (i.e., edges), we could also extend our analysis to more m-order interactions for m > 2 (i.e., hyperedges) as the problem presented in [5]. This would lead to structured predictions for m-order tensors, though with possibly much greater difficulty. 
+
+# References 
+
+[1] Emmanuel Abbe, Afonso S. Bandeira, and Georgina Hall. Exact recovery in the stochastic block model. 
+
+IEEE Transactions on Information Theory , 62(1):471–487, 2016. [2] Daniel Aloise, Amit Deshpande, Pierre Hansen, and Preyas Popat. Np-hardness of euclidean sum-of-squares clustering. Machine Learning , 75:245–248, 05 2009. [3] Pranjal Awasthi, Moses Charikar, Ravishankar Krishnaswamy, and Ali Kemal Sinop. The Hardness of Approximation of Euclidean k-Means. In Lars Arge and János Pach, editors, 31st International 
+
+9Symposium on Computational Geometry (SoCG 2015) , volume 34 of Leibniz International Proceedings in Informatics (LIPIcs) , pages 754–767, Dagstuhl, Germany, 2015. Schloss Dagstuhl – Leibniz-Zentrum für Informatik. [4] Kevin Bello and Jean Honorio. Exact inference in structured prediction. In Neural Information Processing Systems , volume 32, pages 3698–3707, 2019. [5] Austin R. Benson, David F. Gleich, and Jure Leskovec. Tensor spectral clustering for partitioning higher-order network structures. In SIAM International Conference on Data Mining , pages 118–126, 2015. [6] Yuri Boykov and Olga Veksler. Graph cuts in vision and graphics: Theories and applications. In 
+
+Handbook of mathematical models in computer vision , pages 79–96. Springer, 2006. [7] Venkat Chandrasekaran, Nathan Srebro, and Prahladh Harsha. Complexity of inference in graphical models. In Proceedings of the Twenty-Fourth Conference on Uncertainty in Artificial Intelligence , pages 70–78. AUAI Press, 2008. [8] Jeff Cheeger. A lower bound for the smallest eigenvalue of the laplacian. In Proceedings of the Princeton conference in honor of Professor S. Bochner , 1969. [9] Chandler Davis and W. M. Kahan. The rotation of eigenvectors by a perturbation. iii. SIAM Journal on Numerical Analysis , 7(1):1–46, 1970. [10] P. Felzenszwalb, R. Girshick, D. McAllester, and D. Ramanan. Object detection with discriminatively trained part-based models. IEEE Transactions on Pattern Analysis and Machine Intelligence , 32:1627– 1645, 2010. [11] Dylan Foster, Karthik Sridharan, and Daniel Reichman. Inference in sparse graphs with pairwise measurements and side information. In International Conference on Artificial Intelligence and Statistics ,pages 1810–1818, 2018. [12] Amir Globerson, Tim Roughgarden, David Sontag, and Cafer Yildirim. How hard is inference for structured prediction? In International Conference on Machine Learning , volume 37, pages 2181–2190, 2015. [13] Shlomo Hoory, Nathan Linial, and Avi Wigderson. Expander graphs and their applications. Bulletin of the American Mathematical Society , 43(4):439–561, 2006. [14] Chuyang Ke, Deepak Maurya, and Jean Honorio. Partial inference in structured prediction. In IEEE International Conference on Acoustics, Speech and Signal Processing , pages 1–5, 2025. [15] J. Keshet, D. McAllester, and T. Hazan. PAC-Bayesian approach for minimization of phoneme error rate. IEEE International Conference on Acoustics, Speech and Signal Processing , pages 2224–2227, 2011. [16] Michael Krivelevich, Daniel Reichman, and Wojciech Samotij. Smoothed analysis on connected graphs. 
+
+SIAM Journal on Discrete Mathematics , 29(3):1654–1669, 2015. [17] David C. Lee, Abhinav Gupta, Martial Hebert, and Takeo Kanade. Estimating spatial layout of rooms using volumetric reasoning about objects and surfaces. Neural Information Processing Systems ,23:1288–1296, 2010. [18] Jing Lei and Alessandro Rinaldo. Consistency of spectral clustering in stochastic block models. The Annals of Statistics , 43(1), Feb 2015. [19] A. Martins, M. Almeida, and N. Smith. Turning on the turbo: Fast third-order non-projective turbo parsers. Annual Meeting of the Association for Computational Linguistics , pages 617–622, 2013. [20] Carl D. Meyer. Matrix Analysis and Applied Linear Algebra . SIAM, 2000. 10 [21] Nicol N Schraudolph and Dmitry Kamenetsky. Efficient exact inference in planar ising models. In 
+
+Advances in Neural Information Processing Systems , pages 1417–1424, 2009. [22] H. Tang, J. Keshet, and K. Livescu. Discriminative pronunciation modeling: A large-margin, feature-rich approach. Annual Meeting of the Association for Computational Linguistics , pages 194–203, 2012. [23] Terence Tao. 254a, notes 3a: Eigenvalues and sums of hermitian matrices, 2010. [24] Joel A. Tropp. User-friendly tail bounds for sums of random matrices. Foundations of Computational Mathematics , 12(4):389–434, Aug 2011. [25] H. Wang, S. Gould, and D. Koller. Discriminative learning with latent variables for cluttered indoor scene understanding. European Conference on Computer Vision , 6312:435–449, 2010. [26] Peng Wang, Zirui Zhou, and Anthony Man-Cho So. A nearly-linear time algorithm for exact community recovery in stochastic block model. In International Conference on Machine Learning , pages 10126–10135, 2020. [27] Zhiqiang Xu and Ping Li. A practical riemannian algorithm for computing dominant generalized eigenspace. In Uncertainty in Artificial Intelligence , pages 819–828, 2020. [28] S. Zhang and M. Gales. Structured SVMs for automatic speech recognition. IEEE Transactions on Audio, Speech, and Language Processing , 21(3):544–555, 2013. [29] Y. Zhang, T. Lei, R. Barzilay, and T. Jaakkola. Greed is good if randomized: New inference for dependency parsing. Empirical Methods in Natural Language Processing , pages 1013–1024, 2014. [30] Y. Zhang, C. Li, R. Barzilay, and K. Darwish. Randomized greedy inference for joint segmentation, POS tagging and dependency parsing. North American Chapter of the Association for Computational Linguistics , pages 42–52, 2015. 11 A Technical Lemmas 
+
+The following lemmas on matrix concentration theory and eigenvector perturbation play important roles in the proofs of our main theorems. 
+
+Lemma 6 (Matrix Hoeffding inequality, Theorem 1.3 [24]) . For a finite sequence {Xk} of independent, random, self-adjoint matrices with dimension d, and let {Mk} be a sequence of fixed self-adjoint matrices. Assuming that each matrix satisfies E[Xk] = 00 ⊤ and X2 
+
+> k
+
+⪯ M2 
+
+> k
+
+almost surely. Then for all t ≥ 0,
+
+P λ1
+
+X
+
+> k
+
+Xk
+
+!
+
+≥ t
+
+!
+
+≤ de −t2/8σ2
+
+,
+
+where σ2 = P 
+
+> k
+
+M2 
+
+> k
+
+.
+
+Lemma 7 (Davis-Kahan sin θ Theorem [9]) . Let M, F be symmetric matrices with eigenvectors v1(M) and 
+
+v1(F) corresponding to their dominant eigenvalues λ1(M) and λ1(F). If M has a nonzero eigen gap, i.e., 
+
+λ1(M) − λ2(M) > 0, then the angle θ(v1(M), v1(F)) satisfies 
+
+sin θ(v1(M), v1(F)) ≤ ∥M − F∥
+
+λ1(M) − λ2(M) .
+
+# B Detailed Proofs 
+
+In this section, we provide detailed proofs of our theorems and lemmas in the main text. 
+
+## B.1 Proof of Theorem 1 
+
+Proof. We proceed as follows: We split | cos θ(v1(A), y∗)| into two terms: one random variable | cos θ(v1(A), v1(EA)) |
+
+and one constant | cos θ(v1(EA), y∗)|. The two terms are then properly bounded and then used to analyze 
+
+| cos θ(v1(A), y∗)|. We finalize by ensuring the uniqueness of v1(A) (up to sign). 
+
+Step 1: Bounding the random variable | cos θ(v1(A), v1(EA)) |. By invoking Lemma 7 with F = A
+
+and M = EA, we have: 
+
+| sin θ(v1(A), v1(EA)) | ≤ ∥A − EA∥
+
+λ1(EA) − λ2(EA)
+
+Note that by Lemma 3, we have λ1(EA) − λ2(EA) = (1 − 2p)( λ1(E) − λ2(E)) > 0 since λ1(E) has multiplicity 1 [20]. By trigonometric identities, we have: 
+
+| cos θ(v1(A), v1(EA)) | =
+
+q
+
+1 − sin 2(θ(v1(A), v1(EA))) 
+
+≥ 1 − sin 2(θ(v1(A), v1(EA))) 
+
+≥ 1 − ∥A − EA∥2
+
+(λ1(EA) − λ2(EA)) 2
+
+From the above and by Lemma 1, for any 0 < ϵ < 1 we have: 
+
+P(| cos θ(v1(A), v1(EA)) | ≥ 1 − ϵ) ≥ P ϵ ≥ ∥A − EA∥2
+
+(λ1(EA) − λ2(EA)) 2
+
+!
+
+= P(∥A − EA∥ ≤ √ϵ (λ1(EA) − λ2(EA))) = 1 − P(∥A − EA∥ ≥ √ϵ (λ1(EA) − λ2(EA))) 
+
+≥ 1 − 2n exp 
+
+ −ϵ(λ1(EA) − λ2(EA)) 2
+
+32(1 − p)2dmax 
+
+
+
+.
+
+12 Step 2: Bounding the constant | cos θ(v1(EA), y∗)|. By Lemma 3 and since Diag( y∗)2 is the identity matrix, we have: 
+
+E[A] Diag( y∗)v1(E) = (1 − 2p) Diag( y∗) E Diag( y∗)2v1(E)= (1 − 2p) Diag( y∗) E v 1(E)= (1 − 2p) λ1(E)Diag( y∗)v1(E),
+
+where the last step follows from the definition of eigenvalues, i.e., E v 1(E) = λ1(E)v1(E). Note that the above implies that λ1(EA) = (1 − 2p)λ1(E) and v1(EA) = Diag( y∗)v1(E). This can be confirmed by the eigenvalue definition, i.e. E[A]v1(EA) = λ1(EA)v1(EA) which leads to the same expression as above. Therefore, since 
+
+y∗ ∈ {− 1, +1 }n, we have: 
+
+| cos θ(v1(EA), y∗)) | = | cos θ(Diag( y∗)v1(E), y∗)|
+
+= |⟨ Diag( y∗)v1(E), y∗⟩| ∥Diag( y∗)v1(E)∥∥ y∗∥
+
+= | P 
+
+> i
+
+y∗ 
+
+> i
+
+[v1(E)] iy∗ 
+
+> i
+
+|∥v1(E)∥∥ 1∥
+
+= |⟨ v1(E), 1⟩| ∥v1(E)∥∥ 1∥
+
+= | cos θ(v1(E), 1)|
+
+= δ, 
+
+where the last step follows from our definition in the theorem statement. 
+
+Step 3: Using the random variable | cos θ(v1(A), v1(EA)) | and the constant | cos θ(v1(EA), y∗)| to bound | cos θ(v1(A), y∗)|. For simplicity of presentation, in what follows, we argue for angles θ(v1(A), y∗) ∈
+
+[0 , π/ 2] and θ(v1(A), v1(EA)) ∈ [0 , π/ 2] .2 Let θ1 = θ(v1(A), v1(EA)) and θ2 = θ(v1(EA), y∗). By using trigonometric identities and the result in Step 2, we have: 
+
+| cos θ(v1(A), y∗)| = cos θ(v1(A), y∗)
+
+≥ cos( θ1 + θ2)= cos θ1 cos θ2 − sin θ1 sin θ2
+
+≥ δ cos θ1 − p1 − δ2 sin θ1.
+
+Since we are arguing for an angle θ1 ∈ [0 , π/ 2] for simplicity of presentation, by the result in Step 1, we have: 
+
+P(| cos θ(v1(A), y∗)| ≥ 1 − γ) ≥ P(δ cos θ1 − p1 − δ2 sin θ1 ≥ 1 − γ)= P(cos θ1 ≤ δ − δγ − pγ(δ2 − 1)( γ − 1)) + P(cos θ1 ≥ δ − δγ + pγ(δ2 − 1)( γ − 1)) 
+
+≥ P(cos θ1 ≥ δ − δγ + pγ(δ2 − 1)( γ − 1)) = P(cos θ(v1(A), v1(EA)) ≥ δ − δγ + pγ(δ2 − 1)( γ − 1)) = P(| cos θ(v1(A), v1(EA)) | ≥ δ − δγ + pγ(δ2 − 1)( γ − 1)) 
+
+≥ 1 − 2n exp −(1 − δ + δγ − pγ(δ2 − 1)( γ − 1))( λ1(EA) − λ2(EA)) 2
+
+32(1 − p)2dmax 
+
+!
+
+= 1 − 2n exp −(1 − δ + δγ − pγ(δ2 − 1)( γ − 1))(1 − 2p)2(λ1(E) − λ2(E)) 2
+
+32(1 − p)2dmax 
+
+!
+
+,
+
+where the last simplification step follows from Lemma 3.              
+
+> 2Arguing for an angle θ∈[π/ 2, π ]requires considering θ−π/ 2, and arguing for an angle θ∈[−π, 0] requires considering −θ
+> instead.
+
+13 Step 4: Ensuring the uniqueness of v1(A) (up to sign). In all the expressions above, we have assumed that v1(A) is unique (up to sign). As a counterexample, when the λ1(A) = λ2(A), there exists infinitely many dominant eigenvectors. In order to ensure uniqueness of v1(A) (up to sign), we need to ensure that 
+
+λ1(A) − λ2(A) > 0. By Lemma 2, we have: 
+
+P (λ1(A) − λ2(A) > 0) ≥ 1 − 2n exp 
+
+ −(λ1(EA) − λ2(EA)) 2
+
+128(1 − p)2dmax 
+
+
+
+= 1 − 2n exp 
+
+ −(1 − 2p)2(λ1(E) − λ2(E)) 2
+
+128(1 − p)2dmax 
+
+
+
+where the last simplification step follows from Lemma 3. The final bound comes from joining the results in Steps 3 and 4, and since (1 − r)(1 − s) ≥ 1 − r − s for r, s ∈ [0 , 1] .
+
+## B.2 Proof of Theorem 2 
+
+Proof. Next, we reason about the maximum angle deviation in order to guarantee a minimum proportion of correctly recovered node labels α. Recall y∗ = ( y∗ 
+
+> 1
+
+, y ∗ 
+
+> 2
+
+, . . . , y ∗
+
+> n
+
+) where each y∗ 
+
+> i
+
+∈ {− 1, +1 }. Note that the definition of ρ(v1(A), y∗) considers both v1(A) and −v1(A) and thus ρ(v1(A), y∗) ≥ 1/2. Therefore, without loss of generality, assume α > 1/2. Let α = k/n where k > n/ 2.Let S be the set of vectors with l sign agreements with y∗, for n/ 2 ≤ l < k , defined as 
+
+S = [  
+
+> T⊆{ 1,...,n },n/ 2≤| T|<k
+
+ST ,
+
+where 
+
+ST = {s ∈ Rn : si = (2 × 1[ i ∈ T ] − 1) sign( y∗ 
+
+> i
+
+) ci, c i > 0, ∥c∥2 = 1 } .
+
+Consider v1(A) ∈ S. For n/ 2 ≤ l < k , without loss of generality, assume the first l entries agree in sign with 
+
+y∗. That is, v1(A) = (sign( y∗ 
+
+> 1
+
+) c1, . . . , sign( y∗ 
+
+> l
+
+) cl, −sign( y∗
+
+> l+1
+
+) cl+1 , . . . , −sign( y∗
+
+> n
+
+) cn). Recall ∥v1(A)∥2 = 1 
+
+and ∥y∗∥2 = √n. For clarity, let 1m be a vector of m ones. We have: 
+
+| cos θ(v1(A), y∗)| = |⟨ v1(A), y∗⟩| ∥v1(A)∥2∥y∗∥2
+
+= |c1 + · · · + cl − cl+1 − · · · − cn|/√n
+
+≤ max( c1 + · · · + cl, c l+1 + · · · + cn)/√n
+
+= max( ⟨(c1, . . . , c l), 1l⟩, ⟨(cl+1 , . . . , c n), 1n−l⟩/√n
+
+≤ max( 
+
+q
+
+c21 + · · · + c2
+
+> l
+
+√l, 
+
+q
+
+c2 
+
+> l+1
+
++ · · · + c2
+
+> n
+
+√n − l)/√n by Cauchy-Schwarz inequality 
+
+≤ max( √l, √n − l)/√n
+
+= pl/n < pk/n 
+
+= √α. 
+
+Thus, if ρ(v1(A), y∗) < α then | cos θ(v1(A), y∗)| < √α. By the contrapositive: if | cos θ(v1(A), y∗)| ≥ √α
+
+then ρ(v1(A), y∗) ≥ α. Therefore: 
+
+P(ρ(v1(A), y∗) ≥ α) ≥ P  | cos θ(v1(A), y∗)| ≥ √α .
+
+By invoking Theorem 1 with γ = 1 − √α, we prove our claim. 14 B.3 Proof of Lemma 1 
+
+Proof. Note that: 
+
+∥A − EA∥ = max( λ1(A − EA), −λn(A − EA)) = max( λ1(A − EA), λ 1(E[A] − A)) .
+
+Since ∥A − EA∥ depends on both λ1(A − EA) and λ1(E[A] − A), we bound them separately. To bound P(λ1(A − EA) ≥ t), we apply Lemma 6 on A − E[A]. Let (i, j ) ∈ E be the k-th edge in the edge set E. We define: 
+
+Xk = ( Aij − E[Aij ])( eie⊤ 
+
+> j
+
++ ej e⊤ 
+
+> i
+
+)
+
+Since each Aij is independent, the above satisfies the requirement in Lemma 6 that Xk are independent, random, self-adjoint matrices. Since Aij − E[Aij ] has expected value zero, then EXk = 00 ⊤. Furthermore, note that (Aij − E[Aij ]) 2 ≤ (−1 − (1 − 2p)) 2 = 4(1 − p)2. Then, we let M2 
+
+> k
+
+= 4(1 − p)2(eie⊤ 
+
+> i
+
++ ej e⊤ 
+
+> j
+
+) in order to satisfy X2 
+
+> k
+
+⪯ M2
+
+> k
+
+, also required in Lemma 6. Note that: 
+
+σ2 = X
+
+> k
+
+M2
+
+> k
+
+= 4(1 − p)2
+
+> n
+
+X
+
+> k=1
+
+di(eie⊤ 
+
+> i
+
+)
+
+= 4(1 − p)2dmax .
+
+Thus, by invoking Lemma 6, we have: 
+
+P(λ1(A − EA) ≥ t) = P λ1
+
+X
+
+> k
+
+Xk
+
+!
+
+≥ t
+
+!
+
+≤ ne −t2/8σ2
+
+= ne −t232(1 −p)2dmax .
+
+To bound P(λ1(E[A] − A)) ≥ t), we apply Lemma 6 on E[A] − A and undergo nearly the same process as above, but now we negate each of Xk from before, while Mk and σ2 remains the same. Consequently, we get the following upper bound for P(λ1(E[A] − A)) as the second bound needed to complete our proof. Note that this turns out to be the same bound as before. That is, 
+
+P(λ1(E[A] − A) ≥ t) ≤ ne −t232(1 −p)2dmax .
+
+By using the union bound, we have: 
+
+P (∥A − EA∥ ≥ t) = P (max( λ1(A − EA), λ 1(E[A] − A)) ≥ t)= P (λ1(A − EA) ≥ t ∨ λ1(E[A] − A) ≥ t)
+
+≤ P (λ1(A − EA) ≥ t) + P (λ1(E[A] − A) ≥ t)
+
+≤ 2ne −t232(1 −p)2dmax ,
+
+and we prove our claim. 
+
+## B.4 Proof of Lemma 2 
+
+Proof. By the eigenvalue stability inequality, based on Weyl’s inequality [23], we have that: 
+
+−∥ A − EA∥ ≤ λ1(A) − λ1(EA) ≤ ∥ A − EA∥,
+
+15 and 
+
+−∥ A − EA∥ ≤ λ2(A) − λ2(EA) ≤ ∥ A − EA∥.
+
+Putting these together, we have: 
+
+λ1(A) − λ2(A) ≥ λ1(EA) − λ2(EA) − 2∥A − EA∥.
+
+By invoking Lemma 1 with t = λ1(EA)−λ2(EA)2 , we have: 
+
+P
+
+
+
+∥A − EA∥ ≥ λ1(EA) − λ2(EA)2
+
+
+
+≤ 2ne −(λ1(EA)−λ2(EA)) 2128(1 −p)2dmax .
+
+Finally, note that: 
+
+P(λ1(A) − λ2(A) > 0) ≥ P(λ1(EA) − λ2(EA) − 2∥A − EA∥ > 0) = P(∥A − EA∥ < λ1(EA) − λ2(EA)2 )= 1 − P(∥A − EA∥ ≥ λ1(EA) − λ2(EA)2 )
+
+≥ 1 − 2ne −(λ1(EA)−λ2(EA)) 2128(1 −p)2dmax ,
+
+which proves our claim. 
+
+## B.5 Proof of Lemma 4 
+
+Proof. We first find a lower bound for λ1(E), by using its Rayleigh Quotient definition: 
+
+λ1(E) = max 
+
+> x̸=0
+
+x⊤Ex x⊤x
+
+≥ 1⊤E1 1⊤1
+
+=
+
+Pni=1 di
+
+n
+
+= davg .
+
+Then, we find an upper bound for λ2(E), by using the Courant-Fischer Theorem [20], as follows: 
+
+λ2(E) = min  
+
+> b
+
+max 
+
+> ∥x∥=1 ,b⊤x=0
+
+⟨Ex , x⟩≤ max 
+
+> ∥x∥=1 ,1⊤x=0
+
+x⊤Ex 
+
+= max 
+
+> ∥x∥=1 ,1⊤x=0
+
+ x⊤Dx − x⊤Lx 
+
+= max 
+
+> ∥x∥=1 ,1⊤x=0
+> n
+
+X
+
+> i=1
+
+dix2 
+
+> i
+
+− x⊤Lx 
+
+!
+
+= max 
+
+> ∥x∥=1 ,1⊤x=0
+> n
+
+X
+
+> i=1
+
+dix2
+
+> i
+
+!
+
+− min 
+
+> ∥x∥=1 ,1⊤x=0
+
+x⊤L x
+
+= dmax − λn−1(L).
+
+By combining both bounds, we get λ1(E) − λ2(E) ≥ λn−1(L) − dmax + davg , and we prove our claim. 16 (a) (b) 
+
+Figure 4: Effect of edge-noise parameter p on the angle deviation (a) and proportion of correctly recovered node labels (b) for Erdös–Rényi graphs (60% edge density) of n = 200 nodes. Error bars at 95% confidence level over 30 repetitions. Our spectral method (Spectral) and semidefinite programming (SDP) produced comparable results.  
+
+> (a) (b)
+
+Figure 5: Effect of edge-noise parameter p on the angle deviation (a) and proportion of correctly recovered node labels (b) for complete graphs of n = 200 nodes. Error bars at 95% confidence level over 30 repetitions. Our spectral method (Spectral) and semidefinite programming (SDP) produced comparable results. 
+
+# C Additional Experiments 
+
+## C.1 More Comparisons Across Different Classes of Graphs 
+
+First, we run experiments on different classes of graphs, regarding the effect of the edge-noise parameter p in the angle deviation and proportion of correctly recovered node labels. Figures 3 to 5 show that our spectral method and semidefinite programming produce comparable results for Erdös–Rényi graphs, regular expander graphs and complete graphs. Second, we run additional experiments for different classes of graphs, regarding the effect of the number of nodes n in the angle deviation and proportion of correctly recovered node labels. Figures 6 to 8 show that our spectral method and semidefinite programming produce comparable results for Erdös–Rényi graphs, regular expander graphs and complete graphs. Recall that in the main text, Figure 2 showed that our spectral method runs significantly faster than semidefinite programming. 17 (a) (b) 
+
+Figure 6: Effect of number of nodes n on the angle deviation (a) and proportion of correctly recovered node labels (b) for Erdös–Rényi graphs (60% edge density) with p = 0 .4. Error bars at 95% confidence level over 30 repetitions. Our spectral method (Spectral) and semidefinite programming (SDP) produced comparable results.  
+
+> (a) (b)
+
+Figure 7: Effect of number of nodes n on the angle deviation (a) and proportion of correctly recovered node labels (b) for d-regular expanders ( d = 6 ) with p = 0 .4. Error bars at 95% confidence level over 30 repetitions. Our spectral method (Spectral) and semidefinite programming (SDP) produced comparable results. 
+
+## C.2 Large Real-World Structured Prediction 
+
+We performed experiments in Epinions, a real-world case with 131,828 nodes and 841,372 edges. Our spectral algorithm runs in 0.1484 seconds while SDP would struggle at this scale in commercial solvers. To validate whether the spectral approach result is meaningful, the proportion positive edges (over all edges) inside nodes with yi = +1 is 82.1%. For nodes with yi = −1 the proportion of positive edges is 94.3%. The proportion of positive edges between nodes with yi = +1 and nodes with yi = −1 is 23.0%. This result is meaningful as we expect more positive edges inside nodes with the same yi and few positive edges between different yi. (On each case the proportion of negative edges is 100% minus the proportion of positive edges.) 18 (a) (b) 
+
+Figure 8: Effect of number of nodes n on the angle deviation (a) and proportion of correctly recovered node labels (b) for complete graphs with p = 0 .4. Error bars at 95% confidence level over 30 repetitions. Our spectral method (Spectral) and semidefinite programming (SDP) produced comparable results. 19
