@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-23</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-24</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 17 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 15 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>6</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>11</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>5</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>10</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-23 22:11:59 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-24 22:13:26 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,10 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>2026-09-23日报完成：从17篇中精读6篇、速读11篇，主打连续时间机器学习与多模态自适应证据选择。</p>
-<p>最值得看的是两篇8.0精读：《Continuous-Time Machine Learning》给统一数学视角，《Layers, Sinks, and Scaling》聚焦多模态大模型证据选择。</p>
-<p>普通读者可先读这两篇精读，再按兴趣从速读中的视频生成、多模态推理或谱结构化预测切入。</p>
+<p>今日共生成 15 篇推荐（精读 5 篇，速读 10 篇）</p>
+<p>精读：《STUART: Sequence Triage and qUAntification of Read Transcripts for Rapid Ionizing Radiation Exposure Assessment》（8.0/10）, 《Understanding and Exploiting Diagonal Attention Sparsity in Autoregressive Image Generation》（8.0/10）</p>
+<p>速读：《The Ups and Downs of Backprop Weights》（8.0/10）, 《Planning and Rendering in Concert: DeepFusion of Autoregressive Layouts and Diffusion for Visual Text Generation》（8.0/10）, 《BindCLIP: One Balanced Coupling For Compositional Vision Language Scoring》（8.0/10）</p>
+<p>这些结果覆盖了当下较热的方向，建议先看精读区论文的关键问题与方法。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -80,12 +81,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">6 篇</strong>
+    <strong class="dpr-home-dashboard-count">5 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Continuous-Time Machine Learning: A Unified Mathematical Perspective">Continuous-Time Machine Learning: A Unified Mathematical Perspective</span></li><li><span class="dpr-home-dashboard-paper-title" title="Layers, Sinks, and Scaling: Adaptive Evidence Selection for Multimodal Large Language Models">Layers, Sinks, and Scaling: Adaptive Evidence Selection for Multimodal Large Language Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="Persistent Recurrent Memory Between Transformer Layers - Improves Language Model Generalization">Persistent Recurrent Memory Between Transformer Layers - Improves Language Model Generalization</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="STUART: Sequence Triage and qUAntification of Read Transcripts for Rapid Ionizing Radiation Exposure Assessment">STUART: Sequence Triage and qUAntification of Read Transcripts for Rapid Ionizing Radiation Exposure Assessment</span></li><li><span class="dpr-home-dashboard-paper-title" title="Understanding and Exploiting Diagonal Attention Sparsity in Autoregressive Image Generation">Understanding and Exploiting Diagonal Attention Sparsity in Autoregressive Image Generation</span></li><li><span class="dpr-home-dashboard-paper-title" title="Uni-LaDiR: Latent Diffusion Unifies Multimodal Reasoning">Uni-LaDiR: Latent Diffusion Unifies Multimodal Reasoning</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">demo <strong>6</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">demo <strong>5</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -93,12 +94,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">11 篇</strong>
+    <strong class="dpr-home-dashboard-count">10 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Anchoring What Matters: A Dual-Level Learning Framework for Visually-Grounded Multimodal Reasoning">Anchoring What Matters: A Dual-Level Learning Framework for Visually-Grounded Multimodal Reasoning</span></li><li><span class="dpr-home-dashboard-paper-title" title="MSR: Multiple Subject Reference for Video Generation">MSR: Multiple Subject Reference for Video Generation</span></li><li><span class="dpr-home-dashboard-paper-title" title="Provable Guarantees for Spectral Structured Prediction">Provable Guarantees for Spectral Structured Prediction</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="The Ups and Downs of Backprop Weights">The Ups and Downs of Backprop Weights</span></li><li><span class="dpr-home-dashboard-paper-title" title="Planning and Rendering in Concert: DeepFusion of Autoregressive Layouts and Diffusion for Visual Text Generation">Planning and Rendering in Concert: DeepFusion of Autoregressive Layouts and Diffusion for Visual Text Generation</span></li><li><span class="dpr-home-dashboard-paper-title" title="BindCLIP: One Balanced Coupling For Compositional Vision Language Scoring">BindCLIP: One Balanced Coupling For Compositional Vision Language Scoring</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">demo <strong>11</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">demo <strong>10</strong></span></div>
 </section>
 </div>
 

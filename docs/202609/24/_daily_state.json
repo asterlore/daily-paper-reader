@@ -1,0 +1,249 @@
+{
+  "date": "20260924",
+  "date_label": "",
+  "generated_at": "2026-09-24 22:13:26 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.19139v1",
+      "route": "202609/24/2609.19139v1-stuart-sequence-triage-and-quantification-of-read-transcripts-for-rapid-ionizing-radiation-exposure-assessment",
+      "title": "STUART: Sequence Triage and qUAntification of Read Transcripts for Rapid Ionizing Radiation Exposure Assessment",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向转录组辐射剂量学的无比对机器学习框架",
+      "first_seen_at": "2026-09-24 22:13:26 UTC",
+      "updated_at": "2026-09-24 22:13:26 UTC"
+    },
+    {
+      "paper_id": "2609.19702v1",
+      "route": "202609/24/2609.19702v1-understanding-and-exploiting-diagonal-attention-sparsity-in-autoregressive-image-generation",
+      "title": "Understanding and Exploiting Diagonal Attention Sparsity in Autoregressive Image Generation",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "结合稀疏注意力的自回归图像生成",
+      "first_seen_at": "2026-09-24 22:13:26 UTC",
+      "updated_at": "2026-09-24 22:13:26 UTC"
+    },
+    {
+      "paper_id": "2609.19878v1",
+      "route": "202609/24/2609.19878v1-uni-ladir-latent-diffusion-unifies-multimodal-reasoning",
+      "title": "Uni-LaDiR: Latent Diffusion Unifies Multimodal Reasoning",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "在共享潜在思维空间统一多模态推理的扩散框架",
+      "first_seen_at": "2026-09-24 22:13:26 UTC",
+      "updated_at": "2026-09-24 22:13:26 UTC"
+    },
+    {
+      "paper_id": "2609.20398v1",
+      "route": "202609/24/2609.20398v1-schema-anchored-latent-reasoning-for-semantic-parsing-based-knowledge-base-question-answering",
+      "title": "Schema-Anchored Latent Reasoning for Semantic Parsing-Based Knowledge Base Question Answering",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "基于大语言模型的语义解析知识库问答",
+      "first_seen_at": "2026-09-24 22:13:26 UTC",
+      "updated_at": "2026-09-24 22:13:26 UTC"
+    },
+    {
+      "paper_id": "2609.20869v1",
+      "route": "202609/24/2609.20869v1-tapeml-a-compact-structured-representation-for-multi-task-computer-vision",
+      "title": "TAPe+ML: A Compact Structured Representation for Multi-Task Computer Vision",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向多任务计算机视觉的结构化表示",
+      "first_seen_at": "2026-09-24 22:13:26 UTC",
+      "updated_at": "2026-09-24 22:13:26 UTC"
+    },
+    {
+      "paper_id": "2609.22554v1",
+      "route": "202609/24/2609.22554v1-the-ups-and-downs-of-backprop-weights",
+      "title": "The Ups and Downs of Backprop Weights",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "反向传播、参数组织与深度网络权重纠缠分析",
+      "first_seen_at": "2026-09-24 22:13:26 UTC",
+      "updated_at": "2026-09-24 22:13:26 UTC"
+    },
+    {
+      "paper_id": "2609.22916v1",
+      "route": "202609/24/2609.22916v1-planning-and-rendering-in-concert-deepfusion-of-autoregressive-layouts-and-diffusion-for-visual-text-generation",
+      "title": "Planning and Rendering in Concert: DeepFusion of Autoregressive Layouts and Diffusion for Visual Text Generation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "自回归布局与扩散融合的视觉文本生成",
+      "first_seen_at": "2026-09-24 22:13:26 UTC",
+      "updated_at": "2026-09-24 22:13:26 UTC"
+    },
+    {
+      "paper_id": "2609.23717v1",
+      "route": "202609/24/2609.23717v1-bindclip-one-balanced-coupling-for-compositional-vision-language-scoring",
+      "title": "BindCLIP: One Balanced Coupling For Compositional Vision Language Scoring",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "基于令牌-图块耦合的组合式视觉语言打分",
+      "first_seen_at": "2026-09-24 22:13:26 UTC",
+      "updated_at": "2026-09-24 22:13:26 UTC"
+    },
+    {
+      "paper_id": "2609.24215v1",
+      "route": "202609/24/2609.24215v1-beyond-emotion-prompts-fine-grained-text-to-image-generation-driven-by-valence-arousal-dominance",
+      "title": "Beyond Emotion Prompts: Fine-Grained Text-to-Image Generation Driven by Valence-Arousal-Dominance",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "以价-唤醒-支配坐标驱动的文本到图像生成",
+      "first_seen_at": "2026-09-24 22:13:26 UTC",
+      "updated_at": "2026-09-24 22:13:26 UTC"
+    },
+    {
+      "paper_id": "2609.24226v1",
+      "route": "202609/24/2609.24226v1-srpr-net-semantic-and-relational-prompt-refinement-for-automated-sam-based-instance-segmentation",
+      "title": "SRPR-Net: Semantic and Relational Prompt Refinement for Automated SAM-based Instance Segmentation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向SAM自动实例分割的语义与关系提示细化",
+      "first_seen_at": "2026-09-24 22:13:26 UTC",
+      "updated_at": "2026-09-24 22:13:26 UTC"
+    },
+    {
+      "paper_id": "2609.24276v1",
+      "route": "202609/24/2609.24276v1-hierarchical-prompt-learning-for-hyperbolic-vision-language-models",
+      "title": "Hierarchical Prompt Learning for Hyperbolic Vision-Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向视觉语言模型的分层提示学习",
+      "first_seen_at": "2026-09-24 22:13:26 UTC",
+      "updated_at": "2026-09-24 22:13:26 UTC"
+    },
+    {
+      "paper_id": "2609.24337v2",
+      "route": "202609/24/2609.24337v2-liauto-mindvit-a-hybrid-vision-backbone-with-adaptive-bidirectional-mamba",
+      "title": "LiAuto-MindViT: A Hybrid Vision Backbone with Adaptive Bidirectional Mamba",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "融合CNN、Mamba与Transformer的混合视觉骨干",
+      "first_seen_at": "2026-09-24 22:13:26 UTC",
+      "updated_at": "2026-09-24 22:13:26 UTC"
+    },
+    {
+      "paper_id": "2609.24372v1",
+      "route": "202609/24/2609.24372v1-ura-ner-a-unified-retrieval-augmented-framework-with-retrieval-alignment-and-uncertainty-reduction-for-low-resource-ner",
+      "title": "URA-NER: A Unified Retrieval-Augmented Framework with Retrieval Alignment and Uncertainty Reduction for Low-Resource NER",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向命名实体识别的检索增强大语言模型框架",
+      "first_seen_at": "2026-09-24 22:13:26 UTC",
+      "updated_at": "2026-09-24 22:13:26 UTC"
+    },
+    {
+      "paper_id": "2609.24510v2",
+      "route": "202609/24/2609.24510v2-05100-bidirectional-reciprocal-learning-for-referring-image-segmentation",
+      "title": "0.5%>100%: Bidirectional Reciprocal Learning for Referring Image Segmentation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向指代图像分割的双向跨模态学习",
+      "first_seen_at": "2026-09-24 22:13:26 UTC",
+      "updated_at": "2026-09-24 22:13:26 UTC"
+    },
+    {
+      "paper_id": "2609.25655v1",
+      "route": "202609/24/2609.25655v1-from-experts-to-sub-experts-fine-grained-parameter-efficient-fine-tuning-for-moe-llms",
+      "title": "From Experts to Sub-experts: Fine-grained Parameter-Efficient Fine-Tuning for MoE LLMs",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向MoE大模型的细粒度参数高效微调",
+      "first_seen_at": "2026-09-24 22:13:26 UTC",
+      "updated_at": "2026-09-24 22:13:26 UTC"
+    }
+  ]
+}

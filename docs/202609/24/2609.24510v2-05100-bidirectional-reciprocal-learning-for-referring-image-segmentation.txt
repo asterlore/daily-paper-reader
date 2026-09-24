@@ -1,0 +1,3051 @@
+SUBMITTED TO IEEE
+1
+0.5%>100%: Bidirectional Reciprocal Learning for
+Referring Image Segmentation
+Xiaoqiang Lu , Member, IEEE, Licheng Jiao , Life Fellow, IEEE, Lingling Li , Senior Member, IEEE,
+Yuting Yang , Member, IEEE, Long Sun , Member, IEEE, Wenping Ma , Senior Member, IEEE,
+Xu Liu , Senior Member, IEEE, and Fang Liu , Senior Member, IEEE
+Abstract—Recent
+advances
+in
+vision
+foundation
+models
+(VFMs) have shown remarkable capabilities across diverse
+unimodal visual tasks. However, adapting VFMs to referring
+image segmentation (RIS) typically necessitates precise vision-
+language alignment via full fine-tuning, incurring substantial
+computational overhead and risking catastrophic forgetting.
+While existing parameter-efficient fine-tuning (PEFT) methods
+enable safe knowledge transfer with minimal training costs,
+they predominantly operate independently within individual
+modalities or focus exclusively on unidirectional guidance from
+language to vision, overlooking progressive cross-modal inter-
+action and visual feedback for textual refinement. To address
+these limitations, we propose Bidirectional Reciprocal Learning
+(BRL), a novel adapter-based PEFT framework that facilitates
+hierarchical, bidirectional information flow within both token-
+mixing and channel-mixing layers of frozen foundation models.
+Specifically, BRL introduces two complementary lightweight
+modules. The Reciprocal Attention Adapter (RAA) performs
+cross-modal query-key exchanges at the token level, enabling
+visual and linguistic tokens to mutually attend to each other
+for fine-grained spatial grounding. The Reciprocal Gate Adapter
+(RGA) generates cross-modal gating signals at the channel level,
+allowing global semantic context from one modality to adaptively
+recalibrate channel activations of the other. Extensive experi-
+ments on RefCOCO, RefCOCO+, and RefCOCOg benchmarks
+demonstrate the superiority of BRL over prior RIS methods,
+achieving state-of-the-art performance while requiring less than
+0.5% backbone parameter updates. Code and models will be
+released at https://github.com/xiaoqiang-lu/BRL.
+Index Terms—Parameter-efficient fine-tuning, referring image
+segmentation, bidirectional reciprocal learning.
+I. INTRODUCTION
+R
+EFERRING image segmentation (RIS) aims to segment
+the specific visual object corresponding to a free-form
+textual expression [1]–[3]. As a foundational dense prediction
+This work was supported in part by the Joint Funds of the National
+Natural Science Foundation of China (U22B2054); in part by the National
+Natural Science Foundation of China (62076192, 62276199, 62431020 and
+62276201); in part by the 111 Project; in part by the Program for Cheung
+Kong Scholars and Innovative Research Team in University (IRT 15R53); in
+part by the National Science Basic Research Plan in Shaanxi Province of
+China under Grant 2019JQ-659 and 2022JQ-607; in part by the Science and
+Technology Innovation Project from the Chinese Ministry of Education; in part
+by the National Key Laboratory of Human-Machine Hybrid Augmented In-
+telligence, Xi’an Jiaotong University (HMHAI-202404 and HMHAI-202405).
+(Corresponding author: Licheng Jiao.)
+The authors are with the Key Laboratory of Intelligent Perception and
+Image Understanding of Ministry of Education, International Research Center
+for Intelligent Perception and Computation, School of Artificial Intelligence,
+Xidian University, Xi’an, Shaanxi Province, 710071, China (e-mail: luxiao-
+qiang5903@163.com; lchjiao@mail.xidian.edu.cn).
+Visual Foundation Models
+Multimodal Adapter
+Middle hot dog 
+in bottom row
+Textual Adapter
+Textual Foundation Models
+Task Decoder
+Visual Foundation Models
+Middle hot dog 
+in bottom row
+RAA
+Textual Foundation Models
+RGA
+Task Decoder
+Visual Foundation Models
+Visual Adapter
+Middle hot dog 
+in bottom row
+Textual Adapter
+Textual Foundation Models
+Task Decoder
+a
+b
+c
+Frozen
+Learnable
+Independent modality-specific adapter
+Unidirectional multimodal adapter
+Our bidirectional reciprocal learning
+Fig. 1.
+Comparisons of different PEFT methods for RIS. a: Independent
+modality-specific adapters operate separately on visual and textual streams
+without cross-modal interaction. b: Unidirectional multimodal adapter enables
+limited fusion due to its only supporting guidance from language to vision.
+c: Unlike previous methods that treat language as static guidance, our BRL
+formulates multimodal adaptation as a reciprocal representation learning
+process via the reciprocal attention adapter and reciprocal gate adapter.
+task bridging vision and language, RIS brings crucial effects
+in human-computer interaction [4]–[7], assisted diagnosis [8]–
+[10], and disaster assessment [11]–[13]. In contrast to tra-
+ditional image segmentation [14]–[17], which learns map-
+pings to a set of semantic categories [18]–[21], RIS requires
+establishing precise contextual relationships between visual
+and linguistic cues. To achieve it, pioneering works follow a
+two-stage paradigm that identifies the most relevant proposal
+according to its similarity with the expression [22], [23],
+whereas later studies have shifted toward a one-stage paradigm
+that enables end-to-end comprehension via multimodal feature
+fusion and interaction [24]–[28].
+Recent research has increasingly leveraged multimodal large
+language models (MLLMs) [29], [30] to advance RIS by
+exploiting their pre-aligned semantic spaces for cross-modal
+0000–0000/00$00.00 © 2026 IEEE
+arXiv:2609.24510v2  [cs.CV]  22 Sep 2026
+
+
+SUBMITTED TO IEEE
+2
+a
+b
+c
+PolyFormer
+MagNet
+CMIRNet
+LISA-7B
+SegLLM-7B
+POPEN-7B
+BarLeRIa-L
+DETRIS-L
+BRL-B
+BRL-L
+d
+RefCOCO val
+RefCOCO testA
+RefCOCO testB
+RefCOCO+ val
+RefCOCO+ testA
+RefCOCO+ testB
+RefCOCOg val(u)
+RefCOCOg test(u)
+e
+Fig. 2. Comparisons of BRL with state-of-the-art methods across RefCOCO, RefCOCO+, and RefCOCOg datasets. a: Compared with traditional full fine-
+tuning models using the mixed RefCOCO/+/g setting, our BRL with DINOv3-B [36] (BRL-B) achieves substantial performance gains of oIoU across all RIS
+benchmarks. b: Compared with multimodal large language models using the mixed setting, our BRL with DINOv3-L (BRL-L) outperforms them across all
+benchmarks while updating merely 1.8M parameters within encoders. c: Compared with parameter-efficient fine-tuning (PEFT) methods using the common
+setting, BRL-B surpasses DETRIS-L [37] on seven benchmarks except RefCOCO+ testB. d: Compared with PEFT methods using the mixed setting, BRL-L
+brings consistent performance gains of mIoU across all RIS benchmarks. e: Compared with full fine-tuning (FFT) foundation models, BRL reduces both
+learnable parameters and FLOPs by nearly 100× and 200× under the base and large architectures, respectively.
+reasoning [5]–[7], [31]–[33]. Nevertheless, prevailing MLLMs
+are mainly pretrained via global image-text matching, yield-
+ing coarse-grained representations suboptimal for RIS, which
+demands fine-grained perception and precise localization. In
+contrast, vision foundation models (VFMs) [34]–[36] have
+achieved remarkable success across diverse visual tasks, driven
+by their superior capacity for capturing fine-grained structural
+details. However, adapting these powerful unimodal VFMs
+to the multimodal RIS scenario presents significant obsta-
+cles. Traditional full fine-tuning incurs prohibitive computa-
+tional overhead, while the discrepancy between unimodal pre-
+training objectives and multimodal feature alignment often
+risks catastrophic forgetting and representation interference.
+In response, parameter-efficient fine-tuning (PEFT) has
+emerged as a promising alternative, seeking to safely con-
+dense general knowledge into task-specific expertise while
+minimizing training costs [38]–[40]. Current PEFT methods
+mainly include reparameterization-based [41]–[43], prompt-
+based [44], [45], and adapter-based [46], [47] tuning. Nev-
+ertheless, most of them exhibit critical issues when applied
+to RIS. As illustrated in Fig. 1.a, common adapter-based
+methods [48], [49] operate independently within individual
+modalities, lacking explicit cross-modal interaction. Recent
+work such as DETRIS [37] explores the feasibility of VFMs in
+RIS by constructing a multimodal adapter using global textual
+information, as depicted in Fig. 1.b. While effective, it remains
+constrained by two fundamental limitations. First, the language
+representation remains static during multimodal interaction,
+preventing ambiguous expressions from being grounded and
+refined according to visual evidence. Second, the absence of
+inter-modality progressive learning may lead to the accumula-
+tion of negative effects caused by misaligned representations.
+Considering the current progress and the above two short-
+comings, a natural question arises: can we unleash the full po-
+tential of VFMs in multimodal dense predictions? We answer
+it affirmatively with our proposed Bidirectional Reciprocal
+Learning (BRL) framework, a lightweight yet efficient adapter-
+based tuning method that enables vision-language interaction
+bidirectionally and hierarchically. As shown in Fig. 1.c, BRL
+consists of two core components: the Reciprocal Attention
+Adapter (RAA), which facilitates token-wise mutual reasoning
+for dense cross-modal alignment, and the Reciprocal Gate
+Adapter (RGA), which realizes channel-wise reciprocal reg-
+ulation to balance modality contributions and suppress irrel-
+evant signals. Specifically, RAA introduces a reciprocal at-
+tention mechanism in the self-attention layer, which leverages
+linguistic queries to guide the localization of visual tokens
+while simultaneously feeding visual evidence back to refine
+textual semantics. This mutual refinement builds second-order
+dependencies between modalities, allowing visual grounding
+
+
+SUBMITTED TO IEEE
+3
+and linguistic semantics to evolve jointly rather than relying on
+static language priors. In contrast, RGA operates on the feed-
+forward layer by establishing a reciprocal gating mechanism
+that dynamically adjusts activation strengths based on cross-
+modal global prior information. This gated regulation mitigates
+cross-modal representation imbalance, attenuates modality-
+specific redundancy, and amplifies informative responses, lead-
+ing to more robust multimodal representations. Notably, RAA
+and RGA are complementary: the former focuses on spatial
+correspondence learning, whereas the latter regulates global
+semantic consistency and feature selectivity.
+To evaluate the effectiveness of our method, we conduct
+extensive experiments on RefCOCO, RefCOCO+, and Re-
+fCOCOg benchmarks. As summarized in Fig. 2, BRL not
+only surpasses traditional full fine-tuning methods and recent
+MLLM-based methods, but also dramatically improves adapta-
+tion efficiency by reducing learnable parameters and FLOPs by
+nearly 100× and 200× under the base and large architectures,
+respectively. These results demonstrate the remarkable poten-
+tial of reciprocal multimodal adaptation for efficient dense
+vision-language understanding. Our main contributions are as
+follows:
+1) We propose BRL, a parameter-efficient learning frame-
+work that unleashes the power of vision foundation mod-
+els in referring image segmentation, allowing progres-
+sive mutual vision-language alignment and refinement
+while updating less than 0.5% parameters.
+2) We introduce RAA, a lightweight token-level interaction
+module that performs reciprocal cross-modal attention
+within transformer self-attention layers, enabling visual
+and linguistic tokens to mutually refine each other for
+fine-grained spatial grounding.
+3) We further develop RGA, a channel-level modulation
+module that dynamically generates cross-modal gating
+signals to adaptively recalibrate heterogeneous feature
+responses, thereby suppressing modality-specific redun-
+dancy and enhancing semantic consistency.
+II. RELATED WORK
+A. Referring Image Segmentation
+Referring image segmentation (RIS) aims to localize and
+segment the target region in an image according to a free-form
+natural language expression [50]–[52]. As a representative
+multimodal dense prediction task, RIS requires simultaneously
+understanding visual structures and linguistic semantics while
+establishing fine-grained cross-modal correspondence between
+them. Early RIS methods mainly follow a two-stage paradigm,
+where candidate object proposals are first generated and then
+matched with the referring expression based on multimodal
+similarity [22], [53]. Although effective, such approaches
+heavily depend on proposal quality and often suffer from
+limited end-to-end optimization capability.
+To overcome these limitations, recent studies gradually
+transition toward one-stage end-to-end frameworks [3], [54],
+[55], which directly perform multimodal interaction and
+dense prediction within unified architectures. Benefiting from
+transformer-based multimodal reasoning, these methods fuse
+visual and linguistic tokens through cross-attention mecha-
+nisms [26], [28], [56], significantly improving global con-
+textual understanding and spatial grounding ability. More
+recently, the emergence of multimodal large language models
+(MLLMs) [29], [30] has further promoted RIS by leveraging
+large-scale vision-language pretraining and aligned semantic
+representations [5]–[7], [57]. Despite their impressive perfor-
+mance, most existing MLLM-based methods rely on careful
+fine-tuning or heavy multimodal instruction tuning, result-
+ing in substantial computational overhead and potential risks
+of catastrophic forgetting. Moreover, prevailing multimodal
+pretraining objectives mainly emphasize global image-text
+alignment, which remains suboptimal for RIS requiring fine-
+grained spatial localization and dense cross-modal interaction.
+In contrast, recent vision foundation models (VFMs) [34]–
+[36] demonstrate remarkable capability in capturing fine-
+grained visual structures and dense spatial details, making
+them highly promising for RIS. However, effectively adapting
+powerful unimodal VFMs to multimodal dense prediction
+remains insufficiently explored, especially under parameter-
+efficient learning paradigms.
+B. Parameter-Efficient Fine-Tuning
+Parameter-efficient fine-tuning (PEFT) aims to adapt large
+pre-trained models to downstream tasks by updating only a
+small subset of parameters while preserving the majority of
+pretrained knowledge [40]. Existing PEFT methods mainly
+include adapter-based [47]–[49], prompt-based [44], [45],
+[58], and reparameterization-based learning [41], [42], [59].
+Adapter-based methods insert lightweight bottleneck mod-
+ules into transformer layers for task-specific adaptation [48],
+whereas prompt-based methods optimize learnable prompts
+to guide downstream learning [58]. Reparameterization-based
+approaches instead approximate weight updates through low-
+rank decomposition for efficient optimization [41]. Owing to
+their strong efficiency and transferability, PEFT techniques
+have achieved remarkable success in large language mod-
+els [38] and vision foundation models [39].
+Nevertheless, applying PEFT to multimodal dense predic-
+tion remains highly challenging. Unlike conventional classifi-
+cation or generation tasks, RIS requires fine-grained reciprocal
+interaction between visual grounding and linguistic seman-
+tics throughout the adaptation process. Existing RIS-oriented
+PEFT methods mainly focus on modality-specific adaptation,
+such as inserting adapters only into visual encoders or em-
+ploying lightweight language modules for textual refinement.
+A few recent works [33], [37] further explore multimodal
+adaptation for RIS by injecting linguistic guidance into visual
+representations. However, their interactions are typically shal-
+low or unidirectional, where language mainly serves as static
+semantic supervision for visual modulation. Such asymmetric
+adaptation prevents multimodal representations from being
+progressively refined through reciprocal feedback and limits
+the establishment of hierarchical cross-modal dependencies.
+Different from existing PEFT paradigms, our proposed BRL
+formulates multimodal adaptation as a reciprocal representa-
+tion learning process. By jointly modeling token-level recip-
+rocal reasoning and channel-level reciprocal regulation, BRL
+
+
+SUBMITTED TO IEEE
+4
+Visual
+Block
+Textual
+Block
+BRL
+Middle hot dog in 
+bottom row
+Visual
+Block
+Textual
+Block
+Visual
+Block
+Textual
+Block
+BRL
+BRL
++
++
++
++
++
++
+Textual Features
+Visual Features
+Frozen
+Learnable
+LN
+MHA
+LN
+FFN
+LN
+FFN
++
++
++
++
+LN
+MHA
+BRL: Bidirectional Reciprocal Learning
+RGA
+RAA
+Task
+Decoder
+Q
+K
+V
+Down
+GeLU
+Up
+RAA: Reciprocal Attention Adapter
++
+Q
+V
+K
++
+Down
+GeLU
+Up
+RGA: Reciprocal Gate Adapter
+Down
+Pool
++
+Up
+Down
+Pool
+Linear
+Up
+GeLU
++
+GeLU
+Sigmoid
+Sigmoid
+Linear
+Fig. 3. Overview of the proposed Bidirectional Reciprocal Learning (BRL) framework. BRL inserts two lightweight reciprocal adapters, namely the Reciprocal
+Attention Adapter (RAA) and the Reciprocal Gate Adapter (RGA), into frozen vision and language foundation models for efficient multimodal adaptation.
+Specifically, RAA performs token-level reciprocal interaction via bidirectional attention composition to establish fine-grained cross-modal correspondence,
+while RGA conducts channel-level reciprocal regulation through cross-modal gated modulation to enhance global semantic consistency and adaptive feature
+selectivity. Through progressive bidirectional adaptation across selected transformer layers, BRL enables hierarchical reciprocal representation learning between
+visual grounding and linguistic semantics with minimal trainable parameters.
+enables progressive bidirectional interaction between frozen
+vision and language foundation models for efficient and robust
+referring image segmentation.
+III. METHOD
+A. Bidirectional Reciprocal Learning Overview
+Given an image I and a referring expression T, the goal
+of referring image segmentation (RIS) is to predict the target
+binary mask M
+∈RH×W corresponding to the referred
+object. Unlike existing parameter-efficient fine-tuning (PEFT)
+methods that mainly perform unidirectional language-guided
+visual adaptation, we formulate multimodal adaptation as a
+reciprocal representation learning process, where visual and
+linguistic representations are progressively refined through
+bidirectional interaction.
+As illustrated in Fig. 3, the proposed Bidirectional Re-
+ciprocal Learning (BRL) framework consists of two frozen
+foundation backbones: a vision foundation model (VFM) V
+and a language foundation model (LFM) L. Given the visual
+input I, the visual encoder extracts hierarchical visual tokens:
+V = V(I),
+V ∈RNv×Cv,
+(1)
+where Nv and Cv denote the token number and feature dimen-
+sion, respectively. Similarly, the language encoder transforms
+the referring expression T into linguistic representations:
+L = L(T),
+L ∈RNl×Cl,
+(2)
+where Nl and Cl represent the number and dimension of
+linguistic tokens.
+Instead of updating the VFM and LFM parameters, BRL in-
+serts lightweight reciprocal adapters into selected transformer
+layers to achieve efficient multimodal adaptation with minimal
+trainable computational cost. Specifically, BRL introduces two
+complementary components: the Reciprocal Attention Adapter
+(RAA) and the Reciprocal Gate Adapter (RGA). RAA is
+embedded into transformer self-attention layers to establish
+token-level reciprocal interaction, whereas RGA is integrated
+into feed-forward layers to perform channel-level reciprocal
+regulation. Through hierarchical bidirectional adaptation, BRL
+progressively constructs reciprocal multimodal dependencies
+between visual grounding and linguistic semantics. Notably,
+RAA and RGA operate cooperatively rather than indepen-
+dently: RAA focuses on reciprocal spatial correspondence
+learning, whereas RGA further stabilizes multimodal adapta-
+tion through global semantic regulation.
+Formally, given the selected i-th transformer layer, BRL first
+conducts reciprocal token interaction via the RAA:
+Vraa
+i
+, Lraa
+i
+= RAAi(Vi−1, Li−1),
+(3)
+where Vi−1 and Li−1 denote the visual and linguistic repre-
+sentations from the previous transformer layer. The reciprocal
+
+
+SUBMITTED TO IEEE
+5
+attention outputs are then integrated into the transformer self-
+attention residual branches:
+Vatt
+i
+= Vi−1 + MHA
+ LN(Vi−1)
+
++ α · Vraa
+i
+,
+(4)
+Latt
+i
+= Li−1 + MHA
+ LN(Li−1)
+
++ α · Lraa
+i
+,
+(5)
+where LN(·) and MHA(·) denote layer normalization and
+multi-head self-attention, respectively, and α is a residual
+scaling factor controlling the reciprocal adaptation strength.
+Subsequently, BRL further performs reciprocal channel regu-
+lation through the RGA:
+Vrga
+i
+, Lrga
+i
+= RGAi(Vatt
+i
+, Latt
+i
+),
+(6)
+whose outputs are injected into feed-forward layers as:
+Vi = Vatt
+i
++ FFN
+ LN(Vatt
+i
+)
+
++ α · Vrga
+i
+,
+(7)
+Li = Latt
+i
++ FFN
+ LN(Latt
+i
+)
+
++ α · Lrga
+i
+,
+(8)
+where FFN(·) denotes the feed-forward network.
+Through iterative reciprocal adaptation between RAA and
+RGA across multiple transformer layers, visual and linguistic
+representations gradually evolve from independent unimodal
+features toward semantically aligned multimodal representa-
+tions, thereby facilitating robust dense cross-modal grounding
+and understanding. Overall, BRL establishes a hierarchical
+reciprocal adaptation paradigm, where token-level interaction
+captures fine-grained spatial correspondence, while channel-
+level regulation enhances global semantic consistency and
+adaptive feature selectivity.
+B. Reciprocal Token Interaction
+Existing multimodal PEFT methods mainly adopt unidirec-
+tional interaction paradigms, where linguistic representations
+are treated as static semantic guidance for visual modulation.
+Although such strategies introduce cross-modal information
+into visual adaptation, the interaction process remains inher-
+ently asymmetric, preventing visual grounding and linguistic
+semantics from being jointly optimized through reciprocal
+feedback. Moreover, conventional cross-attention mechanisms
+mainly establish first-order correspondence between modali-
+ties, which is insufficient for RIS requiring fine-grained spatial
+reasoning and semantic disambiguation.
+To address these limitations, we propose the Reciprocal
+Attention Adapter (RAA) to perform bidirectional token-
+level reciprocal interaction within transformer self-attention
+layers. Different from conventional cross-modal attention that
+directly aggregates heterogeneous features, RAA explicitly
+constructs reciprocal second-order dependencies between vi-
+sual and linguistic representations, enabling each modality to
+progressively refine itself through the contextual structure of
+the other modality.
+Given visual and linguistic representations V and L, RAA
+first projects them into a shared low-dimensional latent space
+with channel dimension d:
+ˆV = GELU
+ ϕv(V)
+
+,
+ˆL = GELU
+ ϕl(L)
+
+,
+(9)
+where
+ˆV ∈RNv×d,
+ˆL ∈RNl×d,
+(10)
+and ϕv(·) and ϕl(·) denote lightweight down-projection layers,
+GELU(·) is the GELU activation function. The bottleneck di-
+mension d controls the adaptation capacity and computational
+complexity of reciprocal interaction.
+Based on the projected representations, RAA then constructs
+bidirectional cross-modal attention maps:
+Av→l = Softmax
+QvK⊤
+l
+√
+d
+
+,
+(11)
+Al→v = Softmax
+QlK⊤
+v
+√
+d
+
+,
+(12)
+where
+Qv = ˆVWQ
+v ,
+Kv = ˆVWK
+v ,
+(13)
+Ql = ˆLWQ
+l ,
+Kl = ˆLWK
+l ,
+(14)
+and WQ
+v/l and WK
+v/l represent learnable query and key pro-
+jections, respectively. Unlike standard cross-attention mech-
+anisms that directly utilize Av→l or Al→v for feature ag-
+gregation, RAA further establishes reciprocal second-order
+dependencies through attention composition:
+Av = Av→lAl→v,
+(15)
+Al = Al→vAv→l.
+(16)
+Such reciprocal attention composition enables each modal-
+ity to establish higher-order contextual dependencies through
+the opposite modality. Consequently, visual representations
+can be refined according to linguistic semantic structures,
+while linguistic representations simultaneously benefit from
+visual evidence feedback. This reciprocal reasoning mecha-
+nism facilitates more robust multimodal alignment and allevi-
+ates the representation inconsistency caused by unidirectional
+adaptation.
+Next, the reciprocal attention maps are then utilized for
+feature aggregation:
+V′ = AvWV
+v ,
+L′ = AlWV
+l ,
+(17)
+where WV
+v/l are learnable value projections.
+Finally, reciprocal token adaptation is performed as:
+Vraa = ψv( ˆV + V′),
+Lraa = ψl(ˆL + L′),
+(18)
+where ψv(·) and ψl(·) denote lightweight up-projection layers
+that restore modality-specific feature dimensions.
+Compared with typical cross-attention mechanisms, RAA
+establishes reciprocal token-level reasoning between modal-
+ities, enabling fine-grained spatial grounding and semantic
+disambiguation through progressive bidirectional interaction.
+
+
+SUBMITTED TO IEEE
+6
+C. Reciprocal Channel Regulation
+Although token-level reciprocal interaction enables fine-
+grained spatial correspondence learning, multimodal repre-
+sentations in RIS still suffer from modality imbalance and
+semantic redundancy. In particular, token-wise interaction
+mainly focuses on local correspondence reasoning, while lack-
+ing explicit regulation over global semantic consistency and
+feature selectivity across channels. Consequently, irrelevant
+activations or dominant modality biases may progressively
+accumulate during deep multimodal adaptation.
+To address this issue, we propose the Reciprocal Gate
+Adapter (RGA) to perform bidirectional channel-level re-
+ciprocal regulation within transformer feed-forward layers.
+Different from existing gating mechanisms that independently
+recalibrate features within a single modality, RGA dynamically
+generates cross-modal gating priors from global semantic
+statistics, allowing each modality to adaptively regulate the
+channel responses of the other modality.
+Given visual and linguistic representations after self-
+attention with reciprocal token interaction, namely Vatt and
+Latt, RGA first projects them into a shared low-dimensional
+latent space:
+ˆVatt = GELU
+ ϕv(Vatt)
+
+, ˆLatt = GELU
+ ϕl(Latt)
+
+, (19)
+where
+ˆVatt ∈RNv×d,
+ˆLatt ∈RNl×d.
+(20)
+To capture global semantic context, RGA then aggregates
+modality-wise global representations through spatial average
+pooling:
+gv = 1
+Nv
+Nv
+X
+n=1
+ˆVatt
+n ,
+gl = 1
+Nl
+Nl
+X
+n=1
+ˆLatt
+n ,
+(21)
+where
+gv ∈R1×d,
+gl ∈R1×d.
+(22)
+Unlike common channel attention mechanisms that generate
+intra-modal gates independently, RGA performs reciprocal
+cross-modal gating:
+wv = σ(Wvgv),
+wl = σ(Wlgl),
+(23)
+where σ(·) denotes the sigmoid activation function, and Wv
+and Wl are learnable linear projections. The generated gat-
+ing weights are then reciprocally injected into the opposite
+modality:
+V∗= ˆVatt ⊙wl,
+L∗= ˆLatt ⊙wv,
+(24)
+where ⊙denotes channel-wise multiplication. Through such
+reciprocal gating, global semantic priors from one modality
+dynamically regulate the activation distribution of the other
+modality, thereby suppressing modality-specific redundancy
+and enhancing semantically informative responses.
+Finally, reciprocal channel adaptation is performed through:
+Vrga = ψv( ˆVatt + V∗),
+Lrga = ψl(ˆLatt + L∗).
+(25)
+Compared with conventional gating mechanisms, RGA
+establishes reciprocal channel-level semantic regulation be-
+tween modalities, enabling adaptive feature selection and
+globally consistent multimodal representation learning under
+lightweight parameter adaptation.
+D. Task Decoder and Training Objective
+Following previous RIS-oriented PEFT methods [31], [37],
+[60], we adopt the same transformer-based decoder to generate
+the final segmentation mask, ensuring fair comparisons with
+pioneer works.
+Specifically, the decoder takes multiple visual features
+Vi, i ∈{5, 8, 11} from three selected layers of the VFM,
+together with linguistic token representations L and a global
+textual state feature s. To establish coarse multimodal corre-
+spondence, the decoder first performs cross-modal hierarchical
+aggregation between the global textual state and multi-stage
+visual features:
+¯V = Conv
+
+Concat
+ [CA(Vi, s)]
+
+,
+(26)
+where CA(·), Concat(·), and Conv(·) denote cross-attention,
+concatenation, and convolution operations, respectively.
+The aggregated visual-semantic feature ¯V is subsequently
+refined through three transformer decoding layers consisting
+of self-attention, cross-attention, and feed-forward networks:
+F = FFN
+
+CA
+ SA( ¯V), L
+
+,
+(27)
+where SA(·) represents self-attention.
+Finally, the refined multimodal feature F is dynamically
+projected into the segmentation space using text-conditioned
+convolution kernels generated from the global textual state:
+M = Conv(F, Φ(s)),
+(28)
+where Φ(·) denotes the dynamic kernel generation function
+conditioned on the textual state feature.
+For training, previous RIS methods commonly introduce an
+additional text-to-visual contrastive loss to strengthen vision-
+language alignment [37], [60]. In contrast, the proposed BRL
+already establishes effective reciprocal multimodal alignment
+within frozen foundation models through bidirectional token
+interaction and channel modulation. Therefore, we optimize
+the model using only standard segmentation objectives:
+L = λ1Lbce + λ2Ldice,
+(29)
+where Lbce and Ldice denote the binary cross-entropy loss
+and Dice loss, respectively, while λ1 = λ2 = 1 are balancing
+coefficients. Such a simple objective further demonstrates
+that the performance gains of BRL mainly originate from
+effective reciprocal multimodal adaptation rather than auxiliary
+alignment supervision.
+
+
+SUBMITTED TO IEEE
+7
+IV. EXPERIMENTS
+A. Datasets and Evaluation Metrics
+1) Datasets: We conduct experiments on three widely used
+referring image segmentation benchmarks:
+RefCOCO [50]: The RefCOCO is a large-scale and widely
+adopted benchmark for RIS. It contains 19,994 images ac-
+companied by 142,210 referring expressions describing 50,000
+objects. All annotations are collected through an interactive
+two-player game built on the MSCOCO [61] dataset. The
+benchmark is split into four partitions: 120,624 samples for
+training, 10,834 for val, 5,657 for testA, and 5,095 for testB.
+The expressions are relatively concise, averaging 3.6 words.
+RefCOCO+ [50]: The RefCOCO+ provides 141,564 refer-
+ring expressions related to 49,856 objects in 19,992 images.
+Unlike RefCOCO, it introduces a higher level of difficulty by
+deliberately removing absolute spatial terms, forcing models to
+rely more on appearance cues rather than positional hints. Its
+data split follows the same protocol as RefCOCO, comprising
+120,624 training examples, 10,758 in val, 5,726 in testA, and
+4,889 in testB.
+RefCOCOg [51], [52]: The RefCOCOg comprises 104,560
+referring expressions that describe 54,822 objects within
+26,711 images. The text annotations are relatively long, with
+an average length of 8.4 words, providing richer information
+about object appearances and locations. We follow the com-
+monly used Google [51] split and UMD [52] split, which are
+denoted as RefCOCOg(g) and RefCOCOg(u), respectively.
+To comprehensively evaluate the effectiveness and gener-
+alization capability of the proposed BRL method, we con-
+sider two experimental settings following recent works [32],
+[37]: The common setting evaluates dataset-specific adapta-
+tion capability, whereas the mixed setting further examines
+the robustness of multimodal models under diverse referring
+expressions and visual scenes.
+2) Metrics: We employ two commonly used metrics, over-
+all IoU (oIoU) and mean IoU (mIoU), in all experiments
+to quantify each method. The former computes the ratio
+between the aggregate intersection area and the aggregate
+union area across the entire dataset, which inherently favors
+larger objects. In contrast, the latter calculates the IoU for
+each sample individually and then averages across all samples,
+thereby treating objects of different sizes equally.
+B. Implementation Details
+We mainly use DINOv3 [36] pretrained ViT-B [62]
+(DINOv3-B) with 12 layers and 768 hidden size, and ViT-
+L [62] (DINOv3-L) with 24 layers and 1024 hidden size
+as the vision foundation model, combining the 12-layer lan-
+guage foundation model with hidden size 512 from CLIP-
+ViT-B [29], to evaluate the effectiveness of our method. For
+all experiments, the network is trained for 50 epochs using
+the Adam optimizer with a batch size of 32, a learning rate
+of 0.0001, and a step learning rate decay of 0.1 at epoch 35
+on 8 RTX 4090 GPUs. Following previous works [31], [37],
+[60], the textual sentence length is set to 17 for RefCOCO,
+RefCOCO+, RefCOCOg(g), and the mixed dataset, and 22 for
+RefCOCOg(u). The task decoder has three layers with 8 heads
+of attention and a feed-forward hidden size of 512. Images
+are resized to 480×480 without any data augmentations for
+training, and no additional post-processing operations are
+applied during inference. We keep the adapter dimension
+d = 64 as a default setting. Our BRL is applied at layers
+i ∈[5, 8, 11] for both DINOv3-B and the text encoder, while
+at layers i ∈[11, 17, 23] for DINOv3-L.
+C. Main Results
+We perform a comprehensive comparison with existing
+state-of-the-art (SOTA) methods under both the common and
+the mixed settings. The comparison results using the oIoU
+metric are reported in Tab. I, while the mIoU comparisons
+are summarized in Tab. II. Existing methods are grouped
+into three categories, including traditional full fine-tuning [3],
+[24]–[27], [56], [63]–[70], multimodal large language models
+(MLLMs) [5]–[7], [57], [71], [72], and parameter-efficient
+fine-tuning (PEFT) [31]–[33], [37].
+1) Comparison Under the Common Setting: Under the
+single-dataset setting, our BRL consistently achieves superior
+performance across different benchmarks and backbone scales.
+Compared with existing PEFT methods, BRL demonstrates
+substantial gains on both oIoU and mIoU metrics.
+Specifically, using the DINOv2-B [35] backbone, BRL-B
+surpasses DETRIS-B [37] by +2.5%/+1.5%/+2.2% oIoU on
+RefCOCO val/testA/testB and by +2.9%/+2.6%/+2.3% mIoU,
+respectively. Similar improvements are consistently observed
+on RefCOCO+, where BRL-B achieves 73.7% oIoU and
+76.7% mIoU on the testA split. On the more challenging
+RefCOCOg benchmark, BRL-B also achieves clear advantages
+over previous PEFT approaches, validating the effectiveness of
+reciprocal multimodal adaptation for long and complex refer-
+ring expressions. Impressively, BRL-B outperforms DETRIS-
+L across all benchmarks except the RefCOCO+ testB split,
+highlighting the efficacy of our multimodal reciprocal learning.
+When equipped with the larger DINOv2-L backbone, BRL-
+L consistently improves all benchmarks across RefCOCO,
+RefCOCO+, and RefCOCOg datasets over DETRIS-L. In
+particular, BRL with DINOv3-L [36] reaches 79.3%, 81.3%,
+and 75.4% oIoU on the RefCOCO val, testA, and testB splits,
+respectively, while simultaneously obtaining 81.1%, 82.4%,
+and 77.7% mIoU, setting new SOTA records.
+Moreover, BRL also achieves superior performance com-
+pared with recent fully fine-tuning RIS methods. Despite
+updating only lightweight reciprocal adapters, BRL with
+DINOv3-L achieves better results than fully fine-tuning meth-
+ods such as CMANet [67] and CMIRNet [68]. Notably, BRL-
+L under the common setting already surpasses the tradi-
+tional full fine-tuning method CMIRNet-L trained under the
+mixed setting on RefCOCO. This observation demonstrates
+the remarkable efficiency of BRL, which achieves stronger
+performance using less training data and substantially lower
+optimization cost. Compared with large-scale MLLM-based
+models such as SegLLM [6] and POPEN [7], BRL achieves
+competitive performance while avoiding expensive multimodal
+instruction tuning and massive training data. These results
+demonstrate that effective bidirectional reciprocal adaptation
+
+
+SUBMITTED TO IEEE
+8
+TABLE I
+COMPARISON WITH EXISTING SOTA METHODS USING THE OIOU METRIC ON THE REFCOCO, REFCOCO+, AND REFCOCOG DATASETS.
+†: RESULTS ARE PRODUCED USING THE MIXED REFCOCO/+/G DATASETS. ‡: RESULTS ARE PRODUCED USING LARGE-SCALE DATASETS.
+THE BEST RESULTS ARE IN BOLD.
+Method
+Venue
+Multimodal Backbone
+RefCOCO [50]
+RefCOCO+ [50]
+RefCOCOg [51], [52]
+Vision
+Language
+val
+testA
+testB
+val
+testA
+testB
+val(u)
+test(u)
+val(g)
+Traditional Full Fine-Tuning
+LAVT [24]
+CVPR’22
+Swin-B [73]
+BERT-B [74]
+72.7
+75.8
+68.8
+62.1
+68.4
+55.1
+61.2
+62.1
+60.5
+VLT [3]
+TPAMI’22
+Swin-B [73]
+BERT-B [74]
+73.0
+76.0
+69.6
+63.5
+68.4
+56.9
+63.5
+66.2
+62.8
+CGFormer [63]
+CVPR’23
+Swin-B [73]
+BERT-B [74]
+74.8
+77.3
+70.6
+64.5
+71.0
+57.1
+64.7
+65.1
+62.5
+ReLA [56]
+CVPR’23
+Swin-B [73]
+BERT-B [74]
+73.8
+76.5
+70.2
+66.0
+71.0
+57.7
+65.0
+66.0
+62.7
+DMMI [64]
+ICCV’23
+Swin-B [73]
+BERT-B [74]
+74.1
+77.1
+70.2
+64.0
+69.7
+57.0
+63.5
+64.2
+62.0
+RefSegformer [65]
+TIP’24
+Swin-B [73]
+BERT-B [74]
+73.2
+75.6
+70.1
+63.5
+68.7
+55.4
+62.6
+63.1
+58.5
+MagNet [26]
+CVPR’24
+Swin-B [73]
+BERT-B [74]
+75.2
+78.2
+71.1
+66.2
+71.3
+58.1
+65.4
+66.0
+63.1
+ReMamber [27]
+ECCV’24
+VMamba-B [75]
+BERT-B [74]
+74.5
+76.7
+70.9
+65.0
+70.8
+57.5
+63.9
+64.0
+—
+HieA2G [66]
+AAAI’25
+Swin-B [73]
+RoBERTa-B [76]
+75.1
+77.6
+71.1
+66.5
+71.4
+58.9
+65.3
+66.6
+—
+CMANet [67]
+TMM’25
+Swin-B [73]
+BERT-B [74]
+75.5
+78.3
+71.8
+66.7
+71.9
+59.0
+66.6
+66.7
+64.1
+CMIRNet [68]
+TCSVT’25
+Swin-B [73]
+BERT-B [74]
+74.0
+77.1
+71.3
+64.1
+70.4
+56.4
+63.5
+63.9
+—
+PolyFormer-B† [25]
+CVPR’23
+Swin-B [73]
+BERT-B [74]
+74.8
+76.6
+71.1
+67.6
+72.9
+59.3
+67.8
+69.1
+—
+MagNet† [26]
+CVPR’24
+Swin-B [73]
+BERT-B [74]
+76.6
+78.3
+72.2
+68.1
+73.6
+61.8
+67.8
+69.3
+—
+CMANet† [67]
+TMM’25
+Swin-B [73]
+BERT-B [74]
+77.3
+80.2
+73.1
+68.2
+73.8
+60.4
+67.4
+70.1
+—
+CMIRNet-B† [68]
+TCSVT’25
+Swin-B [73]
+BERT-B [74]
+77.7
+79.8
+74.4
+68.3
+74.1
+61.1
+69.2
+71.9
+—
+PolyFormer-L† [25]
+CVPR’23
+Swin-L [73]
+BERT-B [74]
+76.0
+78.3
+73.3
+69.3
+74.6
+61.9
+69.2
+70.2
+—
+CMIRNet-L† [68]
+TCSVT’25
+Swin-L [73]
+BERT-B [74]
+78.2
+80.4
+75.2
+69.8
+73.5
+62.1
+70.4
+72.1
+—
+Multimodal Large Language Models
+LISA-7B‡ [5]
+CVPR’24
+SAM-H [34] + LLaVA-7B [30]
+74.9
+79.1
+72.3
+65.1
+70.8
+58.1
+67.9
+70.6
+—
+M2SA-7B‡ [71]
+ICLR’25
+SAM-H [34] + LLaVA-7B [30]
+74.0
+76.8
+69.7
+63.1
+67.2
+56.1
+67.0
+68.3
+—
+READ-7B‡ [72]
+CVPR’25
+SAM-H [34] + LLaVA-7B [30]
+78.1
+80.2
+73.2
+68.4
+73.7
+60.4
+70.1
+71.4
+—
+GSVA-7B‡ [57]
+CVPR’24
+LLaVA-7B [30]
+77.2
+78.9
+73.5
+65.9
+69.6
+59.8
+72.7
+73.3
+—
+SegLLM-7B‡ [6]
+ICLR’25
+LLaVA-7B [30]
+80.2
+81.5
+75.4
+70.3
+73.0
+62.5
+72.6
+73.6
+—
+POPEN-7B‡ [7]
+CVPR’25
+LLaVA-7B [30]
+79.3
+82.0
+74.1
+73.1
+77.0
+65.1
+75.4
+75.6
+—
+Parameter Efficient Fine-Tuning
+RISCLIP [33]
+NAACL’24
+CLIP-ViT-B [29]
+73.6
+76.5
+69.8
+65.5
+70.6
+55.5
+64.1
+65.1
+—
+DETRIS-B [37]
+AAAI’25
+DINOv2-B [35]
+CLIP-T-B [29]
+74.3
+77.6
+71.4
+65.6
+72.0
+56.5
+65.2
+66.4
+63.2
+BRL-B (Ours)
+—
+DINOv2-B [35]
+CLIP-T-B [29]
+76.8
+79.1
+73.6
+66.7
+73.7
+57.7
+67.6
+68.1
+65.5
+BRL-B (Ours)
+—
+DINOv3-B [36]
+CLIP-T-B [29]
+77.0
+80.0
+74.9
+68.6
+74.6
+58.6
+67.4
+68.2
+66.3
+DETRIS-L [37]
+AAAI’25
+DINOv2-L [35]
+CLIP-T-B [29]
+76.1
+78.3
+73.2
+67.9
+73.3
+60.2
+66.8
+68.0
+65.0
+BRL-L (Ours)
+—
+DINOv2-L [35]
+CLIP-T-B [29]
+78.0
+80.3
+74.7
+69.6
+74.7
+61.5
+69.2
+70.2
+67.3
+BRL-L (Ours)
+—
+DINOv3-L [36]
+CLIP-T-B [29]
+79.3
+81.3
+75.4
+69.7
+76.2
+62.3
+69.5
+70.0
+68.0
+BRL-B† (Ours)
+—
+DINOv2-B [35]
+CLIP-T-B [29]
+81.2
+83.5
+78.2
+72.8
+76.8
+64.5
+73.4
+74.4
+—
+BRL-B† (Ours)
+—
+DINOv3-B [36]
+CLIP-T-B [29]
+81.7
+83.2
+78.3
+73.1
+78.1
+65.5
+73.6
+75.8
+—
+DETRIS-L† [37]
+AAAI’25
+DINOv2-L [35]
+CLIP-T-B [29]
+80.7
+82.2
+77.9
+73.1
+77.5
+66.0
+73.2
+74.7
+—
+BRL-L† (Ours)
+—
+DINOv2-L [35]
+CLIP-T-B [29]
+82.2
+84.2
+79.4
+74.7
+78.8
+66.7
+74.8
+76.1
+—
+BRL-L† (Ours)
+—
+DINOv3-L [36]
+CLIP-T-B [29]
+82.4
+84.6
+79.8
+74.6
+79.6
+67.3
+75.5
+76.7
+—
+can provide strong multimodal alignment without relying on
+heavy end-to-end optimization.
+2) Comparison Under the Mixed Setting: Under the mixed-
+dataset setting, our BRL exhibits stronger generalization capa-
+bility. Benefiting from reciprocal multimodal learning across
+diverse referring distributions, BRL consistently outperforms
+existing methods on all benchmarks.
+Specifically, BRL with DINOv3-B [36] achieves 81.7%,
+78.1%, and 75.8% oIoU on RefCOCO val, RefCOCO+ testA,
+and RefCOCOg val(u), respectively, outperforming previous
+PEFT methods by clear margins. In terms of mIoU, BRL-B
+further achieves 82.4%, 80.4%, and 77.3% on the correspond-
+ing benchmarks, validating the robustness of the proposed
+reciprocal adaptation mechanism. More importantly, BRL with
+DINOv2-B already surpasses DETRIS [37] equipped with the
+stronger DINOv2-L backbone on the RefCOCO benchmark
+under both oIoU and mIoU metrics. For example, BRL-
+B achieves 81.2%/83.5%/78.2% oIoU while DETRIS-L gets
+80.7%/82.2%/77.9% oIoU on the RefCOCO val/testA/testB
+splits, clearly exceeding the latter despite using a smaller
+backbone. This further verifies the effectiveness and scalability
+of the proposed bidirectional reciprocal learning scheme.
+In addition, BRL with DINOv3-L establishes new state-
+of-the-art PEFT performance across almost all datasets and
+metrics. Specifically, it achieves 82.4%, 84.6%, and 79.8%
+oIoU on RefCOCO val/testA/testB, together with 83.5%,
+85.0%, and 81.0% mIoU. Compared with DETRIS-L under the
+same setting, BRL-L consistently improves both localization
+accuracy and segmentation quality across all RIS benchmarks.
+Moreover, BRL also surpasses all fully fine-tuning methods,
+despite requiring significantly fewer trainable parameters and
+computational overhead.
+Overall, the experimental results demonstrate that BRL
+achieves highly effective multimodal adaptation under frozen
+
+
+SUBMITTED TO IEEE
+9
+TABLE II
+COMPARISON WITH EXISTING SOTA METHODS USING THE MIOU METRIC ON THE REFCOCO, REFCOCO+, AND REFCOCOG DATASETS.
+†: RESULTS ARE PRODUCED USING THE MIXED REFCOCO/+/G DATASETS.
+Method
+Venue
+Multimodal Backbone
+RefCOCO [50]
+RefCOCO+ [50]
+RefCOCOg [51], [52]
+Vision
+Language
+val
+testA
+testB
+val
+testA
+testB
+val(u)
+test(u)
+val(g)
+Traditional Full Fine-Tuning
+LAVT [24]
+CVPR’22
+Swin-B [73]
+BERT-B [74]
+74.5
+76.9
+70.9
+65.8
+71.0
+59.2
+63.3
+63.6
+63.7
+CGFormer [63]
+CVPR’23
+Swin-B [73]
+BERT-B [74]
+76.9
+78.7
+73.3
+68.6
+73.8
+61.7
+67.6
+67.8
+65.8
+ReLA [56]
+CVPR’23
+Swin-B [73]
+BERT-B [74]
+75.6
+77.8
+72.8
+70.4
+74.8
+63.9
+68.7
+69.6
+66.9
+VG-LAW [69]
+CVPR’23
+ViTDet-B [77]
+BERT-B [74]
+75.6
+77.5
+72.9
+66.6
+70.4
+58.9
+65.6
+66.1
+—
+ASDA [70]
+ACMMM’24
+CLIP-ViT-B [29]
+75.1
+77.1
+71.4
+66.8
+71.1
+57.8
+65.7
+66.5
+63.6
+CMIRNet [68]
+TCSVT’25
+Swin-B [73]
+BERT-B [74]
+76.0
+78.1
+73.1
+68.2
+73.0
+61.3
+66.7
+66.5
+—
+PolyFormer-B† [25]
+CVPR’23
+Swin-B [73]
+BERT-B [74]
+76.0
+77.1
+73.2
+70.7
+74.5
+64.6
+69.4
+69.9
+—
+CMIRNet-B† [68]
+TCSVT’25
+Swin-B [73]
+BERT-B [74]
+78.5
+80.2
+76.0
+71.2
+75.3
+65.0
+71.5
+72.8
+—
+PolyFormer-L† [25]
+CVPR’23
+Swin-L [73]
+BERT-B [74]
+76.9
+78.5
+74.8
+72.2
+75.7
+66.7
+71.2
+71.2
+—
+CMIRNet-L† [68]
+TCSVT’25
+Swin-L [73]
+BERT-B [74]
+79.0
+80.7
+76.6
+72.5
+77.0
+66.9
+72.6
+73.2
+—
+Parameter Efficient Fine-Tuning
+ETRIS [31]
+ICCV’23
+CLIP-ViT-B [29]
+70.5
+73.5
+66.6
+60.1
+66.9
+50.2
+59.8
+59.9
+57.9
+BarLeRIa-B [32]
+ICLR’24
+CLIP-ViT-B [29]
+72.4
+75.9
+68.3
+65.0
+70.8
+56.9
+63.4
+63.8
+61.6
+RISCLIP [33]
+NAACL’24
+CLIP-ViT-B [29]
+75.7
+78.0
+72.5
+69.2
+73.5
+60.7
+67.6
+68.0
+—
+DETRIS-B [37]
+AAAI’25
+DINOv2-B [35]
+CLIP-T-B [29]
+76.0
+78.2
+73.5
+68.9
+74.0
+61.5
+67.9
+68.1
+65.9
+BRL-B (Ours)
+—
+DINOv2-B [35]
+CLIP-T-B [29]
+78.9
+80.8
+75.8
+71.1
+76.7
+63.8
+70.7
+71.2
+68.5
+BRL-B (Ours)
+—
+DINOv3-B [36]
+CLIP-T-B [29]
+79.3
+81.4
+77.1
+72.1
+77.2
+63.7
+71.2
+71.5
+70.2
+BarLeRIa-L [32]
+ICLR’24
+EVA-CLIP-ViT-L [78]
+76.8
+79.0
+74.0
+71.5
+76.2
+65.4
+68.7
+69.7
+—
+DETRIS-L [37]
+AAAI’25
+DINOv2-L [35]
+CLIP-T-B [29]
+77.3
+79.0
+75.2
+70.8
+75.3
+64.7
+69.3
+70.2
+67.9
+BRL-L (Ours)
+—
+DINOv2-L [35]
+CLIP-T-B [29]
+80.2
+82.1
+77.6
+73.5
+77.6
+66.8
+72.8
+73.3
+71.0
+BRL-L (Ours)
+—
+DINOv3-L [36]
+CLIP-T-B [29]
+81.1
+82.4
+77.7
+73.9
+78.6
+67.3
+73.4
+73.2
+71.9
+BarLeRIa-B† [32]
+ICLR’24
+EVA-CLIP-ViT-B [78]
+77.6
+79.4
+75.3
+71.7
+75.7
+66.0
+70.9
+71.4
+—
+RISCLIP† [33]
+NAACL’24
+CLIP-ViT-B [29]
+76.0
+78.6
+71.9
+69.7
+74.3
+61.4
+69.6
+69.6
+—
+BRL-B† (Ours)
+—
+DINOv2-B [35]
+CLIP-T-B [29]
+82.2
+83.9
+79.7
+75.9
+79.4
+69.7
+75.5
+76.3
+—
+BRL-B† (Ours)
+—
+DINOv3-B [36]
+CLIP-T-B [29]
+82.4
+83.8
+79.4
+76.3
+80.4
+70.2
+76.0
+77.3
+—
+BarLeRIa-L† [32]
+ICLR’24
+EVA-CLIP-ViT-L [78]
+79.0
+80.8
+77.0
+74.2
+77.8
+68.3
+72.7
+73.3
+—
+DETRIS-L† [37]
+AAAI’25
+DINOv2-L [35]
+CLIP-T-B [29]
+81.0
+81.9
+79.0
+75.2
+78.6
+70.2
+74.6
+75.3
+—
+BRL-L† (Ours)
+—
+DINOv2-L [35]
+CLIP-T-B [29]
+83.2
+84.6
+80.8
+77.8
+81.2
+71.2
+76.6
+77.9
+—
+BRL-L† (Ours)
+—
+DINOv3-L [36]
+CLIP-T-B [29]
+83.5
+85.0
+81.0
+77.7
+81.4
+71.8
+77.8
+78.3
+—
+foundation backbones. By jointly modeling token-level recip-
+rocal interaction and channel-level reciprocal modulation, the
+proposed framework establishes stronger bidirectional vision-
+language alignment, leading to consistent improvements across
+different datasets, metrics, and backbone scales.
+D. Ablation Study
+We conduct extensive ablation studies on RefCOCO to
+validate the effectiveness of our BRL. Unless otherwise spec-
+ified, all experiments are performed using DINOv3 [36] with
+CLIP [29] text encoder under the common setting. In addition,
+we further investigate the compatibility and robustness of BRL
+across different vision foundation models (VFMs) [35], [79]–
+[81] with varying architectures and model scales.
+1) Comparison with Other PEFT Methods: To comprehen-
+sively evaluate the effectiveness of BRL, we first compare
+it with representative PEFT methods [31], [37], [48], [49].
+As reported in Tab. III, BRL consistently achieves the best
+performance while maintaining extremely low tunable costs.
+Under the setting of using DINOv3-B, BRL achieves
+77.0%/80.0%/74.9% oIoU and 79.3%/81.4%/77.1% mIoU on
+the RefCOCO val/testA/testB splits, surpassing previous PEFT
+methods by large margins across all benchmarks. In partic-
+ular, BRL improves DETRIS [37] by +1.7%, +2.0%, and
++2.8% oIoU on the three splits, respectively, while requiring
+TABLE III
+COMPARISON WITH EXISTING PEFT METHODS USING DINOV3-B/L [36]
+VISUAL ENCODER WITH CLIP-VIT-B [29] LINGUISTIC ENCODER AS THE
+VISION-LANGUAGE MODEL ON REFCOCO.
+PEFT Method
+RefCOCO (oIoU)
+RefCOCO (mIoU)
+Tunable Cost
+val
+testA
+testB
+val
+testA
+testB
+Params.
+FLOPs
+FFT
+65.7
+68.7
+61.8
+69.9
+71.9
+66.7
+149.1M
+78.1G
+Fix Encoder
+74.0
+76.5
+70.2
+75.8
+77.8
+72.6
+0.0M
+0.0G
+Adapter [48]
+74.7
+76.8
+71.7
+76.4
+78.1
+73.9
+1.3M
+0.5G
+AdaptFormer [49]
+74.6
+77.1
+71.2
+76.6
+78.3
+73.9
+1.3M
+0.5G
+ETRIS [31]
+74.9
+77.4
+71.0
+76.5
+78.3
+73.4
+1.4M
+0.7G
+DETRIS [37]
+75.3
+78.0
+72.1
+77.0
+79.0
+74.6
+2.7M
+1.9G
+BRL-B (Ours)
+77.0
+80.0
+74.9
+79.3
+81.4
+77.1
+1.5M
+1.4G
+BRL-B w/FFT
+68.6
+70.7
+64.9
+72.7
+74.1
+69.6
+150.6M
+79.5G
+FFT
+66.8
+69.2
+63.0
+70.3
+72.2
+68.1
+366.6M
+274.9G
+Fix Encoder
+75.3
+78.3
+71.9
+77.0
+79.3
+74.2
+0.0M
+0.0G
+BRL-L (Ours)
+79.3
+81.3
+75.4
+81.1
+82.4
+77.7
+1.8M
+1.7G
+only 1.5M trainable parameters and 1.4G tunable FLOPs.
+The impressive results indicate that reciprocal bidirectional
+interaction is substantially more effective than unidirectional
+adaptation. It is also worth noting that directly applying full
+fine-tuning (FFT) to VFMs results in severe performance
+degradation. Specifically, FFT only achieves 65.7 oIoU and
+69.9 mIoU on RefCOCO val, which is dramatically lower
+than both the fix encoder and PEFT-based adaptation. Similar
+
+
+SUBMITTED TO IEEE
+10
+Right teddy
+Second bike
+Middle hot dog in bottom row
+GT
+FFT
+BRL-B w/FFT
+Fix
+Adapter
+AdaptFormer
+ETRIS
+DETRIS
+BRL-B
+BRL-L
+Second row first of 4 from right
+Fig. 4. Qualitative comparisons of BRL with other PEFT methods using DINOv3 [36].
+TABLE IV
+ABLATION STUDY ON THE CORE COMPONENTS OF OUR BRL. RAA:
+RECIPROCAL ATTENTION ADAPTER. RGA: RECIPROCAL GATE ADAPTER.
+RAA
+RGA
+RefCOCO (oIoU)
+RefCOCO (mIoU)
+Tunable Cost
+val
+testA
+testB
+val
+testA
+testB
+Params.
+FLOPs
+✗
+✗
+74.0
+76.5
+70.2
+75.8
+77.8
+72.6
+0.0M
+0.0G
+✓
+✗
+75.9
+78.6
+73.2
+78.2
+80.3
+75.5
+0.8M
+1.0G
+✗
+✓
+75.3
+78.8
+72.9
+78.0
+80.1
+75.4
+0.7M
+0.4G
+✓
+✓
+77.0
+80.0
+74.9
+79.3
+81.4
+77.1
+1.5M
+1.4G
+trends can also be observed under the DINOv3-L backbone.
+This suggests that large-scale foundation models with strong
+pre-trained knowledge are highly sensitive to full-parameter
+optimization, making them prone to catastrophic forgetting.
+In contrast, PEFT methods preserve the majority of parame-
+ters and only optimize a small number of lightweight mod-
+ules, thereby achieving efficiency. Among them, BRL further
+achieves superior performance by introducing reciprocal bidi-
+rectional adaptation, enabling efficient task-specific learning
+while maximally preserving the strong prior knowledge of
+frozen vision and language foundation models.
+As illustrated in Fig. 4, existing PEFT methods often suffer
+from incomplete object localization or distracted attention re-
+gions due to insufficient cross-modal interaction. By contrast,
+BRL produces substantially more accurate and semantically
+consistent segmentation results, especially for challenging
+scenarios involving ambiguous expressions, small objects, and
+complex backgrounds. This improvement mainly benefits from
+the cooperative design of reciprocal token interaction and
+reciprocal channel modulation, which jointly enhance fine-
+grained spatial grounding and global semantic consistency.
+2) Effect of BRL’s Core Components: We further investi-
+gate the effectiveness of the two core components in BRL,
+namely the Reciprocal Attention Adapter (RAA) and the
+Reciprocal Gate Adapter (RGA), as reported in Tab. IV.
+Starting from the frozen baseline without any reciprocal
+Horse in center larger one
+Right of green stripe luggage
+If the pizza were a clock this is the slice between 3 and 4 on the dial
+GT
+w/o BRL
+RAA
+RGA
+BRL
+Glazed twist that is to the right of the jelly donut
+Fig. 5. Qualitative results on the core components of BRL.
+adaptation modules, the model achieves 74.0%/76.5%/70.2%
+oIoU and 75.8%/77.8%/72.6% mIoU on the RefCOCO
+val/testA/testB splits,
+respectively.
+After introducing
+the
+RAA module, the performance is consistently improved by
++1.9%/+2.1%/+3.0% oIoU and +2.4%/+2.5%/+2.9% mIoU
+across the three splits. These gains demonstrate that reciprocal
+token-level interaction effectively enhances fine-grained cross-
+modal correspondence learning by establishing bidirectional
+spatial alignment between visual and linguistic tokens.
+Similarly, equipping the model solely with the RGA module
+also yields notable improvements over the baseline, bringing
+gains of +1.3%/+2.3%/+2.7% oIoU and +2.2%/+2.3%/+2.8%
+mIoU, respectively. Compared with RAA, RGA introduces
+slightly fewer parameters and FLOPs while still producing
+
+
+SUBMITTED TO IEEE
+11
+a
+b
+c
+Fig. 6. Ablation results on hyperparameter settings of our BRL on RefCOCO. a: Performance comparison across different training epochs, where we adopt 50
+epochs for optimal efficiency-accuracy trade-off. b: Sensitivity analysis of the residual scaling factor α for controlling the reciprocal adaptation strength, with
+L denoting learnable parameters. We select α = 0.2 as it achieves the best balance. c: Layer-wise ablation study of inserting RAA and RGA into individual
+Transformer layers, demonstrating the impact of adapter placement on model performance.
+TABLE V
+ABLATION STUDY ON THE ADAPTER DIMENSION d OF OUR BRL.
+d
+RefCOCO (oIoU)
+RefCOCO (mIoU)
+Tunable Cost
+val
+testA
+testB
+val
+testA
+testB
+Params.
+FLOPs
+16
+76.5
+79.3
+74.2
+78.9
+80.9
+76.4
+0.3M
+0.7G
+32
+77.1
+80.0
+74.6
+79.0
+81.1
+76.9
+0.7M
+0.9G
+64
+77.0
+80.0
+74.9
+79.3
+81.4
+77.1
+1.5M
+1.4G
+128
+77.5
+80.2
+74.7
+79.6
+81.6
+77.4
+3.3M
+2.5G
+256
+77.4
+79.5
+74.5
+79.6
+81.1
+77.0
+7.9M
+5.1G
+strong improvements, indicating that channel-level reciprocal
+modulation plays an important role in enhancing global se-
+mantic consistency and adaptive feature selection.
+When RAA and RGA are jointly employed, BRL achieves
+the best overall performance, improving the frozen model by
++3.0%/+3.5%/+4.7% oIoU and +3.5%/+3.6%/+4.5% mIoU,
+respectively. The greater gains demonstrate strong comple-
+mentarity between reciprocal token interaction and reciprocal
+channel regulation. Moreover, despite only introducing 1.5M
+trainable parameters and 1.4G tunable FLOPs, our BRL is
+capable of making remarkable performance, further demon-
+strating the efficiency of the proposed reciprocal adaptation.
+As illustrated in Fig. 5, removing either RAA or RGA leads
+to noticeable degradation in segmentation quality. In particular,
+models without RAA tend to produce inaccurate object local-
+ization due to insufficient fine-grained cross-modal interaction,
+while removing RGA often causes semantic confusion and
+incomplete object regions. By jointly modeling reciprocal
+token interaction and reciprocal channel modulation, BRL gen-
+erates substantially more accurate and semantically consistent
+segmentation masks under challenging referring scenarios.
+TABLE VI
+ABLATION STUDY OF DIFFERENT VFMS WITH BRL ON REFCOCO.
+VFMs
+RefCOCO (oIoU)
+RefCOCO (mIoU)
+Fix Cost
+val
+testA testB
+val
+testA
+testB
+Params.
+FLOPs
+Tunable Cost (Params. / FLOPs): 1.1M / 1.1G
+DINOv2-S [35]
+74.5
+76.8
+70.7
+76.5
+78.3
+72.7
+85.5M
+32.6G
+DINOv3-S+ [36]
+75.4
+79.5
+72.5
+77.8
+80.3
+75.1
+92.1M
+26.6G
+Tunable Cost (Params. / FLOPs): 1.5M / 1.4G
+DINO-B [79]
+69.1
+71.1
+64.7
+71.4
+73.2
+67.4
+149.2M
+92.8G
+MAE-B [80]
+73.0
+75.3
+69.4
+75.9
+77.6
+72.4
+149.2M
+92.8G
+EVA2-B [81]
+74.8
+78.1
+71.6
+76.3
+78.8
+73.5
+149.8M
+92.9G
+DINOv2-B [35]
+76.8
+79.1
+73.6
+78.9
+80.8
+75.8
+150.0M
+108.2G
+DINOv3-B [36]
+77.0
+80.0
+74.9
+79.3
+81.4
+77.1
+149.1M
+78.1G
+Tunable Cost (Params. / FLOPs): 1.8M / 1.7G
+MAE-L [80]
+76.5
+78.5
+72.8
+79.1
+80.6
+75.9
+366.7M
+313.6G
+EVA2-L [81]
+79.3
+82.1
+75.6
+80.6
+82.8
+77.4
+367.5M
+313.9G
+DINOv2-L [35]
+78.0
+80.3
+74.7
+80.2
+82.1
+77.6
+367.8M
+364.4G
+DINOv3-L [36]
+79.3
+81.3
+75.4
+81.1
+82.4
+77.7
+366.6M
+274.9G
+Tunable Cost (Params. / FLOPs): 2.0M / 1.9G (DINOv2-G: 2.3M / 2.1G)
+MAE-H [80]
+77.2
+79.0
+71.8
+79.8
+81.4
+75.5
+694.2M
+839.7G
+DINOv2-G [35]
+78.9
+81.0
+75.3
+80.9
+82.5
+77.9
+1199.9M 1297.7G
+DINOv3-H+ [36]
+80.0
+82.2
+76.3
+82.0
+83.4
+78.5
+904.1M
+761.1G
+3) Effect of Hyperparameter Settings: We further conduct
+detailed studies on several important hyperparameters of BRL,
+including the training epochs, residual scaling factor α, adapter
+insertion layers, and adapter bottleneck dimension d.
+a) Training Epochs: We first investigate the influence
+of training epochs. As illustrated in Fig. 6.a, the perfor-
+mance improves steadily with longer training and gradually
+saturates around 50 epochs. Notably, BRL already achieves
+76.2%/78.5%/72.7% oIoU and 78.2%/79.9%/74.8% mIoU af-
+ter only 12 epochs, which already surpasses most existing
+PEFT methods trained with substantially longer schedules,
+
+
+SUBMITTED TO IEEE
+12
+Giraffe facing the right
+106 boat
+A bus seat that a woman is setting her toes on , not which she is sitting on
+White cat with back against sofa laying behind other white cat
+GT
+DINOv3-S+
+DINOv2-B
+DINOv3-B
+EVA2-L
+DINOv2-L
+DINOv3-L
+MAE-H
+DINOv2-G
+DINOv3-H+
+Fig. 7. Qualitative comparison of BRL with different vision foundation models [35], [36], [80], [81] under the RIS mixed benchmark setting.
+indicating the fast convergence and high optimization effi-
+ciency of our BRL. Increasing the training epochs to 50 further
+improves the performance to 77.0%/80.0%/74.9% oIoU and
+79.3%/81.4%/77.1% mIoU. Although training for 100 epochs
+slightly improves the validation results, the test performance
+begins to fluctuate, indicating potential overfitting. Therefore,
+we adopt 50 epochs as the default setting to achieve a favorable
+balance between performance and computational cost.
+b) Residual Scaling Factor α: We further analyze the
+influence of α, which controls the strength of reciprocal
+adaptation. As shown in Fig. 6.b, BRL remains relatively
+stable across different settings, demonstrating good robustness.
+Moderate scaling factors generally perform better, while overly
+large values may disturb the frozen representations. Specif-
+ically, α = 0.2 achieves the best overall performance with
+77.0%/80.0%/74.9% oIoU and 79.3%/81.4%/77.1% mIoU. In
+contrast, α = 1.0 causes noticeable performance degradation,
+especially on the testB split. We also evaluate a learnable
+scaling strategy, which achieves competitive but not superior
+results compared with fixed moderate values.
+c) Adapter Insertion Layers: To explore where reciprocal
+adaptation is most effective, we insert the RAA and RGA
+modules individually into different transformer layers. As il-
+lustrated in Fig. 6.c, BRL achieves stable improvements across
+nearly all insertion positions, demonstrating strong robustness.
+Nevertheless, middle and deeper transformer layers generally
+produce better performance than shallow layers, since deeper
+layers contain richer semantic representations and stronger
+cross-modal alignment capability. These results indicate that
+reciprocal multimodal adaptation is particularly effective when
+applied to semantically expressive transformer stages.
+d) Adapter Dimension d: Finally, we study the im-
+pact of the adapter hidden dimension d, which controls the
+compression ratio of reciprocal adaptation. As reported in
+Tab. V, increasing d from 16 to 128 consistently improves
+the segmentation performance, indicating stronger recipro-
+cal representation capacity. In particular, BRL achieves the
+TABLE VII
+ABLATION STUDY OF VFMS WITH BRL ON RIS MIXED BENCHMARKS.
+VFMs
+RefCOCO
+RefCOCO+
+RefCOCOg
+val
+testA
+testB
+val
+testA
+testB
+val(u)
+test(u)
+oIoU
+DINOv3-S+ [36]
+79.6
+82.0
+76.0
+70.8
+76.3
+62.2
+70.8
+72.4
+DINOv2-B [35]
+81.2
+83.5
+78.2
+72.8
+76.8
+64.5
+73.4
+74.4
+DINOv3-B [36]
+81.7
+83.2
+78.3
+73.1
+78.1
+65.5
+73.6
+75.8
+EVA2-L [81]
+82.9
+84.9
+79.8
+76.0
+80.2
+68.3
+75.2
+77.1
+DINOv2-L [35]
+82.2
+84.2
+79.4
+74.7
+78.8
+66.7
+74.8
+76.1
+DINOv3-L [36]
+82.4
+84.6
+79.8
+74.6
+79.6
+67.3
+75.5
+76.7
+MAE-H [80]
+81.1
+83.3
+78.5
+72.2
+76.4
+65.1
+72.5
+74.0
+DINOv2-G [35]
+82.6
+84.5
+79.3
+75.1
+78.8
+67.8
+76.1
+75.9
+DINOv3-H+ [36]
+83.5
+85.3
+80.4
+75.0
+80.1
+68.1
+75.7
+77.4
+mIoU
+DINOv3-S+ [36]
+80.7
+82.4
+77.6
+74.0
+78.3
+67.1
+73.3
+74.3
+DINOv2-B [35]
+82.2
+83.9
+79.7
+75.9
+79.4
+69.7
+75.5
+76.3
+DINOv3-B [36]
+82.4
+83.8
+79.4
+76.3
+80.4
+70.2
+76.0
+77.3
+EVA2-L [81]
+83.4
+85.2
+80.7
+78.6
+81.9
+72.4
+77.4
+78.3
+DINOv2-L [35]
+83.2
+84.6
+80.8
+77.8
+81.2
+71.2
+76.6
+77.9
+DINOv3-L [36]
+83.5
+85.0
+81.0
+77.7
+81.4
+71.8
+77.8
+78.3
+MAE-H [80]
+82.5
+84.1
+80.3
+75.9
+79.4
+70.2
+75.5
+76.6
+DINOv2-G [35]
+83.7
+85.0
+81.4
+78.3
+81.4
+72.4
+78.0
+79.0
+DINOv3-H+ [36]
+84.2
+85.6
+81.9
+78.0
+82.3
+72.3
+78.0
+79.1
+best overall performance with 77.5%/80.2%/74.7% oIoU and
+79.6%/81.6%/77.4% mIoU at d = 128. However, further
+increasing d to 256 yields performance degradation while
+significantly increasing parameters and FLOPs. This suggests
+that excessively large adapter dimensions may introduce re-
+dundancy and weaken parameter efficiency. Considering both
+performance and efficiency, we adopt d = 64 as the default
+setting, which provides a favorable trade-off between recipro-
+cal representation capability and computational overhead.
+4) Compatibility with Different VFMs: To further validate
+the generalization capability of BRL, we combine our method
+with various VFMs of different architectures and scales under
+both the common and the mixed settings. The quantitative
+results are reported in Tab. VI and Tab. VII, and qualitative
+comparisons under the mixed setting are illustrated in Fig. 7.
+
+
+SUBMITTED TO IEEE
+13
+A man in a motorbike
+Bus on left
+Doughnuttop rowsecond from left
+GT
+BRL-S+
+BRL-B
+BRL-L
+BRL-H+
+Sheep looking back at mom
+Fig. 8. Failure cases of BRL equipped with DINOv3 on RefCOCO.
+As shown in Tab. VI, BRL consistently improves the
+performance across different VFMs, including DINO [79],
+MAE [80], EVA2 [81], DINOv2 [35], and DINOv3 [36].
+Earlier works such as DINO and MAE exhibit relatively lim-
+ited performance, while more recent large-scale representation
+learning models achieve substantially better results. In partic-
+ular, DINOv3 demonstrates the strongest overall performance
+under almost all scales. For example, DINOv3-B achieves
+77.0%/80.0%/74.9% oIoU and 79.3%/81.4%/77.1% mIoU
+on RefCOCO val/testA/testB, respectively, outperforming
+DINOv2-B by +1.3% mIoU testB while using fewer FLOPs.
+Similar trends are also observed under large-scale settings,
+where DINOv3-H+ reaches the best overall performance with
+80.0%/82.2%/76.3% oIoU and 82.0%/83.4%/78.5% mIoU
+while only introducing 2.0M parameters (0.2% of the VFM).
+The mixed benchmark results in Tab. VII further demon-
+strate the scalability of BRL under larger and more diverse
+training distributions. As the VFM capacity increases, the seg-
+mentation performance improves consistently. Among them,
+BRL combined with DINOv3-H+ establishes the best overall
+performance on most RefCOCO and RefCOCOg benchmarks,
+achieving 83.5%/85.3%/80.4% oIoU and 84.2%/85.6%/81.9%
+mIoU on RefCOCO val/testA/testB, respectively. Meanwhile,
+DINOv2-G and EVA2-L also exhibit strong competitiveness
+on RefCOCOg and RefCOCO+, respectively, indicating that
+different VFMs may possess different domain preferences.
+Overall, these experiments demonstrate that the proposed
+BRL is highly compatible with diverse VFMs and can con-
+sistently transfer the representation advantages of large-scale
+pretrained visual encoders into referring image segmentation.
+Moreover, the performance improvements become increas-
+ingly significant as the model scale grows, highlighting the
+strong scalability of BRL in the large foundation model era.
+5) Failure Cases: To better understand the limitations of
+BRL, we further visualize several representative failure cases
+in Fig. 8. Generally, most mistakes can be categorized into four
+types: (1) Complex relational reasoning, where the referring
+expression contains multi-object interactions, making accurate
+localization difficult; (2) Severe object occlusion, where the
+target is heavily covered; (3) Incorrect textual description,
+where the expression contains inaccurate attributes, resulting
+in misleading the cross-modal alignment process; (4) Anno-
+tation inconsistency, where the provided segmentation mask
+does not strictly correspond to the actual instance.
+Unfortunately, we observe that these challenging samples
+often lead to consistently incorrect predictions across different
+model scales. Even when stronger VFMs are adopted, the
+model still fails rather than showing gradual improvements.
+This suggests that such errors mainly stem from the intrin-
+sic difficulty of multimodal reasoning and dataset quality
+issues, instead of insufficient model capacity alone. These
+observations indicate that future RIS research may require
+not only stronger foundation models, but also more reliable
+annotations and enhanced reasoning mechanisms for complex
+vision-language understanding.
+V. CONCLUSION
+In this paper, we propose Bidirectional Reciprocal Learn-
+ing (BRL), a novel parameter-efficient fine-tuning (PEFT)
+framework for referring image segmentation. Different from
+existing PEFT methods that mainly focus on adapting visual
+representations independently, BRL explicitly models bidi-
+rectional vision-language interactions through the proposed
+Reciprocal Attention Adapter (RAA) and Reciprocal Gate
+Adapter (RGA). Specifically, RAA performs reciprocal cross-
+modal attention between visual and linguistic features to
+establish fine-grained semantic correspondence, while RGA
+further conducts reciprocal global gating to adaptively enhance
+modality-aware feature responses. By integrating both modules
+into the transformer architecture through residual adaptation,
+BRL can effectively transfer multimodal knowledge while
+maintaining extremely low trainable cost.
+Extensive experiments on RefCOCO, RefCOCO+, and Re-
+fCOCOg under both common and mixed benchmark settings
+demonstrate the superiority of the proposed method. BRL con-
+sistently outperforms existing PEFT methods by a clear margin
+on both oIoU and mIoU metrics, and even surpasses recent
+multimodal large language models despite requiring only a tiny
+fraction of trainable parameters. Notably, BRL equipped with
+DINOv3-L already exceeds the performance of some full fine-
+tuning methods trained under the mixed setting, demonstrating
+remarkably high adaptation efficiency with substantially lower
+training data and computational cost. Moreover, BRL exhibits
+excellent compatibility and scalability across various vision
+foundation models, including DINO, MAE, EVA2, DINOv2,
+and DINOv3, and establishes new state-of-the-art performance
+with large-scale pretrained encoders.
+Overall, the proposed BRL provides a scalable and highly
+efficient solution for multimodal adaptation in referring image
+segmentation. We hope this work can offer useful insights for
+future research on parameter-efficient multimodal learning and
+encourage further exploration of efficient adaptation strategies
+for large vision-language foundation models.
+
+
+SUBMITTED TO IEEE
+14
+REFERENCES
+[1] Z. Yang, J. Wang, X. Ye, Y. Tang, K. Chen, H. Zhao, and P. H. S. Torr,
+“Language-aware vision transformer for referring segmentation,” IEEE
+Trans. Pattern Anal. Mach. Intell., vol. 47, no. 7, pp. 5238–5255, 2025.
+[2] G. Feng, L. Zhang, J. Sun, Z. Hu, and H. Lu, “Referring segmentation
+via encoder-fused cross-modal attention network,” IEEE Trans. Pattern
+Anal. Mach. Intell., vol. 45, no. 6, pp. 7654–7667, 2023.
+[3] H. Ding, C. Liu, S. Wang, and X. Jiang, “Vlt: Vision-language trans-
+former and query generation for referring segmentation,” IEEE Trans.
+Pattern Anal. Mach. Intell., vol. 45, no. 6, pp. 7900–7916, 2022.
+[4] Y. Liu, Z. Luo, Y. Xiao, Y. Wang, S. Li, X. Li, Y. Yang, and Y. Tang,
+“Semantic-assisted object clustering for multi-modal referring video
+segmentation,” IEEE Trans. Pattern Anal. Mach. Intell., vol. 48, no. 1,
+pp. 572–590, 2026.
+[5] X. Lai, Z. Tian, Y. Chen, Y. Li, Y. Yuan, S. Liu, and J. Jia, “Lisa:
+Reasoning segmentation via large language model,” in Proc. IEEE Conf.
+Comput. Vis. Pattern Recognit. (CVPR), 2024, pp. 9579–9589.
+[6] X. Wang, S. Zhang, S. Li, K. Kallidromitis, K. Li, Y. Kato, K. Kozuka,
+and T. Darrell, “Segllm: Multi-round reasoning segmentation,” in Proc.
+Int. Conf. Learn. Represent. (ICLR), 2025, pp. 1–14.
+[7] L. Zhu, T. Chen, Q. Xu, X. Liu, D. Ji, H. Wu, D. W. Soh, and J. Liu,
+“Popen: Preference-based optimization and ensemble for lvlm-based
+reasoning segmentation,” in Proc. IEEE Conf. Comput. Vis. Pattern
+Recognit. (CVPR), 2025, pp. 30 231–30 240.
+[8] Z. Li, Y. Li, Q. Li, P. Wang, D. Guo, L. Lu, D. Jin, Y. Zhang, and
+Q. Hong, “Lvit: language meets vision transformer in medical image
+segmentation,” IEEE Trans. Med. Imag., vol. 43, no. 1, pp. 96–107,
+2023.
+[9] X. Huang, H. Li, M. Cao, L. Chen, C. You, and D. An, “Cross-
+modal conditioned reconstruction for language-guided medical image
+segmentation,” IEEE Trans. Med. Imag., vol. 44, no. 4, pp. 1821–1835,
+2024.
+[10] L. Fang, X. Li, Y. Xu, F. Zhang, and C. Zhang, “Driven by textual
+knowledge: A text-view enhanced knowledge transfer network for lung
+infection region segmentation,” Med. Image Anal., p. 103625, 2025.
+[11] X. Lu, L. Sun, L. Li, L. Jiao, Y. Yang, Z. Huang, J. Chai, X. Liu, F. Liu,
+W. Ma, and S. Yang, “Rrsecs: Referring remote sensing expression
+comprehension and segmentation,” IEEE Geosci. Remote Sens. Mag.,
+vol. 13, no. 3, pp. 440–467, 2025.
+[12] J. Chai, L. Jiao, X. Lu, L. Li, F. Liu, L. Sun, X. Liu, W. Ma, and
+W. Li, “Like human rethinking: Contour transformer autoregression
+for referring remote sensing interpretation,” IEEE Trans. Pattern Anal.
+Mach. Intell., pp. 1–18, 2026.
+[13] Q. Ma, L. Li, X. Lu, L. Jiao, F. Liu, W. Ma, X. Liu, and L. Sun, “Lscf:
+Long-term semantic-guidance convformer for referring remote sensing
+image segmentation,” IEEE Trans. Geosci. Remote Sens., 2025.
+[14] B. Cheng, I. Misra, A. G. Schwing, A. Kirillov, and R. Girdhar,
+“Masked-attention mask transformer for universal image segmentation,”
+in Proc. IEEE Conf. Comput. Vis. Pattern Recognit. (CVPR), 2022, pp.
+1290–1299.
+[15] X. Lu, L. Jiao, F. Liu, S. Yang, X. Liu, Z. Feng, L. Li, and P. Chen,
+“Simple and efficient: A semisupervised learning framework for remote
+sensing image semantic segmentation,” IEEE Trans. Geosci. Remote
+Sens., vol. 60, pp. 1–16, 2022.
+[16] T. Xiao, Y. Liu, B. Zhou, Y. Jiang, and J. Sun, “Unified perceptual
+parsing for scene understanding,” in Proc. of Eur. Conf. on Comput. Vis.
+(ECCV), 2018, pp. 418–434.
+[17] X. Lu, L. Jiao, L. Li, F. Liu, X. Liu, and S. Yang, “Self pseudo
+entropy knowledge distillation for semi-supervised semantic segmenta-
+tion,” IEEE Trans. Circuits Syst. Video Technol., vol. 34, pp. 7359–7372,
+2024.
+[18] L.-C. Chen, Y. Zhu, G. Papandreou, F. Schroff, and H. Adam, “Encoder-
+decoder with atrous separable convolution for semantic image segmenta-
+tion,” in Proc. of Eur. Conf. on Comput. Vis. (ECCV), 2018, pp. 801–818.
+[19] X. Lu, L. Jiao, L. Li, F. Liu, X. Liu, S. Yang, Z. Feng, and P. Chen,
+“Weak-to-strong consistency learning for semisupervised image segmen-
+tation,” IEEE Trans. Geosci. Remote Sens., vol. 61, pp. 1–15, 2023.
+[20] E. Xie, W. Wang, Z. Yu, A. Anandkumar, J. M. Alvarez, and P. Luo,
+“Segformer: Simple and efficient design for semantic segmentation with
+transformers,” Proc. Adv. Neural Inf. Process. Syst. (NeurIPS), vol. 34,
+pp. 12 077–12 090, 2021.
+[21] X. Lu, L. Li, L. Jiao, X. Liu, F. Liu, W. Ma, and S. Yang, “Uncertainty-
+aware semi-supervised learning segmentation for remote sensing im-
+ages,” IEEE Trans. Multimedia., vol. 27, pp. 5548–5562, 2025.
+[22] X. Liu, Z. Wang, J. Shao, X. Wang, and H. Li, “Improving referring
+expression grounding with cross-modal attention-guided erasing,” in
+Proc. IEEE Conf. Comput. Vis. Pattern Recognit. (CVPR), 2019, pp.
+1950–1959.
+[23] S. Liu, T. Hui, S. Huang, Y. Wei, B. Li, and G. Li, “Cross-modal
+progressive comprehension for referring segmentation,” IEEE Trans.
+Pattern Anal. Mach. Intell., vol. 44, no. 9, pp. 4761–4775, 2022.
+[24] Z. Yang, J. Wang, Y. Tang, K. Chen, H. Zhao, and P. H. Torr, “Lavt:
+Language-aware vision transformer for referring image segmentation,”
+in Proc. IEEE Conf. Comput. Vis. Pattern Recognit. (CVPR), 2022, pp.
+18 155–18 165.
+[25] J. Liu, H. Ding, Z. Cai, Y. Zhang, R. K. Satzoda, V. Mahadevan, and
+R. Manmatha, “Polyformer: Referring image segmentation as sequential
+polygon generation,” in Proc. IEEE Conf. Comput. Vis. Pattern Recognit.
+(CVPR), 2023, pp. 18 653–18 663.
+[26] Y. X. Chng, H. Zheng, Y. Han, X. Qiu, and G. Huang, “Mask grounding
+for referring image segmentation,” in Proc. IEEE Conf. Comput. Vis.
+Pattern Recognit. (CVPR), 2024, pp. 26 573–26 583.
+[27] Y. Yang, C. Ma, J. Yao, Z. Zhong, Y. Zhang, and Y. Wang, “Remamber:
+Referring image segmentation with mamba twister,” in Proc. of Eur.
+Conf. on Comput. Vis. (ECCV).
+Springer, 2024, pp. 108–126.
+[28] N. A. Shah, V. VS, and V. M. Patel, “Lqmformer: Language-aware query
+mask transformer for referring image segmentation,” in Proc. IEEE Conf.
+Comput. Vis. Pattern Recognit. (CVPR), 2024, pp. 12 903–12 913.
+[29] A. Radford, J. W. Kim, C. Hallacy, A. Ramesh, G. Goh, S. Agarwal,
+G. Sastry, A. Askell, P. Mishkin, J. Clark et al., “Learning transferable
+visual models from natural language supervision,” in Proc. Int. Conf.
+Mach. Learn. (ICML).
+PMLR, 2021, pp. 8748–8763.
+[30] H. Liu, C. Li, Q. Wu, and Y. J. Lee, “Visual instruction tuning,” Proc.
+Adv. Neural Inf. Process. Syst. (NeurIPS), vol. 36, pp. 34 892–34 916,
+2023.
+[31] Z. Xu, Z. Chen, Y. Zhang, Y. Song, X. Wan, and G. Li, “Bridging vision
+and language encoders: Parameter-efficient tuning for referring image
+segmentation,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV), 2023,
+pp. 17 503–17 512.
+[32] Y. Wang, J. Li, X. Zhang, B. Shi, C. Li, W. Dai, H. Xiong, and
+Q. Tian, “Barleria: An efficient tuning framework for referring image
+segmentation,” in Proc. Int. Conf. Learn. Represent. (ICLR), 2024, pp.
+1–12.
+[33] S. Kim, M. Kang, D. Kim, J. Park, and S. Kwak, “Extending clips image-
+text alignment to referring image segmentation,” in NAACL, vol. 1.
+ACL, 2024, pp. 4611–4628.
+[34] A. Kirillov, E. Mintun, N. Ravi, H. Mao, C. Rolland, L. Gustafson,
+T. Xiao, S. Whitehead, A. C. Berg, W.-Y. Lo et al., “Segment anything,”
+in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV), 2023, pp. 4015–
+4026.
+[35] M. Oquab, T. Darcet, T. Moutakanni, H. Vo, M. Szafraniec, V. Khalidov,
+P. Fernandez, D. Haziza, F. Massa, A. El-Nouby et al., “Dinov2:
+Learning robust visual features without supervision,” Trans. Mach.
+Learn. Res., pp. 1–31, 2024.
+[36] O. Sim´eoni, H. V. Vo, M. Seitzer, F. Baldassarre, M. Oquab, C. Jose,
+V. Khalidov, M. Szafraniec, S. Yi, M. Ramamonjisoa et al., “Dinov3,”
+arXiv preprint arXiv:2508.10104, 2025.
+[37] J. Huang, Z. Xu, T. Liu, Y. Liu, H. Han, K. Yuan, and X. Li, “Densely
+connected parameter-efficient tuning for referring image segmentation,”
+in AAAI Conf. Artif. Intell. (AAAI), vol. 39, no. 4, 2025, pp. 3653–3661.
+[38] Z. Han, C. Gao, J. Liu, J. Zhang, and S. Q. Zhang, “Parameter-efficient
+fine-tuning for large models: A comprehensive survey,” Trans. Mach.
+Learn. Res., 2024.
+[39] Y. Xin, S. Luo, H. Zhou, J. Du, X. Liu, Y. Fan, Q. Li, and Y. Du,
+“Parameter-efficient fine-tuning for pre-trained vision models: A survey,”
+arXiv preprint arXiv:2402.02242, 2024.
+[40] D. Zhang, T. Feng, L. Xue, Y. Wang, Y. Dong, and J. Tang,
+“Parameter-efficient fine-tuning for foundation models,” arXiv preprint
+arXiv:2501.13787, 2025.
+[41] E. J. Hu, Y. Shen, P. Wallis, Z. Allen-Zhu, Y. Li, S. Wang, L. Wang,
+W. Chen et al., “Lora: Low-rank adaptation of large language models.”
+in Proc. Int. Conf. Learn. Represent. (ICLR), 2022, pp. 1–12.
+[42] D. Yin, Y. Yang, Z. Wang, H. Yu, K. Wei, and X. Sun, “1% vs 100%:
+Parameter-efficient low rank adapter for dense predictions,” in Proc.
+IEEE Conf. Comput. Vis. Pattern Recognit. (CVPR), 2023, pp. 20 116–
+20 126.
+[43] T. Dettmers, A. Pagnoni, A. Holtzman, and L. Zettlemoyer, “Qlora:
+Efficient finetuning of quantized llms,” Proc. Adv. Neural Inf. Process.
+Syst. (NeurIPS), vol. 36, pp. 10 088–10 115, 2023.
+
+
+SUBMITTED TO IEEE
+15
+[44] M. Jia, L. Tang, B.-C. Chen, C. Cardie, S. Belongie, B. Hariharan, and
+S.-N. Lim, “Visual prompt tuning,” in Proc. of Eur. Conf. on Comput.
+Vis. (ECCV).
+Springer, 2022, pp. 709–727.
+[45] J. Li, D. Li, S. Savarese, and S. Hoi, “Blip-2: Bootstrapping language-
+image pre-training with frozen image encoders and large language
+models,” in Proc. Int. Conf. Mach. Learn. (ICML).
+PMLR, 2023, pp.
+19 730–19 742.
+[46] Z. Chen, Y. Duan, W. Wang, J. He, T. Lu, J. Dai, and Y. Qiao, “Vision
+transformer adapter for dense predictions,” in Proc. Int. Conf. Learn.
+Represent. (ICLR), 2023, pp. 1–14.
+[47] P. Gao, S. Geng, R. Zhang, T. Ma, R. Fang, Y. Zhang, H. Li, and Y. Qiao,
+“Clip-adapter: Better vision-language models with feature adapters,” Int.
+J. Comput. Vis., vol. 132, no. 2, pp. 581–595, 2024.
+[48] N. Houlsby, A. Giurgiu, S. Jastrzebski, B. Morrone, Q. De Laroussilhe,
+A. Gesmundo, M. Attariyan, and S. Gelly, “Parameter-efficient transfer
+learning for nlp,” in Proc. Int. Conf. Mach. Learn. (ICML).
+PMLR,
+2019, pp. 2790–2799.
+[49] S. Chen, C. Ge, Z. Tong, J. Wang, Y. Song, J. Wang, and P. Luo, “Adapt-
+former: Adapting vision transformers for scalable visual recognition,”
+Proc. Adv. Neural Inf. Process. Syst. (NeurIPS), vol. 35, pp. 16 664–
+16 678, 2022.
+[50] L. Yu, P. Poirson, S. Yang, A. C. Berg, and T. L. Berg, “Modeling
+context in referring expressions,” in Proc. of Eur. Conf. on Comput. Vis.
+(ECCV), 2016, pp. 69–85.
+[51] J. Mao, J. Huang, A. Toshev, O. Camburu, A. L. Yuille, and K. Murphy,
+“Generation and comprehension of unambiguous object descriptions,” in
+Proc. IEEE Conf. Comput. Vis. Pattern Recognit. (CVPR), 2016, pp. 11–
+20.
+[52] V. K. Nagaraja, V. I. Morariu, and L. S. Davis, “Modeling context
+between objects for referring expression understanding,” in Proc. of Eur.
+Conf. on Comput. Vis. (ECCV).
+Springer, 2016, pp. 792–807.
+[53] L. Yu, Z. Lin, X. Shen, J. Yang, X. Lu, M. Bansal, and T. L.
+Berg, “Mattnet: Modular attention network for referring expression
+comprehension,” in Proc. IEEE Conf. Comput. Vis. Pattern Recognit.
+(CVPR), 2018, pp. 1307–1315.
+[54] G. Feng, Z. Hu, L. Zhang, and H. Lu, “Encoder fusion network with co-
+attention embedding for referring image segmentation,” in Proc. IEEE
+Conf. Comput. Vis. Pattern Recognit. (CVPR), 2021, pp. 15 506–15 515.
+[55] N. Kim, D. Kim, C. Lan, W. Zeng, and S. Kwak, “Restr: Convolution-
+free referring image segmentation using transformers,” in Proc. IEEE
+Conf. Comput. Vis. Pattern Recognit. (CVPR), 2022, pp. 18 145–18 154.
+[56] C. Liu, H. Ding, and X. Jiang, “Gres: Generalized referring expression
+segmentation,” in Proc. IEEE Conf. Comput. Vis. Pattern Recognit.
+(CVPR), 2023, pp. 23 592–23 601.
+[57] Z. Xia, D. Han, Y. Han, X. Pan, S. Song, and G. Huang, “Gsva:
+Generalized segmentation via multimodal large language models,” in
+Proc. IEEE Conf. Comput. Vis. Pattern Recognit. (CVPR), 2024, pp.
+3858–3869.
+[58] B. Lester, R. Al-Rfou, and N. Constant, “The power of scale for
+parameter-efficient prompt tuning,” in EMNLP, 2021, pp. 3045–3059.
+[59] L. Zhang, L. Zhang, S. Shi, X. Chu, and B. Li, “Lora-fa: Memory-
+efficient low-rank adaptation for large language models fine-tuning,”
+arXiv preprint arXiv:2308.03303, 2023.
+[60] Z. Wang, Y. Lu, Q. Li, X. Tao, Y. Guo, M. Gong, and T. Liu, “Cris:
+Clip-driven referring image segmentation,” in Proc. IEEE Conf. Comput.
+Vis. Pattern Recognit. (CVPR), 2022, pp. 11 686–11 695.
+[61] T.-Y. Lin, M. Maire, S. Belongie, J. Hays, P. Perona, D. Ramanan,
+P. Doll´ar, and C. L. Zitnick, “Microsoft coco: Common objects in
+context,” in Proc. of Eur. Conf. on Comput. Vis. (ECCV).
+Springer,
+2014, pp. 740–755.
+[62] A. Dosovitskiy, L. Beyer, A. Kolesnikov, D. Weissenborn, X. Zhai,
+T. Unterthiner, M. Dehghani, M. Minderer, G. Heigold, S. Gelly et al.,
+“An image is worth 16x16 words: Transformers for image recognition
+at scale,” in Proc. Int. Conf. Learn. Represent. (ICLR), 2021, pp. 1–22.
+[63] J. Tang, G. Zheng, C. Shi, and S. Yang, “Contrastive grouping with
+transformer for referring image segmentation,” in Proc. IEEE Conf.
+Comput. Vis. Pattern Recognit. (CVPR), 2023, pp. 23 570–23 580.
+[64] Y. Hu, Q. Wang, W. Shao, E. Xie, Z. Li, J. Han, and P. Luo, “Beyond
+one-to-one: Rethinking the referring image segmentation,” in Proc.
+IEEE/CVF Int. Conf. Comput. Vis. (ICCV), 2023, pp. 4067–4077.
+[65] J. Wu, X. Li, X. Li, H. Ding, Y. Tong, and D. Tao, “Toward robust
+referring image segmentation,” IEEE Trans. Image Process., 2024.
+[66] Y. Wang, H. Ding, S. He, X. Jiang, B. Wei, and J. Liu, “Hierarchical
+alignment-enhanced adaptive grounding network for generalized refer-
+ring expression comprehension,” in AAAI Conf. Artif. Intell. (AAAI),
+vol. 39, no. 8, 2025, pp. 8042–8050.
+[67] X. Pan, X. Xie, J. Yang, X. Song, and G. Shi, “Cmanet: Context-aware
+mutual attention network for referring image segmentation,” IEEE Trans.
+Multimedia., pp. 1–12, 2025.
+[68] M. Xu, T. Xiao, Y. Liu, H. Tang, Y. Hu, and L. Nie, “Cmirnet: Cross-
+modal interactive reasoning network for referring image segmentation,”
+IEEE Trans. Circuits Syst. Video Technol., vol. 35, no. 4, pp. 3234–3249,
+2025.
+[69] W. Su, P. Miao, H. Dou, G. Wang, L. Qiao, Z. Li, and X. Li, “Language
+adaptive weight generation for multi-task visual grounding,” in Proc.
+IEEE Conf. Comput. Vis. Pattern Recognit. (CVPR), 2023, pp. 10 857–
+10 866.
+[70] P. Yue, J. Lin, S. Zhang, J. Hu, Y. Lu, H. Niu, H. Ding, Y. Zhang,
+G. Jiang, L. Cao et al., “Adaptive selection based referring image
+segmentation,” in ACM Int. Conf. Multimedia. (ACM MM), 2024, pp.
+1101–1110.
+[71] D. Jang, Y. Cho, S. Lee, T. Kim, and D. Kim, “Mmr: A large-
+scale benchmark dataset for multi-target and multi-granularity reasoning
+segmentation,” in Proc. Int. Conf. Learn. Represent. (ICLR), 2025, pp.
+1–15.
+[72] R. Qian, X. Yin, and D. Dou, “Reasoning to attend: Try to understand
+how¡ seg¿ token works,” in Proc. IEEE Conf. Comput. Vis. Pattern
+Recognit. (CVPR), 2025, pp. 24 722–24 731.
+[73] Z. Liu, Y. Lin, Y. Cao, H. Hu, Y. Wei, Z. Zhang, S. Lin, and
+B. Guo, “Swin transformer: Hierarchical vision transformer using shifted
+windows,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV), 2021, pp.
+10 012–10 022.
+[74] J. Devlin, M.-W. Chang, K. Lee, and K. Toutanova, “Bert: Pre-training of
+deep bidirectional transformers for language understanding,” in NAACL,
+2019, pp. 4171–4186.
+[75] Y. Liu, Y. Tian, Y. Zhao, H. Yu, L. Xie, Y. Wang, Q. Ye, and Y. Liu,
+“Vmamba: Visual state space model,” Proc. Adv. Neural Inf. Process.
+Syst. (NeurIPS), pp. 103 031–103 063, 2024.
+[76] Y. Liu, M. Ott, N. Goyal, J. Du, M. Joshi, D. Chen, O. Levy, M. Lewis,
+L. Zettlemoyer, and V. Stoyanov, “Roberta: A robustly optimized bert
+pretraining approach,” arXiv preprint arXiv:1907.11692, 2019.
+[77] Y. Li, H. Mao, R. Girshick, and K. He, “Exploring plain vision
+transformer backbones for object detection,” in Proc. of Eur. Conf. on
+Comput. Vis. (ECCV).
+Springer, 2022, pp. 280–296.
+[78] Q. Sun, Y. Fang, L. Wu, X. Wang, and Y. Cao, “Eva-clip: Improved
+training techniques for clip at scale,” arXiv preprint arXiv:2303.15389,
+2023.
+[79] M. Caron, H. Touvron, I. Misra, H. J´egou, J. Mairal, P. Bojanowski, and
+A. Joulin, “Emerging properties in self-supervised vision transformers,”
+in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV), 2021, pp. 9650–
+9660.
+[80] K. He, X. Chen, S. Xie, Y. Li, P. Doll´ar, and R. Girshick, “Masked
+autoencoders are scalable vision learners,” in Proc. IEEE Conf. Comput.
+Vis. Pattern Recognit. (CVPR), 2022, pp. 16 000–16 009.
+[81] Y. Fang, Q. Sun, X. Wang, T. Huang, X. Wang, and Y. Cao, “Eva-02:
+A visual representation for neon genesis,” Image and Vision Computing,
+vol. 149, p. 105171, 2024.
+Xiaoqiang Lu (Member, IEEE) received the B.S.
+degree in Information Countermeasure Technique
+from Xidian University, Xi’an, China, in 2020, and
+the Ph.D. degree in Computer Science and Tech-
+nology from Xidian University, Xi’an, China, in
+2025. He is currently a Postdoctoral Researcher
+with the School of Artificial Intelligence at Xidian
+University.
+His research interests include remote sensing in-
+terpretation, computer vision, multi-modal learning,
+and foundation model.
+
+
+SUBMITTED TO IEEE
+16
+Licheng Jiao (Life Fellow, IEEE) received the B.S.
+degree from Shanghai Jiaotong University, Shanghai,
+China, in 1982, and the M.S. and Ph.D. degrees
+from Xi’an Jiaotong University, Xi’an, China, in
+1984 and 1990, respectively. Since 1992, he has
+been a Professor at the School of Electronic En-
+gineering, Xidian University, Xi’an, where he is
+currently the Director of the Key Laboratory of
+Intelligent Perception and Image Understanding of
+the Ministry of Education of China. He is in charge
+of about 40 important scientific research projects.
+He has authored/coauthored more than 20 monographs and 100 papers in
+international journals and conferences. His research interests include image
+processing, natural computation, machine learning, and intelligent information
+processing.
+Dr. Jiao is a Foreign Member of the Academia Europaea and the Russian
+Academy of Natural Sciences, a fellow of IET/CAAI/CIE/CCF/CAA, a
+Councilor of the Chinese Institute of Electronics, a committee member of
+the Chinese Committee of Neural Networks, and an Expert of the Academic
+Degrees Committee of the State Council.
+Lingling Li (Senior Member, IEEE) received the
+B.S. and Ph.D. degrees from Xidian University,
+Xi’an, China, in 2011 and 2017, respectively.
+From 2013 to 2014, she was an Exchange Ph.D.
+Student with the Intelligent Systems Group, De-
+partment of Computer Science and Artificial Intelli-
+gence, University of the Basque Country UPV/EHU,
+Leioa, Spain. She is currently an Associate Professor
+with the School of Artificial Intelligence, Xidian
+University. Her research interests include quantum
+evolutionary optimization and deep learning.
+Yuting Yang (Member, IEEE) received the B.S.
+degree from Northwest University, Xi’an, China, in
+2018, and the PhD degree from Xidian University,
+Xi’an, China, in 2024. She is currently a Post-
+doctoral Researcher with the School of Artificial
+Intelligence at Xidian University.
+Her research interests include computer vision,
+the interpretability of deep learning, and multiscale
+geometric analysis.
+Sun Long (Member, IEEE) received the B.S. degree
+in communication engineering from Xidian Univer-
+sity, Xi’an, China, in 2018, and the Ph.D. degree
+from Xidian University, Xi’an, China, in 2024.
+He is currently a postdoctoral researcher of Key
+Laboratory of Intelligent Perception and Image Un-
+derstanding of Ministry of Education, School of Ar-
+tificial Intelligence, Xidian University, Xi’an, China.
+His research interests include computer vision and
+deep learning.
+Wenping Ma (Senior Member, IEEE) received the
+B.S. degree in computer science and technology and
+the Ph.D. degree in pattern recognition and intelli-
+gent systems from Xidian University, Xi’an, China,
+in 2003 and 2008, respectively. She is currently an
+Associate Professor with the School of Artificial
+Intelligence, Xidian University. Her research inter-
+ests include natural computing and intelligent image
+processing. Dr. Ma is a member of Chinese Institute
+of Electronics (CIE).
+Xu Liu (Senior Member, IEEE) received the B.S.
+degree from the North University of China, Taiyuan,
+China, in 2013, and the Ph.D. degree from Xidian
+University, Xi’an, China, in 2019. He is currently
+an Associate Professor of Huashan Elite with the
+Key Laboratory of Intelligent Perception and Image
+Understanding of Ministry of Education, School of
+Artificial Intelligence, Xidian University.
+His research interests include machine learning
+and image processing.
+Fang Liu (Senior Member, IEEE) received the B.S.
+degree in computer science and technology from
+Xi’an Jiaotong University, Xi’an, China, in 1984,
+and the M.S. degree in computer science and tech-
+nology from Xidian University, Xi’an, in 1995. She
+is currently a Professor at Xidian University. She
+has authored or coauthored five books and over 80
+papers.
+Her research interests include pattern recognition,
+machine learning, and evolutionary computation.

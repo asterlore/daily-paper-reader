@@ -1,0 +1,620 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-24T22:09:01.800389+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 0,
+    "deep_divecandidates": 18,
+    "deep_cap": 5,
+    "deep_selected": 5,
+    "quick_candidates": 13,
+    "quick_skim_target": 10,
+    "quick_selected": 10
+  },
+  "deep_dive": [
+    {
+      "id": "2609.19139v1",
+      "source": "arxiv",
+      "title": "STUART: Sequence Triage and qUAntification of Read Transcripts for Rapid Ionizing Radiation Exposure Assessment",
+      "abstract": "Rapid medical triage following ionizing radiation exposure is critical for emergency management, yet traditional alignment-based bioinformatics are too computationally intensive for mass-casualty scenarios. To address this, we developed STUART (Sequence Triage and qUAntification of Read Transcripts), a mapping-free machine learning framework optimized for mobile biological dosimetry. Inspired by Natural Language Processing (NLP), the system converts raw sequencing reads into k-mer-based numerical profiles, completely bypassing standard alignment. While the architecture is universally applicable to any transcriptomic biomarker, this study focused on radiation exposure using the FDXR gene model. Evaluating Logistic Regression, Random Forest, and XGBoost, advanced signature selection strategies drastically reduced the initial 1024-dimensional feature space by over 98%. Highly robust performance - characterized by near-perfect balanced accuracy and F1-scores within the 95-100% range - was consistently achieved while retaining as few as 17 transcriptomic signatures. Crucially, learning curve analysis demonstrated that complete signal stabilization requires aggregating merely 1000 potentially related reads. Furthermore, external validation on an independent dataset yielded over 99% specificity, confirming the tissue-agnostic nature of the extracted signatures despite different cellular origins. The framework's exceptionally low data threshold enables a real-time, analyze-as-you-sequence diagnostic paradigm compatible with portable sequencers. By minimizing time-to-decision, this decentralized tool bridges the gap between advanced biomarkers and practical on-site biomonitoring, offering a scalable foundation for rapid epidemiological response and routine occupational radiation monitoring.",
+      "authors": [
+        "Tomasz Strzoda",
+        "Lourdes Cruz-Garcia",
+        "Mustafa Najim",
+        "Christophe Badie",
+        "Joanna Polanska"
+      ],
+      "primary_category": "q-bio.GN",
+      "categories": [
+        "q-bio.GN"
+      ],
+      "published": "2026-09-16T17:58:48+00:00",
+      "link": "https://arxiv.org/pdf/2609.19139v1",
+      "tags": [
+        "keyword:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "mapping-free machine learning framework for transcriptomic radiation dosimetry",
+      "llm_evidence_cn": "面向转录组辐射剂量学的无比对机器学习框架",
+      "llm_evidence": "面向转录组辐射剂量学的无比对机器学习框架",
+      "canonical_evidence": "面向转录组辐射剂量学的无比对机器学习框架",
+      "llm_tldr_en": "STUART is a mapping-free machine learning framework that converts sequencing reads into k-mer profiles inspired by NLP, enabling rapid radiation exposure triage without alignment.",
+      "llm_tldr_cn": "论文针对电离辐射暴露后快速医学分诊需求，指出现有基于比对的生物信息学方法计算量过大、难以应对大规模伤亡场景。作者提出无比对机器学习框架STUART，受自然语言处理启发，将原始测序读段转换为基于k-mer的数值特征，完全绕过标准比对流程。研究以FDXR基因模型评估逻辑回归等分类器，实现了面向移动端生物剂量学的快速定量，并可推广至其他转录组生物标志物。",
+      "llm_tldr": "论文针对电离辐射暴露后快速医学分诊需求，指出现有基于比对的生物信息学方法计算量过大、难以应对大规模伤亡场景。作者提出无比对机器学习框架STUART，受自然语言处理启发，将原始测序读段转换为基于k-mer的数值特征，完全绕过标准比对流程。研究以FDXR基因模型评估逻辑回归等分类器，实现了面向移动端生物剂量学的快速定量，并可推广至其他转录组生物标志物。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "machine learning applications in biological data analysis",
+      "matched_requirement_id": "req-5",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.19139v1"
+    },
+    {
+      "id": "2609.19702v1",
+      "source": "arxiv",
+      "title": "Understanding and Exploiting Diagonal Attention Sparsity in Autoregressive Image Generation",
+      "abstract": "Autoregressive image generation has emerged as a paradigm for multimodal AI systems due to its compatibility with transformer-based LLM serving infrastructures. However, generating thousands of visual tokens per request makes decoding increasingly bottlenecked by KV cache accesses during attention computation. Sparse attention is particularly attractive for this workload because many visual generation applications tolerate moderate quality degradation in exchange for improved performance and efficiency. While sparse attention has been extensively explored for text-based LLM inference, it remains unclear whether its sparsity assumptions generalize effectively to autoregressive image generation. We present the first systematic characterization of attention sparsity in autoregressive image generation across diverse workloads and representative open-source models. Our analysis reveals several distinguishing properties, including a pronounced prefill-decode asymmetry, strong attention concentration on prompt and local tokens, and a unique diagonal attention sparsity pattern arising from the spatial locality of visual tokens. Motivated by these observations, we propose a diagonal-aware sparse attention mechanism that selectively skips KV entries along the diagonal attention direction within a recent window. Implemented on top of a GPU-based serving system using FlexGen, FlashAttention-2, and custom kernels, our approach achieves up to 3.1x throughput and 1.19x latency improvements with less than 2% quality degradation compared to dense inference.",
+      "authors": [
+        "Daeun Kim",
+        "Junwha Hong",
+        "Changhun Oh",
+        "Yoonsung Kim",
+        "Yoonhyeong Lee",
+        "Jongse Park"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.PF"
+      ],
+      "published": "2026-09-17T04:54:59+00:00",
+      "link": "https://arxiv.org/pdf/2609.19702v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "autoregressive image generation with sparse attention",
+      "llm_evidence_cn": "结合稀疏注意力的自回归图像生成",
+      "llm_evidence": "结合稀疏注意力的自回归图像生成",
+      "canonical_evidence": "结合稀疏注意力的自回归图像生成",
+      "llm_tldr_en": "Autoregressive image generation is bottlenecked by KV cache access; the paper systematically characterizes attention sparsity in this setting and exploits diagonal sparsity to speed decoding with acceptable quality loss.",
+      "llm_tldr_cn": "该文针对自回归图像生成每请求需生成数千视觉令牌、解码受KV缓存访问瓶颈制约的问题，首次系统刻画该任务中的注意力稀疏性。作者发现图像生成存在显著的对角注意力稀疏模式，并据此设计稀疏注意力以加速计算。分析表明此前用于文本大模型的稀疏假设在视觉生成中同样成立，可在容忍适度质量下降的前提下提升效率。该工作为多模态生成系统的高效推理提供了实证依据。",
+      "llm_tldr": "该文针对自回归图像生成每请求需生成数千视觉令牌、解码受KV缓存访问瓶颈制约的问题，首次系统刻画该任务中的注意力稀疏性。作者发现图像生成存在显著的对角注意力稀疏模式，并据此设计稀疏注意力以加速计算。分析表明此前用于文本大模型的稀疏假设在视觉生成中同样成立，可在容忍适度质量下降的前提下提升效率。该工作为多模态生成系统的高效推理提供了实证依据。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "What are the key advances in generative artificial intelligence for multimodal content generation?",
+      "matched_requirement_id": "req-8",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.19702v1"
+    },
+    {
+      "id": "2609.19878v1",
+      "source": "arxiv",
+      "title": "Uni-LaDiR: Latent Diffusion Unifies Multimodal Reasoning",
+      "abstract": "Multimodal reasoning requires models to draw on information from multiple modalities throughout the reasoning process. Yet existing methods often concatenate modality-specific thought tokens in a single sequence, leaving the model to bridge representational differences as it reasons across modalities. We introduce Uni-LaDiR (Unified Latent Diffusion Reasoner), a framework that brings these thoughts into a shared latent space for reasoning. A unified encoder maps teacher reasoning steps from different modalities into shared thought tokens, trained to preserve the information needed for later reasoning steps and the final answer or action. Because the same context can support multiple valid next steps, we use diffusion to predict the next block of thought tokens from the input and preceding blocks. Jointly training the encoder and diffusion reasoner with shared model weights encourages thought tokens to be both useful for the task and predictable from the available context. At inference, the model generates these tokens without teacher observations. Across eleven vision-language model (VLM) benchmarks and two vision-language-action (VLA) suites, Uni-LaDiR achieves relative gains over the strongest evaluated baselines of 7.3% on visual reasoning tasks and 6.1% on robot manipulation tasks.",
+      "authors": [
+        "Haoqiang Kang",
+        "Yizhe Zhang",
+        "Nikki Lijing Kuang",
+        "Yian Ma",
+        "Lianhui Qin"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-09-17T08:28:18+00:00",
+      "link": "https://arxiv.org/pdf/2609.19878v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "latent diffusion framework unifying multimodal reasoning in a shared thought space",
+      "llm_evidence_cn": "在共享潜在思维空间统一多模态推理的扩散框架",
+      "llm_evidence": "在共享潜在思维空间统一多模态推理的扩散框架",
+      "canonical_evidence": "在共享潜在思维空间统一多模态推理的扩散框架",
+      "llm_tldr_en": "Uni-LaDiR maps teacher reasoning steps from multiple modalities into shared latent thought tokens and uses diffusion to predict the next thought block for unified reasoning.",
+      "llm_tldr_cn": "多模态推理要求模型在推理全程综合利用多种模态信息，但现有方法常把各模态的思维标记拼接在单一序列中，迫使模型自行弥合表示差异。本文提出Uni-LaDiR，用统一编码器把不同模态的教师推理步骤映射为共享的思维标记，并训练其保留后续推理与最终答案所需信息，再用扩散预测下一块思维标记。该框架将多模态思维统一到共享潜空间中进行推理。该工作为跨模态统一推理提供了新的表示对齐方案。",
+      "llm_tldr": "多模态推理要求模型在推理全程综合利用多种模态信息，但现有方法常把各模态的思维标记拼接在单一序列中，迫使模型自行弥合表示差异。本文提出Uni-LaDiR，用统一编码器把不同模态的教师推理步骤映射为共享的思维标记，并训练其保留后续推理与最终答案所需信息，再用扩散预测下一块思维标记。该框架将多模态思维统一到共享潜空间中进行推理。该工作为跨模态统一推理提供了新的表示对齐方案。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "integrating multiple modalities like text and images in learning systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.19878v1"
+    },
+    {
+      "id": "2609.20398v1",
+      "source": "arxiv",
+      "title": "Schema-Anchored Latent Reasoning for Semantic Parsing-Based Knowledge Base Question Answering",
+      "abstract": "Semantic parsing (SP)-based knowledge base question answering aims to answer natural language questions by generating executable logical forms (LFs) over knowledge bases (KBs). When applying Large Language Models (LLMs) to this task, a key challenge over large, heterogeneous KBs is selecting question-related schema elements (i.e., relations and classes) and composing them into complex LFs. Recent LLM-based methods often make early discrete commitments to schema elements during intermediate reasoning, allowing incorrect intermediate schema decisions to propagate and finally result in incorrect LFs. To overcome this limitation, we propose SALR, a schema-anchored latent reasoning method for LF construction. It performs multi-step reasoning by generating continuous thoughts in the model's hidden states, thereby delaying the explicit commitment to LF decisions. To ground this latent reasoning process in the corresponding KB schema, SALR aligns continuous thoughts with a codebook of KB schema elements through an alignment objective supervised by schema traces deterministically derived from gold LFs. It then incorporates the aligned schema codes into inputs for subsequent reasoning steps. This schema-mediated feedback guides LF generation without requiring the model to emit an explicit textual reasoning trajectory. Experiments on GrailQA and WebQSP show that SALR achieves consistent overall gains over strong baselines. Notably, on compositional questions from GrailQA, SALR outperforms TIARA, a strong SP-based baseline, by 2.86 F1 points. Further analyses show that schema-mediated feedback affects LF generation and that schema information is recoverable from the latent states.",
+      "authors": [
+        "Guangze Gao",
+        "Zixuan Li",
+        "Sikui Zhang",
+        "Chunfeng Yuan",
+        "Wenjuan Li",
+        "Bing Li",
+        "Xiaolong Jin",
+        "Weiming Hu"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-09-17T13:45:34+00:00",
+      "link": "https://arxiv.org/pdf/2609.20398v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "LLM-based semantic parsing for knowledge base question answering",
+      "llm_evidence_cn": "基于大语言模型的语义解析知识库问答",
+      "llm_evidence": "基于大语言模型的语义解析知识库问答",
+      "canonical_evidence": "基于大语言模型的语义解析知识库问答",
+      "llm_tldr_en": "LLM-based semantic parsing KBQA suffers from early discrete schema commitments that propagate errors; SALR performs schema-anchored latent reasoning to build logical forms more reliably.",
+      "llm_tldr_cn": "该文针对基于语义解析的知识库问答，指出现有基于大语言模型的方法在推理早期就对模式元素做出离散选择，导致错误逐级传播。为此提出SALR模式锚定的潜在推理方法，通过多步潜在推理构造可执行逻辑形式。实验表明该方法能减少中间错误传播、提升逻辑形式构造的准确率。该工作为知识库问答中的模式选择与组合问题提供了新思路。",
+      "llm_tldr": "该文针对基于语义解析的知识库问答，指出现有基于大语言模型的方法在推理早期就对模式元素做出离散选择，导致错误逐级传播。为此提出SALR模式锚定的潜在推理方法，通过多步潜在推理构造可执行逻辑形式。实验表明该方法能减少中间错误传播、提升逻辑形式构造的准确率。该工作为知识库问答中的模式选择与组合问题提供了新思路。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "What methods in natural language processing leverage large language models?",
+      "matched_requirement_id": "req-10",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.20398v1"
+    },
+    {
+      "id": "2609.20869v1",
+      "source": "arxiv",
+      "title": "TAPe+ML: A Compact Structured Representation for Multi-Task Computer Vision",
+      "abstract": "We present TAPe+ML v3, a compact computer vision system based on TAPe (Theory of Active Perception), a structured representation that encodes relations among perceptual elements before recognition. Instead of operating directly on pixel tensors, the system uses a shared TAPe representation and a modular recognition architecture for image classification, object detection, and instance segmentation.   TAPe+ML v3 combines background and contour processing, local object localization, prototype-based classification, and a coordinator for specialized submodels. Across the reported experiments, it uses fewer than 100,000 parameters. On COCO object detection, it obtains 84.7 mAP50 and 65.3 mAP50-95. On COCO instance segmentation, it obtains 80.7 mask mAP50 and 58.4 mask mAP50-95. In classification experiments, it reaches 92 percent validation accuracy on Imagenette under an identical-training comparison with a raw-pixel baseline, and 89.9 percent Top-1 accuracy on ImageNet-Real. We also evaluate compactness in video scene detection and adaptation under distribution shift in an industrial pilot. The results suggest that shifting part of the modeling burden from network parameters to a structured input representation can support compact multi-task vision systems with reduced data, memory, and compute requirements.",
+      "authors": [
+        "Sergey Kurinov",
+        "Alexey Upatov"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "eess.IV"
+      ],
+      "published": "2026-09-15T14:08:43+00:00",
+      "link": "https://arxiv.org/pdf/2609.20869v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "structured representation for multi-task computer vision",
+      "llm_evidence_cn": "面向多任务计算机视觉的结构化表示",
+      "llm_evidence": "面向多任务计算机视觉的结构化表示",
+      "canonical_evidence": "面向多任务计算机视觉的结构化表示",
+      "llm_tldr_en": "TAPe+ML v3 replaces pixel tensors with a structured active-perception representation and a modular architecture for classification, detection and segmentation using under 100K parameters, reaching 84.7 mAP50 on COCO.",
+      "llm_tldr_cn": "该文针对现有计算机视觉系统依赖像素张量、参数量庞大的问题，提出基于主动感知理论的TAPe结构化表示，先编码感知元素间关系再进行识别。系统采用共享表示与模块化架构，统一支持图像分类、目标检测和实例分割，参数量不到十万。在COCO检测上取得84.7 mAP50，实例分割掩码mAP达80.7，表明紧凑结构化表示可高效完成多任务视觉理解。",
+      "llm_tldr": "该文针对现有计算机视觉系统依赖像素张量、参数量庞大的问题，提出基于主动感知理论的TAPe结构化表示，先编码感知元素间关系再进行识别。系统采用共享表示与模块化架构，统一支持图像分类、目标检测和实例分割，参数量不到十万。在COCO检测上取得84.7 mAP50，实例分割掩码mAP达80.7，表明紧凑结构化表示可高效完成多任务视觉理解。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "algorithms for image and video understanding",
+      "matched_requirement_id": "req-6",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.20869v1"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.22554v1",
+      "source": "arxiv",
+      "title": "The Ups and Downs of Backprop Weights",
+      "abstract": "Backpropagation (BP) has driven the remarkable success of modern deep learning by enabling large hierarchical networks to learn complex functions end-to-end. Yet it does not by itself determine how parameters should be organized so that functional components can be reused and adapted selectively. For example, object recognition and motion prediction may depend on overlapping parameter sets, making them difficult to isolate or modify independently. We call this condition weight entanglement. Modern architectures dynamically select which parts of a network process each sample: nonlinearities gate units, attention selects interactions, and Mixture-of-Experts architectures route inputs to modules. Yet such selection does not ensure that the same functional component remains linked to an identifiable parameter set across samples. We propose weight operators: parameterized modules that implement reusable functional components and can be composed at inference to form the function required by each sample. Learning proceeds in two stages: the model first infers the required operator composition, then updates only the selected operators' parameter sets. Vector Networks (VNs) provide one implementation. They couple operator selection to local error-driven updates within each layer and show that learned operators can be reused in combinations absent from training while updates remain restricted to the selected parameter sets. This provides a basis for testing functional parameter identifiability: whether an operator remains linked to the same functional component during learning. We argue that functional parameter identifiability may provide an organizing principle for models that systematically reuse and recombine learned functions while adapting only the components that need to change.",
+      "authors": [
+        "Giuseppe Chindemi",
+        "Benjamin F. Grewe"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-18T20:10:34+00:00",
+      "link": "https://arxiv.org/pdf/2609.22554v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "analysis of backpropagation, parameter organization and weight entanglement in deep networks",
+      "llm_evidence_cn": "反向传播、参数组织与深度网络权重纠缠分析",
+      "llm_evidence": "反向传播、参数组织与深度网络权重纠缠分析",
+      "canonical_evidence": "反向传播、参数组织与深度网络权重纠缠分析",
+      "llm_tldr_en": "The paper studies how backpropagation alone cannot organize parameters for reusable components, defining weight entanglement and analyzing gating, attention and MoE selection.",
+      "llm_tldr_cn": "反向传播让深度网络端到端学习复杂函数，但它本身并不决定参数应如何组织，使得目标识别与运动预测等功能组件共享参数、难以独立修改，作者称之为权重纠缠。本文分析门控、注意力与专家混合等动态选择机制，指出这些选择并不保证同一功能组件始终绑定同一内部单元。研究刻画了权重纠缠现象，为改进深度网络的参数组织与模块复用提供了理论与架构层面的启示。",
+      "llm_tldr": "反向传播让深度网络端到端学习复杂函数，但它本身并不决定参数应如何组织，使得目标识别与运动预测等功能组件共享参数、难以独立修改，作者称之为权重纠缠。本文分析门控、注意力与专家混合等动态选择机制，指出这些选择并不保证同一功能组件始终绑定同一内部单元。研究刻画了权重纠缠现象，为改进深度网络的参数组织与模块复用提供了理论与架构层面的启示。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "deep neural network architectures and training methods",
+      "matched_requirement_id": "req-2",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.22554v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.22916v1",
+      "source": "arxiv",
+      "title": "Planning and Rendering in Concert: DeepFusion of Autoregressive Layouts and Diffusion for Visual Text Generation",
+      "abstract": "Generating text-rich images from prompts requires both textual fidelity and the coherent integration of text into the surrounding image. An explicit layout can provide structured guidance about what text should appear and where, but a well-formed plan alone does not guarantee that the renderer will realize it faithfully. Existing layout-based AR-diffusion systems typically optimize planning and rendering separately, preventing the planner's representations from being adapted jointly with image synthesis. We introduce DuetGen, an autonomous visual text generator built on DeepFusion, which jointly learns autoregressive planning and continuous diffusion rendering. DeepFusion conditions a diffusion transformer on the planner's prompt and bbox-content hidden states, allowing rendering supervision to shape the representations connecting textual plans with visual outputs. Its joint objective combines autoregressive plan supervision, text-region-weighted diffusion learning, and auxiliary coordinate supervision to maintain structured planning, emphasize text-bearing regions, and improve the spatial precision of planner representations. During inference, Phase-Aware Attention Modulation strengthens the correspondence between image regions and their matched coordinate and content states, facilitating region-specific execution of the generated plan. With a 2B planner and a 4B single-stream DiT, DuetGen achieves 0.8293 word accuracy on CVTG-2K and 0.938 accuracy on LongText-Bench, closely matching the substantially larger Qwen-Image on both benchmarks. These results demonstrate the value of jointly learned planning representations and region-specific rendering for autonomous visual text generation.",
+      "authors": [
+        "Guanqiao Chen",
+        "Jingru Tan",
+        "Dongxing Mao",
+        "Catherine Chen",
+        "Zijian Du",
+        "Libo Qin",
+        "Hu Jian Guo",
+        "Alex Jinpeng Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-19T09:49:02+00:00",
+      "link": "https://arxiv.org/pdf/2609.22916v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "autoregressive layout and diffusion fusion for visual text generation",
+      "llm_evidence_cn": "自回归布局与扩散融合的视觉文本生成",
+      "llm_evidence": "自回归布局与扩散融合的视觉文本生成",
+      "canonical_evidence": "自回归布局与扩散融合的视觉文本生成",
+      "llm_tldr_en": "DuetGen jointly learns autoregressive layout planning and diffusion rendering via DeepFusion, letting planner representations adapt with image synthesis for faithful text-rich image generation.",
+      "llm_tldr_cn": "论文针对文本丰富图像生成中布局规划与渲染分离优化、导致渲染器难以忠实实现规划的问题，提出自主视觉文本生成器DuetGen。该方法基于DeepFusion将自回归布局规划与连续扩散渲染联合学习，使规划器的表征能与图像合成过程共同适配。实验表明这种规划与渲染协同的方式提升了文本保真度及其与图像的协调性，为多模态生成式人工智能中的结构化内容生成提供了新范式。",
+      "llm_tldr": "论文针对文本丰富图像生成中布局规划与渲染分离优化、导致渲染器难以忠实实现规划的问题，提出自主视觉文本生成器DuetGen。该方法基于DeepFusion将自回归布局规划与连续扩散渲染联合学习，使规划器的表征能与图像合成过程共同适配。实验表明这种规划与渲染协同的方式提升了文本保真度及其与图像的协调性，为多模态生成式人工智能中的结构化内容生成提供了新范式。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "What are the key advances in generative artificial intelligence for multimodal content generation?",
+      "matched_requirement_id": "req-8",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.22916v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.23717v1",
+      "source": "arxiv",
+      "title": "BindCLIP: One Balanced Coupling For Compositional Vision Language Scoring",
+      "abstract": "Global vision--language similarities compress an image and a caption into one vector, preserving semantics but not which word corresponds to which region or how those regions are arranged; a model can recognize every word and object yet prefer a compositionally incorrect caption. We argue that a frozen encoder retains this association structure, so the problem is to read it rather than to rebuild it beside the pretrained similarity. We introduce BindCLIP, a pairwise scorer built on one latent object: a balanced token--patch--depth optimal-transport coupling that places both candidate captions and several visual depths in a single plan. Semantic, entity, order, and spatial evidence are read as energies of this state, and exchanging the candidates permutes the plan, making the score exactly antisymmetric. A geometric refinement inside the coupling contracts moves that the candidates and the visual depths do not support. No task label, parser, relation inventory, or detector is used. One checkpoint and one inference path improve the official What'sUp, ARO, and SugarCrepe benchmarks over frozen global CLIP, with the strongest transfer on the relation splits. Controls rule out patch access and caption-length shortcuts, and an inference-time lesion localizes spatial arrangement to the coupling.",
+      "authors": [
+        "Liuyang Song",
+        "Yi Zhang",
+        "Zhongyi Deng",
+        "Daqian Yang",
+        "Hongbo Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-20T15:50:19+00:00",
+      "link": "https://arxiv.org/pdf/2609.23717v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "compositional vision-language scoring with token-patch coupling",
+      "llm_evidence_cn": "基于令牌-图块耦合的组合式视觉语言打分",
+      "llm_evidence": "基于令牌-图块耦合的组合式视觉语言打分",
+      "canonical_evidence": "基于令牌-图块耦合的组合式视觉语言打分",
+      "llm_tldr_en": "Global image-caption similarity loses word-region correspondence; BindCLIP uses a balanced token-patch-depth optimal transport coupling to score captions compositionally.",
+      "llm_tldr_cn": "全局视觉-语言相似度把图像与文本压缩为单一向量，虽保留语义却丢失了词与区域及空间排列的对应关系，使模型可能偏好组合错误的描述。本文认为冻结编码器中已保留这种关联结构，问题在于读取而非重建，因而提出BindCLIP成对打分器：构建令牌-图块-深度的平衡最优传输耦合，把候选描述与多个视觉深度放入同一传输计划，从该潜状态的能量读取语义、实体、顺序与空间证据。通过交换候选描述读取不同能量，实现更可靠的组合式图文匹配评估。",
+      "llm_tldr": "全局视觉-语言相似度把图像与文本压缩为单一向量，虽保留语义却丢失了词与区域及空间排列的对应关系，使模型可能偏好组合错误的描述。本文认为冻结编码器中已保留这种关联结构，问题在于读取而非重建，因而提出BindCLIP成对打分器：构建令牌-图块-深度的平衡最优传输耦合，把候选描述与多个视觉深度放入同一传输计划，从该潜状态的能量读取语义、实体、顺序与空间证据。通过交换候选描述读取不同能量，实现更可靠的组合式图文匹配评估。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "integrating multiple modalities like text and images in learning systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.23717v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.24215v1",
+      "source": "arxiv",
+      "title": "Beyond Emotion Prompts: Fine-Grained Text-to-Image Generation Driven by Valence-Arousal-Dominance",
+      "abstract": "Although text-to-image models can accurately depict subjects and scenes, creators still struggle to specify the fine-grained emotions an image should convey without rewriting its content description. Natural language can suggest emotions, but it offers no control scale with stable meanings and ordered intensities. We propose EMOTRANS, which transforms psychologically grounded valence-arousal-dominance (VAD) coordinates into generation conditions that are independent of the content text and modulated across denoising stages, making emotional style a finely adjustable creative variable. To support this goal, we construct EMOVAD, an art-painting dataset that pairs objective content descriptions with separately collected emotional ratings from multiple annotators. We also coordinate emotional expression and content preservation through dual-branch training with a shared model. Objective and human evaluations show that the framework improves the accuracy of three-dimensional emotion control and produces perceptible, orderable continuous changes while maintaining competitive text alignment and image quality. This work provides a practical emotion-driven approach to image generation that extends objective content depiction to fine-grained emotional adjustment.",
+      "authors": [
+        "Minglang Li",
+        "Yueyue Fang",
+        "Xieping Gao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-21T07:33:28+00:00",
+      "link": "https://arxiv.org/pdf/2609.24215v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "text-to-image generation controlled by valence-arousal-dominance conditions",
+      "llm_evidence_cn": "以价-唤醒-支配坐标驱动的文本到图像生成",
+      "llm_evidence": "以价-唤醒-支配坐标驱动的文本到图像生成",
+      "canonical_evidence": "以价-唤醒-支配坐标驱动的文本到图像生成",
+      "llm_tldr_en": "EMOTRANS turns valence-arousal-dominance coordinates into content-independent, stage-modulated generation conditions, making emotional style a fine-grained controllable variable.",
+      "llm_tldr_cn": "文本到图像模型虽能准确描绘主体与场景，但创作者仍难以在不重写内容描述的情况下指定图像应传达的细腻情感，自然语言缺乏稳定有序的情感控制尺度。本文提出EMOTRANS，将心理学中的价-唤醒-支配坐标转化为独立于内容文本、并在去噪各阶段调制的生成条件。作者构建EMOVAD艺术绘画数据集以支撑该目标。该工作使情感风格成为可精细调节的创作变量，为可控生成提供了新维度。",
+      "llm_tldr": "文本到图像模型虽能准确描绘主体与场景，但创作者仍难以在不重写内容描述的情况下指定图像应传达的细腻情感，自然语言缺乏稳定有序的情感控制尺度。本文提出EMOTRANS，将心理学中的价-唤醒-支配坐标转化为独立于内容文本、并在去噪各阶段调制的生成条件。作者构建EMOVAD艺术绘画数据集以支撑该目标。该工作使情感风格成为可精细调节的创作变量，为可控生成提供了新维度。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "What are the key advances in generative artificial intelligence for multimodal content generation?",
+      "matched_requirement_id": "req-8",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.24215v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.24226v1",
+      "source": "arxiv",
+      "title": "SRPR-Net: Semantic and Relational Prompt Refinement for Automated SAM-based Instance Segmentation",
+      "abstract": "Instance segmentation is a fundamental computer vision task with diverse real-world applications. Recently, prompt-driven foundation models have shown promising generalization. However, automated prompting remains limited by insufficient semantic guidance and inter-instance modeling. To address this challenge, we propose a novel architecture, named Semantic Relational Prompt Refinement Network (SRPR-Net), for automated SAM-based instance segmentation. A sequential prompt refinement mechanism is introduced to enrich detector geometry with visual-language semantics and then incorporate same-image instance dependencies, enabling context-aware box adjustment before SAM segmentation. Experiments on multiple standard benchmarks demonstrate that SRPR-Net achieves consistent improvements in segmentation performance over existing state-of-the-art approaches. The code is publicly available at https://github.com/JeremyXSC/SRPR-Net.",
+      "authors": [
+        "Lufei Liu",
+        "Guojie Li",
+        "Suncheng Xiang",
+        "Fan Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-21T07:46:02+00:00",
+      "link": "https://arxiv.org/pdf/2609.24226v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "automated SAM-based instance segmentation with visual-language semantic prompt refinement",
+      "llm_evidence_cn": "面向SAM自动实例分割的语义与关系提示细化",
+      "llm_evidence": "面向SAM自动实例分割的语义与关系提示细化",
+      "canonical_evidence": "面向SAM自动实例分割的语义与关系提示细化",
+      "llm_tldr_en": "SRPR-Net refines detector boxes with visual-language semantics and same-image instance dependencies before SAM segmentation, improving automated instance segmentation on standard benchmarks.",
+      "llm_tldr_cn": "实例分割是计算机视觉的基础任务，但自动提示方法受限于语义引导不足与实例间关系缺失。本文提出SRPR-Net，通过顺序提示细化机制，先用视觉语言语义丰富检测框几何，再引入同图实例依赖，实现上下文感知的框调整后再交由SAM分割。多个标准基准实验显示该方法提升了自动实例分割精度。该工作为免提示的通用分割提供了语义与关系建模的新思路。",
+      "llm_tldr": "实例分割是计算机视觉的基础任务，但自动提示方法受限于语义引导不足与实例间关系缺失。本文提出SRPR-Net，通过顺序提示细化机制，先用视觉语言语义丰富检测框几何，再引入同图实例依赖，实现上下文感知的框调整后再交由SAM分割。多个标准基准实验显示该方法提升了自动实例分割精度。该工作为免提示的通用分割提供了语义与关系建模的新思路。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "algorithms for image and video understanding",
+      "matched_requirement_id": "req-6",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.24226v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.24276v1",
+      "source": "arxiv",
+      "title": "Hierarchical Prompt Learning for Hyperbolic Vision-Language Models",
+      "abstract": "Hyperbolic vision-language models (VLMs) represent image and text features in a geometry naturally suited to hierarchy, but their adaptation to downstream tasks has largely relied on fixed prompts. Existing prompt learning methods, meanwhile, treat class labels as a flat set and do not exploit available taxonomic structure. We address this gap with a hierarchical prompt learning plug-in for frozen hyperbolic VLMs. Given a fixed offline parent-class hierarchy, it augments a class prompt learner with a separate parent prompt learner, parent-level supervision, hyperbolic entailment regularization, and parent-feedback logit fusion. We instantiate the method with CoOp, CoCoOp and MaPLe, yielding HyPLO, CoHyPLO and MaHyPLO. Across the standard 11-dataset benchmark, all variants improve base-to-new generalization and cross-dataset transfer, and remain comparable to their prompt learning baselines under domain shift. Six hierarchical metrics and embedding analyses show that the method produces more taxonomically consistent predictions and induces a hierarchy-consistent organization of parent, class, and image embeddings in hyperbolic space. Its gains are largest when novel classes must be placed within a fixed taxonomy, and smallest for fine-grained confusions among sibling classes or shifts affecting only the image distribution.",
+      "authors": [
+        "Andro Erdelez",
+        "Pascal Mettes",
+        "Behzad Bozorgtabar"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-21T08:41:18+00:00",
+      "link": "https://arxiv.org/pdf/2609.24276v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "hierarchical prompt learning for vision-language models",
+      "llm_evidence_cn": "面向视觉语言模型的分层提示学习",
+      "llm_evidence": "面向视觉语言模型的分层提示学习",
+      "canonical_evidence": "面向视觉语言模型的分层提示学习",
+      "llm_tldr_en": "Existing prompt learning for hyperbolic vision-language models treats labels as flat and ignores taxonomy. The authors propose a hierarchical prompt learning plug-in with parent prompt learner and entailment regularization, improving adaptation across 11 datasets.",
+      "llm_tldr_cn": "双曲视觉语言模型虽适合表达层级结构，但其下游适配仍依赖固定提示，现有提示学习方法又将类别视为扁平集合，未利用类别分类学信息。本文提出分层提示学习插件，加入父类提示学习器、父级监督、双曲蕴含正则与父反馈逻辑融合。在标准11数据集基准上，实例化方法取得稳定提升，为多模态视觉语言模型的层级适配提供了通用方案。",
+      "llm_tldr": "双曲视觉语言模型虽适合表达层级结构，但其下游适配仍依赖固定提示，现有提示学习方法又将类别视为扁平集合，未利用类别分类学信息。本文提出分层提示学习插件，加入父类提示学习器、父级监督、双曲蕴含正则与父反馈逻辑融合。在标准11数据集基准上，实例化方法取得稳定提升，为多模态视觉语言模型的层级适配提供了通用方案。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "integrating multiple modalities like text and images in learning systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.24276v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.24337v2",
+      "source": "arxiv",
+      "title": "LiAuto-MindViT: A Hybrid Vision Backbone with Adaptive Bidirectional Mamba",
+      "abstract": "While Mamba-based models have shown strong potential for long sequence modeling, adapting them to vision is challenging due to the requirement of local neighborhood correlations and multi-directional spatial contexts for visual understanding. In this paper, we present LiAuto-MindViT, a novel hybrid vision backbone that synergizes the strengths of CNNs, Mamba, and Transformers. The core of our design is the Adaptive Bidirectional Mamba (ABM), which eliminates the directional bias of unidirectional SSMs through bidirectional selective scanning with learnable alpha blending, enabling content-adaptive directional fusion without the overhead of exhaustive multi-path routing. To further accelerate inference, we propose a deployment-friendly Reparameterized ConvSE (RepConvSE) module that leverages structural reparameterization to reduce latency and memory access overhead. Extensive experiments demonstrate that LiAuto-MindViT achieves state-of-the-art performance on image classification, object detection, and semantic segmentation while enabling efficient inference through reparameterization.",
+      "authors": [
+        "Lifu Mu",
+        "Shuai Chen",
+        "Wen Zheng",
+        "Haoyi Sun",
+        "Xueyang Fu",
+        "Pengfei Yu",
+        "Ning Mao",
+        "Tao Wei",
+        "Zhou Pan",
+        "Kun Zhan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-21T09:35:13+00:00",
+      "link": "https://arxiv.org/pdf/2609.24337v2",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "hybrid vision backbone combining CNN, Mamba and Transformer",
+      "llm_evidence_cn": "融合CNN、Mamba与Transformer的混合视觉骨干",
+      "llm_evidence": "融合CNN、Mamba与Transformer的混合视觉骨干",
+      "canonical_evidence": "融合CNN、Mamba与Transformer的混合视觉骨干",
+      "llm_tldr_en": "Mamba models excel at long sequences but struggle in vision due to the need for local and multi-directional context. This paper proposes a hybrid CNN-Mamba-Transformer backbone with adaptive bidirectional scanning and reparameterization for efficient inference.",
+      "llm_tldr_cn": "Mamba模型擅长长序列建模，但迁移到视觉时难以满足局部邻域相关性和多方向空间上下文的需求。本文提出LiAuto-MindViT混合视觉骨干，融合CNN、Mamba与Transformer，其核心自适应双向Mamba通过双向选择性扫描与可学习alpha混合消除方向偏差。进一步的重参数化设计加速推理。实验表明该骨干在视觉理解任务上兼具表达力与部署效率。",
+      "llm_tldr": "Mamba模型擅长长序列建模，但迁移到视觉时难以满足局部邻域相关性和多方向空间上下文的需求。本文提出LiAuto-MindViT混合视觉骨干，融合CNN、Mamba与Transformer，其核心自适应双向Mamba通过双向选择性扫描与可学习alpha混合消除方向偏差。进一步的重参数化设计加速推理。实验表明该骨干在视觉理解任务上兼具表达力与部署效率。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "deep neural network architectures and training methods",
+      "matched_requirement_id": "req-2",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.24337v2",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.24372v1",
+      "source": "arxiv",
+      "title": "URA-NER: A Unified Retrieval-Augmented Framework with Retrieval Alignment and Uncertainty Reduction for Low-Resource NER",
+      "abstract": "In-context learning (ICL) based on large language models (LLMs) has shown promising potential in alleviating performance bottlenecks caused by the limited availability of annotated data in Named Entity Recognition (NER). However, existing methods still face issues of retrieval misalignment and generation uncertainty, making their performance heavily dependent on the LLM's capabilities. As the parameter scale of LLMs decreases, their performance in few-shot settings deteriorates significantly. In this paper, we propose a novel unified retrieval-augmented framework, URA-NER, including three key components: Progressive Granularity Retrieval (PGR), Model-aware Representation Enhancement (MaRE), and Reason-aware Knowledge Verification. PGR is a two-stage retrieval mechanism that achieves stage alignment. It first retrieves demonstrations for span detection based on the query's global semantics, and then for type classification based on the specific entity context, providing fine-grained local information. Moreover, MaRE employs entity pre-recognition to guide the construction of representations, ensuring the query and demonstrations are aligned within the LLM's semantic space and attention pattern. In addition, to mitigate generation uncertainty, we propose RaKV, a closed-loop \"generation-retrieval-verification\" process. It explicates the LLM's reasoning paths, leverages them for the retrieval of external knowledge, and reorganizes the knowledge into verification evidence aligned with the original reasoning paths. We conduct extensive experiments on multiple low-resource NER datasets. Results demonstrate that URA-NER significantly enhances the performance of LLMs under low-resource settings, with particularly pronounced gains for smaller LLMs, achieving new state-of-the-art results on several benchmarks.",
+      "authors": [
+        "Jingyu Wang",
+        "Shijie Wu",
+        "Fusheng Jin"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-09-21T10:04:43+00:00",
+      "link": "https://arxiv.org/pdf/2609.24372v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "retrieval-augmented LLM framework for named entity recognition",
+      "llm_evidence_cn": "面向命名实体识别的检索增强大语言模型框架",
+      "llm_evidence": "面向命名实体识别的检索增强大语言模型框架",
+      "canonical_evidence": "面向命名实体识别的检索增强大语言模型框架",
+      "llm_tldr_en": "LLM in-context learning for NER suffers retrieval misalignment and generation uncertainty, worsening at smaller scales. The authors propose URA-NER with progressive granularity retrieval, model-aware representation enhancement, and reasoning-based uncertainty reduction.",
+      "llm_tldr_cn": "基于大语言模型上下文学习的命名实体识别在标注稀缺时有效，但存在检索错位与生成不确定性问题，且模型规模变小时少样本性能明显下降。本文提出统一检索增强框架URA-NER，包含渐进粒度检索、模型感知表征增强与基于推理的不确定性降低三个组件。该框架缓解了对大模型能力的过度依赖，在低资源NER上取得更好表现，为NLP中的检索增强LLM方法提供了新思路。",
+      "llm_tldr": "基于大语言模型上下文学习的命名实体识别在标注稀缺时有效，但存在检索错位与生成不确定性问题，且模型规模变小时少样本性能明显下降。本文提出统一检索增强框架URA-NER，包含渐进粒度检索、模型感知表征增强与基于推理的不确定性降低三个组件。该框架缓解了对大模型能力的过度依赖，在低资源NER上取得更好表现，为NLP中的检索增强LLM方法提供了新思路。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "What methods in natural language processing leverage large language models?",
+      "matched_requirement_id": "req-10",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.24372v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.24510v2",
+      "source": "arxiv",
+      "title": "0.5%>100%: Bidirectional Reciprocal Learning for Referring Image Segmentation",
+      "abstract": "Recent advances in vision foundation models (VFMs) have shown remarkable capabilities across diverse unimodal visual tasks. However, adapting VFMs to referring image segmentation (RIS) typically necessitates precise vision-language alignment via full fine-tuning, incurring substantial computational overhead and risking catastrophic forgetting. While existing parameter-efficient fine-tuning (PEFT) methods enable safe knowledge transfer with minimal training costs, they predominantly operate independently within individual modalities or focus exclusively on unidirectional guidance from language to vision, overlooking progressive cross-modal interaction and visual feedback for textual refinement. To address these limitations, we propose $\\textbf{B}$idirectional $\\textbf{R}$eciprocal $\\textbf{L}$earning ($\\textbf{BRL}$), a novel adapter-based PEFT framework that facilitates hierarchical, bidirectional information flow within both token-mixing and channel-mixing layers of frozen foundation models. Specifically, BRL introduces two complementary lightweight modules. The Reciprocal Attention Adapter (RAA) performs cross-modal query-key exchanges at the token level, enabling visual and linguistic tokens to mutually attend to each other for fine-grained spatial grounding. The Reciprocal Gate Adapter (RGA) generates cross-modal gating signals at the channel level, allowing global semantic context from one modality to adaptively recalibrate channel activations of the other. Extensive experiments on RefCOCO, RefCOCO+, and RefCOCOg benchmarks demonstrate the superiority of BRL over prior RIS methods, achieving state-of-the-art performance while requiring less than 0.5% backbone parameter updates. Code and models will be released at https://github.com/xiaoqiang-lu/BRL.",
+      "authors": [
+        "Xiaoqiang Lu",
+        "Licheng Jiao",
+        "Lingling Li",
+        "Yuting Yang",
+        "Long Sun",
+        "Wenping Ma",
+        "Xu Liu",
+        "Fang Liu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-09-21T12:48:34+00:00",
+      "link": "https://arxiv.org/pdf/2609.24510v2",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "bidirectional cross-modal learning for referring image segmentation",
+      "llm_evidence_cn": "面向指代图像分割的双向跨模态学习",
+      "llm_evidence": "面向指代图像分割的双向跨模态学习",
+      "canonical_evidence": "面向指代图像分割的双向跨模态学习",
+      "llm_tldr_en": "The paper proposes bidirectional reciprocal learning for referring image segmentation, enabling progressive cross-modal interaction and visual feedback for text refinement with only 0.5% tunable parameters.",
+      "llm_tldr_cn": "论文针对视觉基础模型适配指代图像分割需全量微调、开销大且易灾难性遗忘的问题，指出现有参数高效微调方法多在单模态内独立运作或仅做语言到视觉的单向引导。作者提出双向互惠学习框架，实现跨模态渐进交互以及视觉反馈驱动的文本精炼。实验表明仅需0.5%可调参数即可超越100%全量微调的性能，为视觉语言跨模态对齐提供了高效方案。",
+      "llm_tldr": "论文针对视觉基础模型适配指代图像分割需全量微调、开销大且易灾难性遗忘的问题，指出现有参数高效微调方法多在单模态内独立运作或仅做语言到视觉的单向引导。作者提出双向互惠学习框架，实现跨模态渐进交互以及视觉反馈驱动的文本精炼。实验表明仅需0.5%可调参数即可超越100%全量微调的性能，为视觉语言跨模态对齐提供了高效方案。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "integrating multiple modalities like text and images in learning systems",
+      "matched_requirement_id": "req-3",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.24510v2",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2609.25655v1",
+      "source": "arxiv",
+      "title": "From Experts to Sub-experts: Fine-grained Parameter-Efficient Fine-Tuning for MoE LLMs",
+      "abstract": "As large language models (LLMs) scale rapidly, dense full-parameter adaptation becomes increasingly expensive, motivating sparse and modular architectures such as Mixture-of-Experts (MoE) models. This shift raises a key question for parameter-efficient fine-tuning (PEFT): at what granularity should parameters be selected and updated? Existing PEFT methods such as LoRA operate on predefined weight matrices, while expert-level sparse tuning methods update entire selected experts. However, we observe that activated experts are internally sparse, with only a small fraction of intermediate channels strongly responding to downstream tasks, indicating that expert-level adaptation is still too coarse. We propose NSFT (Neural Sub-expert Fine-Tuning), a fine-grained PEFT framework that refines MoE adaptation from experts to sub-experts. NSFT decomposes each expert along the intermediate dimension into structured channel groups and selects task-relevant sub-experts by combining routing importance with intra-expert activation saliency. To optimize sparse partial updates, NSFT further introduces learning-rate scaling and dynamic gradient scaling to compensate for the reduced effective update magnitude. Experiments on OLMoE and Ling-mini-2.0 across challenging domain-specific tasks and general benchmarks show that NSFT consistently outperforms representative PEFT and expert-level sparse tuning baselines, while using substantially fewer trainable parameters and preserving competitive general capability. These results suggest that sub-expert-level adaptation is a more precise and efficient PEFT paradigm for MoE LLMs.",
+      "authors": [
+        "Zhentao Tan",
+        "Chang Liu",
+        "Yao Liu",
+        "Yue Wu",
+        "Jieping Ye"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-22T04:04:53+00:00",
+      "link": "https://arxiv.org/pdf/2609.25655v1",
+      "tags": [
+        "keyword:demo",
+        "query:demo"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "fine-grained parameter-efficient fine-tuning for MoE LLMs",
+      "llm_evidence_cn": "面向MoE大模型的细粒度参数高效微调",
+      "llm_evidence": "面向MoE大模型的细粒度参数高效微调",
+      "canonical_evidence": "面向MoE大模型的细粒度参数高效微调",
+      "llm_tldr_en": "Full-parameter adaptation of large models is costly, and expert-level tuning remains too coarse. Observing that activated experts are internally sparse, NSFT performs sub-expert fine-grained parameter selection, achieving better downstream adaptation with fewer updated parameters in MoE LLMs.",
+      "llm_tldr_cn": "大模型规模迅速增长，稠密全参数微调代价高昂，催生了Mixture-of-Experts等稀疏模块化架构。然而现有参数高效微调方法或作用于预定义权重矩阵，或以整个专家为单位更新，粒度仍显粗糙。作者观察到被激活的专家内部其实高度稀疏，仅少数中间通道对下游任务强响应。据此提出NSFT，进行子专家级的细粒度参数选择与更新。实验显示该方法以更少参数取得更优下游适配，为参数高效微调提供了更细粒度的视角。",
+      "llm_tldr": "大模型规模迅速增长，稠密全参数微调代价高昂，催生了Mixture-of-Experts等稀疏模块化架构。然而现有参数高效微调方法或作用于预定义权重矩阵，或以整个专家为单位更新，粒度仍显粗糙。作者观察到被激活的专家内部其实高度稀疏，仅少数中间通道对下游任务强响应。据此提出NSFT，进行子专家级的细粒度参数选择与更新。实验显示该方法以更少参数取得更优下游适配，为参数高效微调提供了更细粒度的视角。",
+      "llm_tags": [
+        "query:demo"
+      ],
+      "matched_query_tag": "query:demo",
+      "matched_query_text": "deep neural network architectures and training methods",
+      "matched_requirement_id": "req-2",
+      "selection_source": "carryover_cache",
+      "paper_id": "2609.25655v1",
+      "quick_tier": "8plus"
+    }
+  ]
+}
