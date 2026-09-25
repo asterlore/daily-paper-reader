@@ -1,0 +1,57 @@
+{
+  "date": "20260925",
+  "date_label": "",
+  "generated_at": "2026-09-25 21:51:39 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.25891v1",
+      "route": "202609/25/2609.25891v1-bas-opd-budget-aware-selective-on-policy-self-distillation-for-fine-grained-multimodal-perception",
+      "title": "BAS-OPD: Budget-Aware Selective On-Policy Self-Distillation for Fine-Grained Multimodal Perception",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "多模态大模型的细粒度视觉感知",
+      "first_seen_at": "2026-09-25 21:51:39 UTC",
+      "updated_at": "2026-09-25 21:51:39 UTC"
+    },
+    {
+      "paper_id": "2609.26375v1",
+      "route": "202609/25/2609.26375v1-kwaimind-technical-report",
+      "title": "KwaiMind Technical Report",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向商业图像编辑的多模态扩散Transformer",
+      "first_seen_at": "2026-09-25 21:51:39 UTC",
+      "updated_at": "2026-09-25 21:51:39 UTC"
+    },
+    {
+      "paper_id": "2609.26590v1",
+      "route": "202609/25/2609.26590v1-gtr-gated-token-recurrence-for-efficient-dense-prediction",
+      "title": "GTR: Gated Token Recurrence for Efficient Dense Prediction",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "demo"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向高效密集预测的递归视觉骨干",
+      "first_seen_at": "2026-09-25 21:51:39 UTC",
+      "updated_at": "2026-09-25 21:51:39 UTC"
+    }
+  ]
+}

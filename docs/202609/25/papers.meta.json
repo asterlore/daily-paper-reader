@@ -1,0 +1,54 @@
+{
+  "label": "2026-09-25",
+  "date": "2026-09-25",
+  "generated_at": "2026-09-25T21:51:43",
+  "count": 3,
+  "papers": [
+    {
+      "paper_id": "202609/25/2609.25891v1-bas-opd-budget-aware-selective-on-policy-self-distillation-for-fine-grained-multimodal-perception",
+      "section": "deep",
+      "title_en": "BAS-OPD: Budget-Aware Selective On-Policy Self-Distillation for Fine-Grained Multimodal Perception",
+      "authors": "Zihan Chen, Hengguang Zhou, Yuan Kang, Yiming Zhang, Wenhui Fang, Zenghui Ding, Yining Sun, Cho-Jui Hsieh",
+      "date": "2026-09-22",
+      "pdf": "https://arxiv.org/pdf/2609.25891v1",
+      "score": "8.0",
+      "evidence": "多模态大模型的细粒度视觉感知",
+      "tldr": "多模态大模型处理完整图像时，细粒度视觉证据常只存在于局部区域，而on-policy自蒸馏若对每次rollout都查询教师，监督成本过高。BAS-OPD提出预算感知的选择性OPD框架，在有限查询预算下挑选信息量大的样本，同时保持全批量学生生成，并探索随机、不确定性和可学习效用选择策略。实验表明，该方法在细粒度多模态感知基准上取得强劲性能，同时大幅降低教师监督开销。其贡献在于仅改变训练时监督分配，保持单次全图推理，为受限预算下的选择性OPD提供有效方案。",
+      "tags": "query:demo",
+      "abstract_en": "Multimodal large language models (MLLMs) often struggle with fine-grained visual perception when processing complete images, as critical evidence may only appear in local regions. On-policy self-distillation (OPD) enables transferring privileged visual knowledge from informative views to full-image policies, but querying the teacher for every rollout introduces substantial supervision costs. In this work, we propose BAS-OPD, a budget-aware selective OPD framework that allocates teacher supervision under limited query budgets. Instead of querying all rollouts, BAS-OPD selects informative samples while maintaining full-batch student generation. We explore random, uncertainty-based, and learned utility-based selection strategies, where the learned selector estimates query value from detached rollout statistics and online utility signals derived from student--teacher agreement and teacher confidence without additional student forward passes. BAS-OPD only changes training-time supervision allocation and preserves single-pass full-image inference. Experiments on fine-grained multimodal perception benchmarks demonstrate that BAS-OPD achieves strong performance while substantially reducing teacher supervision costs, highlighting the effectiveness of selective OPD under constrained budgets.",
+      "source": "arxiv",
+      "selection_source": "carryover_cache"
+    },
+    {
+      "paper_id": "202609/25/2609.26375v1-kwaimind-technical-report",
+      "section": "deep",
+      "title_en": "KwaiMind Technical Report",
+      "authors": "Junlong Wu, Zijun Li, Yuting Hu, Jia Sun, Pengcheng Wei, Yimin Zhou, Honglie Wang, Huaiqing Wang, Dewen Fan, Fei Zuo, Haixuan Gao, Lihui Peng, Tingxuan She, Yuqing Li, Boheng Zhang, Fan Yang, Wenwu Ou",
+      "date": "2026-09-22",
+      "pdf": "https://arxiv.org/pdf/2609.26375v1",
+      "score": "8.0",
+      "evidence": "面向商业图像编辑的多模态扩散Transformer",
+      "tldr": "商用图像编辑要求保持商品身份、准确渲染文字并具备用户吸引力，同时不牺牲通用编辑质量。KwaiMind 构建约180万高质量编辑对的数据引擎，基于多模态扩散Transformer，经继续预训练、SFT、偏好优化与在线强化学习，并以CTR、文字渲染和商品一致性等奖励及在线策略蒸馏对齐专用策略。它在ImgEdit、GEdit、REDEdit和Ecom-Bench视觉质量上取得开源编辑器最佳综合表现，离线预测CTR超过原图的比例从12.16%提升至37.41%，线上A/B主图选择使实际CTR相对提升约2.44%。",
+      "tags": "query:demo",
+      "abstract_en": "Commercial image editing requires product identity preservation, accurate text rendering, and user appeal alongside general editing quality. We present KwaiMind, an image editing system combining general capabilities with e-commerce specialization. An agent-based data engine maintains approximately 1.8 million high-quality editing pairs. Built on a multimodal diffusion transformer, KwaiMind undergoes continued pre-training and supervised fine-tuning, followed by preference optimization and online reinforcement learning. A general-purpose vision-language judge and specialized rewards for click-through rate (CTR), text rendering, and product consistency guide specialized policies, which are consolidated through on-policy distillation. We introduce Ecom-Bench, covering 11 commercial editing tasks with task-specific visual evaluation and CTR-based ranking. KwaiMind achieves the strongest overall scores among evaluated open-source editors on ImgEdit, GEdit, both language splits of REDEdit, and Ecom-Bench visual quality, and the highest aggregate CTR ranking score among compared systems. Offline, CTR-guided optimization increases the proportion of generated images whose predicted CTR exceeds that of the original product image from 12.16% to 37.41%. In an online A/B experiment, CTR-based selection of product main images yields an approximately 2.44% relative increase in actual CTR. These results demonstrate the value of domain-specific data and reward-driven alignment for commercial image editing.",
+      "source": "arxiv",
+      "selection_source": "carryover_cache"
+    },
+    {
+      "paper_id": "202609/25/2609.26590v1-gtr-gated-token-recurrence-for-efficient-dense-prediction",
+      "section": "deep",
+      "title_en": "GTR: Gated Token Recurrence for Efficient Dense Prediction",
+      "authors": "Zhe Feng, Longfei Liu, Wei Liu, Kai Chen, Jiangjiang Kong, Wei Zhou, Yifeng Qian, Dexiong Chen, Xuanlong Yu, Xi Shen",
+      "date": "2026-09-22",
+      "pdf": "https://arxiv.org/pdf/2609.26590v1",
+      "score": "8.0",
+      "evidence": "面向高效密集预测的递归视觉骨干",
+      "tldr": "自注意力视觉骨干在密集预测上表现优异，但全局 softmax 注意力的二次计算成本限制了高分辨率下的效率。GTR 提出无 softmax 的循环视觉骨干，融合门控线性注意力、交替空间扫描方向与空间增强 SwiGLU 模块。它仅用最终层 patch-token 对齐从检测专用 DINOv3 教师蒸馏，无需掩码 token 预测或中间层监督。在 Objects365 检测预训练下，GTR-L 于 COCO val2017 取得 58.9 box AP，RTX 4090 编译 FP16 单批中位延迟 1.908 ms；专用 CUDA 算子较 FLA v0.5.0 快 4.0 倍，TensorRT 在 DRIVE AGX Thor 上延迟 2.282–8.769 ms。该工作表明循环 token 混合可作为高分辨率密集预测与边缘部署的高效替代方案，并迁移至分割、姿态、旋转检测、语义分割和单目深度等任务。",
+      "tags": "query:demo",
+      "abstract_en": "Self-attention-based vision backbones perform well on dense prediction, but the quadratic computational cost of global softmax attention limits their efficiency as image resolution increases. We introduce Gated Token Recurrence (GTR), a softmax-free recurrent vision backbone that combines gated linear attention, alternating spatial scan directions, and spatially enhanced SwiGLU blocks. GTR is distilled from a detection-specialized DINOv3 teacher using only final-layer patch-token alignment through a linear projection and squared $\\ell_2$ loss, without masked-token prediction or intermediate-layer supervision. With Objects365 detector pre-training, GTR-L achieves 58.9 box AP on COCO \\texttt{val2017} with 1.908\\,ms median batch-one latency under compiled FP16 execution on an RTX~4090. The same backbone also transfers to instance segmentation, pose estimation, oriented detection, semantic segmentation, and monocular depth estimation. In an isolated kernel benchmark, our specialized chunkwise CUDA operator is $4.0\\times$ faster than FLA v0.5.0 at 1.6K tokens on RTX~4090. TensorRT deployment on DRIVE AGX Thor achieves 2.282--8.769\\,ms median batch-one latency across the evaluated models. These results show that recurrent token mixing can provide an efficient alternative to global softmax attention for high-resolution dense prediction and edge deployment.Project page: https://intellindust-ai-lab.github.io/projects/GTR/",
+      "source": "arxiv",
+      "selection_source": "carryover_cache"
+    }
+  ],
+  "errors": []
+}
