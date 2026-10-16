@@ -164,6 +164,53 @@ subscriptions:
             updated_at: '2026-09-22T16:28:13.951861+00:00'
       updated_at: '2026-09-22T16:26:35.743Z'
       paused: true
+    - tag: AIDD
+      description: AI药物发现，涵盖分子生成、分子性质预测、药物靶点相互作用、基于结构的药物设计、ADMET预测，以及图神经网络、扩散模型、生成式AI等方法。
+      enabled: true
+      paper_sources:
+        - arxiv
+        - biorxiv
+      keywords:
+        - keyword: AI drug discovery
+          keyword_cn: AI药物发现
+          query: artificial intelligence methods for drug discovery and development
+        - keyword: molecular generation
+          keyword_cn: 分子生成
+          query: generative models for de novo molecular design and generation
+        - keyword: molecular property prediction
+          keyword_cn: 分子性质预测
+          query: machine learning models for predicting molecular properties and activities
+        - keyword: drug target interaction
+          keyword_cn: 药物靶点相互作用
+          query: predicting interactions between drug compounds and target proteins
+        - keyword: structure-based drug design
+          keyword_cn: 基于结构的药物设计
+          query: structure-based ligand design using artificial intelligence
+        - keyword: ADMET prediction
+          keyword_cn: ADMET预测
+          query: predicting absorption, distribution, metabolism, excretion, and toxicity properties
+      intent_queries:
+        - query: What are machine learning methods for molecular generation and drug design?
+          query_cn: 用于分子生成和药物设计的机器学习方法有哪些？
+          enabled: true
+          source: manual
+          note: ''
+        - query: How can AI predict drug target interactions and binding affinity?
+          query_cn: AI如何预测药物 靶点相互作用和结合亲和力？
+          enabled: true
+          source: manual
+          note: ''
+        - query: Applications of graph neural networks and transformers in molecular property prediction
+          query_cn: 图神经网络和Transformer在分子性质预测中的应用
+          enabled: true
+          source: manual
+          note: ''
+        - query: Benchmarking and reproducibility of AI models for ADMET prediction and clinical translation
+          query_cn: AI模型在ADMET预测和临床转化中的基准测试和可重复性
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-10-16T06:57:24.141Z'
 source_backends:
   arxiv:
     papers_table: arxiv_papers
