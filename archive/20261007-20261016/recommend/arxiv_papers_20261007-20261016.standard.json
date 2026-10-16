@@ -1,0 +1,755 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-10-16T07:10:11.098605+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 15,
+    "deep_cap": 6,
+    "deep_selected": 7,
+    "quick_candidates": 29,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2610.13006v1",
+      "source": "arxiv",
+      "title": "TopoLIA: Topology-Inspired Latent Interaction Attention for Drug Discovery",
+      "abstract": "The growing sophistication of drug discovery calls for new advances in artificial intelligence (AI). Transformers have underpinned recent breakthroughs in AI, yet their conventional source-target attention mechanism can become a bottleneck for modeling complex interactions. Here, we introduce TopoLIA, a topology-inspired latent interaction attention mechanism that learns not only how much information should be exchanged between interaction partners, but also how that information should be transformed. Source-target-dependent attention is mediated through a compact latent interaction space, providing a structured representation of complex interactions. We further incorporate topological spectral representations to capture multiscale data geometry and extract algebraic relationships. TopoLIA thus incorporates topological principles into both data representation and neural network architecture. We demonstrate TopoLIA on protein-ligand binding, where persistent spectra encode multiscale topological and geometric patterns in 3D protein-ligand complexes, while latent interaction attention (LIA) enables structured, source-target-dependent information exchange. We pretrain TopoLIA by reconstructing masked multiscale spectral tokens from unlabeled molecular structures, yielding transferable structural representations without task-specific annotations. Across multiple scoring and docking benchmarks, TopoLIA achieves state-of-the-art performance and consistently outperforms its standard-attention counterpart. Rank analyses show that compact latent dimensions yield the best performance, supporting compact interaction spaces as an effective inductive bias for biomolecular learning. More broadly, LIA provides a general framework for structured, source-target-dependent information exchange that is applicable to diverse scientific and AI problems involving complex heterogeneous interactions.",
+      "authors": [
+        "Xiang Liu",
+        "Yiming Ren",
+        "Mustafa Hajij",
+        "Pietro Liò",
+        "Guo-Wei Wei"
+      ],
+      "primary_category": "q-bio.BM",
+      "categories": [
+        "q-bio.BM"
+      ],
+      "published": "2026-10-09T05:08:23+00:00",
+      "link": "https://arxiv.org/pdf/2610.13006v1",
+      "tags": [
+        "keyword:AIDD",
+        "query:AIDD"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "topology-inspired latent interaction attention for drug discovery",
+      "llm_evidence_cn": "面向药物发现的拓扑启发潜在交互注意力",
+      "llm_evidence": "面向药物发现的拓扑启发潜在交互注意力",
+      "canonical_evidence": "面向药物发现的拓扑启发潜在交互注意力",
+      "llm_tldr_en": "TopoLIA replaces conventional source-target attention with a topology-inspired latent interaction mechanism that learns both how much and how information is exchanged for drug discovery tasks.",
+      "llm_tldr_cn": "药物发现日益复杂，Transformer的传统源-目标注意力在建模复杂交互时成为瓶颈。作者提出TopoLIA拓扑启发潜在交互注意力，通过紧凑潜在交互空间同时学习信息交换的量与变换方式，并引入拓扑谱表征捕获多尺度数据几何。该机制在药物发现相关任务上提升复杂相互作用的建模能力，为AI驱动的药物设计提供新的注意力范式。",
+      "llm_tldr": "药物发现日益复杂，Transformer的传统源-目标注意力在建模复杂交互时成为瓶颈。作者提出TopoLIA拓扑启发潜在交互注意力，通过紧凑潜在交互空间同时学习信息交换的量与变换方式，并引入拓扑谱表征捕获多尺度数据几何。该机制在药物发现相关任务上提升复杂相互作用的建模能力，为AI驱动的药物设计提供新的注意力范式。",
+      "llm_tags": [
+        "query:aidd"
+      ],
+      "matched_query_tag": "query:aidd",
+      "matched_query_text": "artificial intelligence methods for drug discovery and development",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.15284v1",
+      "source": "arxiv",
+      "title": "FragFlex: Fragment-Based Flexible Molecular Generation for Exploring Vast Chemical Space",
+      "abstract": "Drug discovery requires efficient exploration of an astronomically large chemical space. Molecular graph diffusion models offer a promising approach to this task, but many require graph size to be fixed before generation. Although atom-level insertion and deletion can enable flexible-size generation, jointly modeling molecular size, atom types, and bonds while maintaining chemical validity remains challenging. We introduce FragFlex, a flexible-length discrete diffusion model that performs node insertion and deletion at the fragment level. During denoising, FragFlex jointly learns the size, fragment identities, and inter-fragment connectivity of the fragment graph. A neural attachment-site predictor and valence-aware assembler then convert the generated fragment graph into an atom-level molecule. In large-scale experiments generating 10 million molecules, FragFlex achieves near-perfect chemical validity while maintaining high uniqueness, demonstrating a strong balance between the two.",
+      "authors": [
+        "Sihyun Park",
+        "David Ryan Koes"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-10-11T02:28:58+00:00",
+      "link": "https://arxiv.org/pdf/2610.15284v1",
+      "tags": [
+        "keyword:AIDD",
+        "query:AIDD"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "flexible-length discrete diffusion model for fragment-based molecular generation",
+      "llm_evidence_cn": "片段级柔性长度离散扩散分子生成模型",
+      "llm_evidence": "片段级柔性长度离散扩散分子生成模型",
+      "canonical_evidence": "片段级柔性长度离散扩散分子生成模型",
+      "llm_tldr_en": "Many graph diffusion models require fixed molecular size, limiting chemical-space exploration. FragFlex is a flexible-length discrete diffusion model doing fragment-level node insertion/deletion, jointly learning size, fragment identity and connectivity, yielding valid molecules.",
+      "llm_tldr_cn": "药物发现需探索巨大化学空间，但许多分子图扩散模型要求生成前固定图规模，难以兼顾分子大小、原子类型与化学有效性。本文提出FragFlex，一种在片段级进行节点插入与删除的柔性长度离散扩散模型，联合学习片段图的大小、片段身份与连接关系。配合神经连接位点预测器与价态感知组装器生成有效分子。为灵活探索化学空间提供了新途径。",
+      "llm_tldr": "药物发现需探索巨大化学空间，但许多分子图扩散模型要求生成前固定图规模，难以兼顾分子大小、原子类型与化学有效性。本文提出FragFlex，一种在片段级进行节点插入与删除的柔性长度离散扩散模型，联合学习片段图的大小、片段身份与连接关系。配合神经连接位点预测器与价态感知组装器生成有效分子。为灵活探索化学空间提供了新途径。",
+      "llm_tags": [
+        "query:aidd"
+      ],
+      "matched_query_tag": "query:aidd",
+      "matched_query_text": "generative models for de novo molecular design and generation",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.16586v1",
+      "source": "arxiv",
+      "title": "OctMole: Multiscale 3D Molecular Generation with Hierarchical Spatial Flows",
+      "abstract": "Generating accurate 3D molecules requires jointly determining a variable number of atoms, their identities, and geometry across spatial scales: global shape emerges coarsely, whereas chemical bonds demand fine local precision. Existing atom-based diffusion and flow models operate largely at a single scale, while dense spatial fields become costly at high resolution. We introduce OctMole, a multiscale octree flow framework for 3D molecular generation. A hierarchical occupancy flow progressively resolves sparse molecular support from coarse to fine, and a joint atom flow assigns atom types and continuous in-cell offsets to occupied leaves. This decomposition combines efficient global structure with subcell geometric precision, while cell corruption improves robustness to generated support. On QM9 and GEOM-DRUG, OctMole achieves strong chemical, distributional, and geometric quality, with particularly clear gains over Uni-3DAR on GEOM-DRUG and substantial efficiency gains over dense 3D generation. As an additional capability, intermediate occupancy states and selected regions provide spatial conditioning without task-specific retraining, supporting multiscale shape conditioning, regional editing, linker generation, and shape interpolation. Code and pretrained checkpoints are available at https://github.com/octree-nn/octmole and https://huggingface.co/Disembo/octmole, respectively.",
+      "authors": [
+        "Yu-Tong Jin",
+        "Yi-Yang Tian",
+        "Qiwei Ye",
+        "Peng-Shuai Wang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-10-12T11:06:43+00:00",
+      "link": "https://arxiv.org/pdf/2610.16586v1",
+      "tags": [
+        "keyword:AIDD"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multiscale octree flow framework for 3D molecular generation",
+      "llm_evidence_cn": "多尺度八叉树流框架用于3D分子生成",
+      "llm_evidence": "多尺度八叉树流框架用于3D分子生成",
+      "canonical_evidence": "多尺度八叉树流框架用于3D分子生成",
+      "llm_tldr_en": "Generating accurate 3D molecules requires jointly deciding atom counts, identities and geometry across scales, yet existing diffusion and flow models operate at a single scale. OctMole uses hierarchical octree occupancy and atom flows to generate molecules with global structure and subcell precision.",
+      "llm_tldr_cn": "生成准确的三维分子需要同时确定原子数目、元素种类与几何构型，且全局形状与局部化学键的精度需求跨越不同空间尺度，但现有基于原子扩散和流的模型多局限于单一尺度。本文提出OctMole，一种多尺度八叉树流框架，用分层占据流从粗到细解析分子支撑，并用联合原子流为被占据叶节点分配原子类型与胞内偏移。该分解兼顾高效全局结构与亚胞几何精度，为三维分子生成与从头设计提供了新方法。",
+      "llm_tldr": "生成准确的三维分子需要同时确定原子数目、元素种类与几何构型，且全局形状与局部化学键的精度需求跨越不同空间尺度，但现有基于原子扩散和流的模型多局限于单一尺度。本文提出OctMole，一种多尺度八叉树流框架，用分层占据流从粗到细解析分子支撑，并用联合原子流为被占据叶节点分配原子类型与胞内偏移。该分解兼顾高效全局结构与亚胞几何精度，为三维分子生成与从头设计提供了新方法。",
+      "llm_tags": [
+        "query:aidd"
+      ],
+      "matched_query_tag": "query:aidd",
+      "matched_query_text": "generative models for de novo molecular design and generation",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.17244v1",
+      "source": "arxiv",
+      "title": "MIRRA: Fast, High-Fidelity Molecular Generation with Chemistry-Informed Discrete Flow Matching",
+      "abstract": "Fast, high-fidelity molecular generation requires accurate chemical choices and efficient sampling. Chemical building blocks reduce graph size, but make each node a choice among tens of thousands of related identities. We introduce MIRRA (Molecular Identity Representation, Refresh and Assembly), a discrete flow-matching generator that learns from chemical knowledge and evaluates identity probabilities only when needed, while keeping every identity in its vocabulary available. Chemical features share information across related blocks, and learned identity corrections distinguish them in molecular context. By deciding which positions will refresh before computing their probabilities, the sampler avoids unused predictions while preserving each sampling transition. Against the strongest baselines in each task, MIRRA reduces chemical and graph distribution errors on ZINC250k by 29-31% and 53-60%, respectively, with generation up to 8.6 times faster. Property targeting yields an estimated 7.8-20.8 times more distinct novel hits per second. On a held-out polymer test set, MIRRA achieves 100% periodic validity with known chain topology, versus 57.0% for a polymer variational autoencoder. These results demonstrate fast, high-fidelity generation with the full chemical vocabulary available throughout sampling.",
+      "authors": [
+        "Ge Sun",
+        "Juan J. de Pablo"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "physics.chem-ph",
+        "physics.comp-ph"
+      ],
+      "published": "2026-10-12T18:10:34+00:00",
+      "link": "https://arxiv.org/pdf/2610.17244v1",
+      "tags": [
+        "keyword:AIDD",
+        "query:AIDD"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "discrete flow-matching generator for fast high-fidelity molecular generation",
+      "llm_evidence_cn": "离散流匹配生成器，实现快速高保真分子生成",
+      "llm_evidence": "离散流匹配生成器，实现快速高保真分子生成",
+      "canonical_evidence": "离散流匹配生成器，实现快速高保真分子生成",
+      "llm_tldr_en": "MIRRA is a discrete flow-matching molecular generator that uses chemical building blocks, shared features and learned identity corrections, refreshing only needed positions to enable fast, high-fidelity generation over large vocabularies.",
+      "llm_tldr_cn": "分子生成需在庞大化学构建块词表中做出准确选择，同时保证采样高效。本文提出MIRRA，一种离散流匹配生成器，利用化学知识在相关构建块间共享信息，并用学习到的身份校正区分分子语境中的差异。采样器在计算概率前决定需刷新的位置，避免无用预测。该设计实现了快速高保真的分子生成，为大规模化学空间的分子设计提供新方法。",
+      "llm_tldr": "分子生成需在庞大化学构建块词表中做出准确选择，同时保证采样高效。本文提出MIRRA，一种离散流匹配生成器，利用化学知识在相关构建块间共享信息，并用学习到的身份校正区分分子语境中的差异。采样器在计算概率前决定需刷新的位置，避免无用预测。该设计实现了快速高保真的分子生成，为大规模化学空间的分子设计提供新方法。",
+      "llm_tags": [
+        "query:aidd"
+      ],
+      "matched_query_tag": "query:aidd",
+      "matched_query_text": "generative models for de novo molecular design and generation",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.18851v1",
+      "source": "arxiv",
+      "title": "MFG: Multi-turn Feedback Guided Molecular Optimization",
+      "abstract": "Multi-objective molecular optimization is a critical process in drug discovery that aims to modify a given molecule to simultaneously improve multiple properties while maintaining a similar overall structure. This process often requires iterative modifications guided by computational or experimental feedback. Recent large language model (LLM)-based methods have begun to explore this iterative approach; however, these methods are not explicitly trained to leverage such feedback, while existing approaches primarily focus on single-turn molecular optimization. To address this gap, we introduce Multi-turn Feedback Guided (MFG) molecular optimization, a reinforcement learning framework that trains an LLM to progressively optimize molecules using feedback from previous turns. MFG introduces a feedback vector capturing both property improvements and source molecule similarity, alongside a feedback-aligned reward function that promotes progressive improvement across turns. We apply MFG over $\\text{GeLLM}^{3}\\text{O}$, a state-of-the-art LLM model for multi-objective molecular optimization, evaluate $\\text{GeLLM}^{3}\\text{O-MFG}$ on ten multi-objective molecular optimization tasks. The results demonstrate that $\\text{GeLLM}^{3}\\text{O-MFG}$ achieves the highest average similarity-constrained success rate ($81.50%$), outperforming the base model $\\text{GeLLM}^{3}\\text{O}$ ($70.81%$).",
+      "authors": [
+        "Trieu Nguyen",
+        "Frazier N. Baker",
+        "Ruoxi Gao",
+        "Daniel Adu-Ampratwum",
+        "Xia Ning"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG",
+        "q-bio.QM"
+      ],
+      "published": "2026-10-13T17:58:41+00:00",
+      "link": "https://arxiv.org/pdf/2610.18851v1",
+      "tags": [
+        "keyword:AIDD",
+        "query:AIDD"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "reinforcement learning LLM framework for multi-objective molecular optimization",
+      "llm_evidence_cn": "强化学习大模型框架用于多目标分子优化",
+      "llm_evidence": "强化学习大模型框架用于多目标分子优化",
+      "canonical_evidence": "强化学习大模型框架用于多目标分子优化",
+      "llm_tldr_en": "Multi-objective molecular optimization needs iterative feedback, but LLM methods are not trained to use it and mostly do single-turn edits. MFG trains an LLM with reinforcement learning to progressively optimize molecules using prior-turn feedback, improving multi-objective drug design.",
+      "llm_tldr_cn": "多目标分子优化是药物发现中的关键环节，需要在保持骨架相似的前提下迭代提升多个性质，但现有基于大语言模型的方法未被显式训练来利用反馈，且多局限于单轮优化。作者提出MFG框架，用强化学习训练大语言模型，使其依据历史轮次反馈逐步优化分子。实验表明该方法在多目标优化任务上优于单轮基线，为反馈驱动的分子生成与药物设计提供了新范式。",
+      "llm_tldr": "多目标分子优化是药物发现中的关键环节，需要在保持骨架相似的前提下迭代提升多个性质，但现有基于大语言模型的方法未被显式训练来利用反馈，且多局限于单轮优化。作者提出MFG框架，用强化学习训练大语言模型，使其依据历史轮次反馈逐步优化分子。实验表明该方法在多目标优化任务上优于单轮基线，为反馈驱动的分子生成与药物设计提供了新范式。",
+      "llm_tags": [
+        "query:aidd"
+      ],
+      "matched_query_tag": "query:aidd",
+      "matched_query_text": "generative models for de novo molecular design and generation",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.19123v1",
+      "source": "arxiv",
+      "title": "PairIT: Autoregressive Transformers for Low-Data Molecule Optimization",
+      "abstract": "Generating novel molecules with desired properties is a central challenge in drug discovery. Although foundational work focused on de novo generation, practical use cases require a more complex setting: conditioning on an initial seed molecule, optimizing multiple properties, and operating in data-sparse regimes. We introduce PairIT, a flexible training framework for autoregressive transformers over SMILES sequences that enables seeded generation by learning from pairs of structurally similar molecules. By leveraging matched pairs, the model learns to generate local, chemically meaningful edits that improve a property of the seed molecule. Prompt tokens extend this framework by specifying the target property, desired direction, and approximate magnitude of change. Multiple prompt tokens can be concatenated to enable multi-property optimization at inference time. For properties where pair supervision alone is insufficient, reinforcement learning post-training can further improve optimization, providing a tunable trade-off between proximity to the seed and the optimization objective. PairIT naturally supports pretraining on a large dataset and fine-tuning on a smaller dataset, which is critical for performance in data-sparse regimes. Surprisingly, we observe diminishing returns to the scale of the pretraining dataset. We demonstrate empirically on MoleculeNet and Therapeutics Data Commons datasets that, with appropriate paired-data curation, a standard transformer model of modest size (68M parameters) can achieve robust seeded molecular optimization in low-data regimes.",
+      "authors": [
+        "Hannah Lawrence",
+        "Bodhi P. Vani",
+        "Ji Won Park",
+        "Natasa Tagasovska",
+        "Samuel Don Stanton",
+        "Andrew Martin Watkins",
+        "Michael Maser",
+        "Ewa M. Nowara"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "physics.chem-ph"
+      ],
+      "published": "2026-10-13T19:57:58+00:00",
+      "link": "https://arxiv.org/pdf/2610.19123v1",
+      "tags": [
+        "keyword:AIDD",
+        "query:AIDD"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "autoregressive transformer for seeded molecule optimization generating chemically meaningful edits",
+      "llm_evidence_cn": "自回归Transformer实现种子分子优化，生成有化学意义的编辑",
+      "llm_evidence": "自回归Transformer实现种子分子优化，生成有化学意义的编辑",
+      "canonical_evidence": "自回归Transformer实现种子分子优化，生成有化学意义的编辑",
+      "llm_tldr_en": "PairIT trains autoregressive transformers over SMILES pairs to perform seeded molecule optimization in low-data regimes, learning local chemical edits that improve multiple properties guided by prompt tokens.",
+      "llm_tldr_cn": "分子生成在药物发现中至关重要，但实际场景常需以种子分子为起点、优化多个性质且数据稀缺。本文提出PairIT，在SMILES序列上训练自回归Transformer，通过学习结构相似分子对实现种子生成，产生局部且有化学意义的编辑。模型用提示词指定目标性质、优化方向与幅度。该框架在低数据条件下灵活支持多性质分子优化，提升了实用价值。",
+      "llm_tldr": "分子生成在药物发现中至关重要，但实际场景常需以种子分子为起点、优化多个性质且数据稀缺。本文提出PairIT，在SMILES序列上训练自回归Transformer，通过学习结构相似分子对实现种子生成，产生局部且有化学意义的编辑。模型用提示词指定目标性质、优化方向与幅度。该框架在低数据条件下灵活支持多性质分子优化，提升了实用价值。",
+      "llm_tags": [
+        "query:aidd"
+      ],
+      "matched_query_tag": "query:aidd",
+      "matched_query_text": "generative models for de novo molecular design and generation",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.19920v1",
+      "source": "arxiv",
+      "title": "MolHop: Scaffold-Hopping Molecular Design with Agentic Reinforcement Learning",
+      "abstract": "Molecular design is often formulated as an optimization problem over existing molecular spaces. However, molecular optimization and the discovery of structurally distinct replacement molecules represent two fundamentally different search problems. LLM-based molecular design agents typically perform the former, conducting local refinement within the neighborhood of existing structures to improve target properties through structural modifications. In contrast, the latter requires exploration of a broader chemical space to discover molecules with entirely different scaffolds while preserving the functional characteristics of reference molecules. We propose MolHop, an agentic framework for cross-scaffold molecular discovery that enables models to navigate and edit within a pre-organized chemical space. MolHop organizes approximately 1.6 million molecular scaffolds from commercial molecules into a coarse-to-fine hierarchical action space. The agent selects new exploration regions through scaffold navigation actions and adjusts candidate properties through molecular editing. The framework maintains historical trajectory memory to support long-horizon search processes. On drug molecule and commercial compound tasks, connecting Grok-4.6 and DeepSeek-Flash-V4.1 to the MolHop framework substantially improves their cross-scaffold joint success rates. We develop MolHop-9B through agentic reinforcement learning, and MolHop-9B outperforms generative baselines including GPT-5.6-sol, Claude-5-Opus, and Gemini-3.1-Pro, while generating candidate molecules with larger scaffold differences from the reference molecules. These results demonstrate that effective molecular discovery beyond the traditional optimization paradigm requires structured chemical and action spaces, enabling agents to explore new structural regions rather than merely refine existing molecules.",
+      "authors": [
+        "Yanyi Su",
+        "Chenyan Wang",
+        "Yulei Gong",
+        "Yeyun Chen",
+        "Xiaohui Yang",
+        "Jun Cheng"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-10-14T10:11:10+00:00",
+      "link": "https://arxiv.org/pdf/2610.19920v1",
+      "tags": [
+        "keyword:AIDD",
+        "query:AIDD"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Agentic reinforcement learning framework for cross-scaffold de novo molecular design",
+      "llm_evidence_cn": "面向跨骨架从头分子设计的智能体强化学习框架",
+      "llm_evidence": "面向跨骨架从头分子设计的智能体强化学习框架",
+      "canonical_evidence": "面向跨骨架从头分子设计的智能体强化学习框架",
+      "llm_tldr_en": "The paper addresses scaffold-hopping molecular design, distinct from local molecular optimization. It proposes MolHop, an agentic reinforcement learning framework that explores broader chemical space to find molecules with new scaffolds while preserving reference functional features, advancing de novo molecular generation for drug design.",
+      "llm_tldr_cn": "分子设计常被建模为在既有分子空间上的优化，而发现骨架完全不同的替代分子是另一类搜索问题。作者提出MolHop，一个基于智能体强化学习的跨骨架分子发现框架，让模型探索更广的化学空间以寻找新骨架，同时保留参考分子的功能特征。该框架明确区分局部优化与骨架跳跃两类搜索，为从头分子生成与药物设计提供了新的方法思路。",
+      "llm_tldr": "分子设计常被建模为在既有分子空间上的优化，而发现骨架完全不同的替代分子是另一类搜索问题。作者提出MolHop，一个基于智能体强化学习的跨骨架分子发现框架，让模型探索更广的化学空间以寻找新骨架，同时保留参考分子的功能特征。该框架明确区分局部优化与骨架跳跃两类搜索，为从头分子生成与药物设计提供了新的方法思路。",
+      "llm_tags": [
+        "query:aidd"
+      ],
+      "matched_query_tag": "query:aidd",
+      "matched_query_text": "generative models for de novo molecular design and generation",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2610.14862v1",
+      "source": "arxiv",
+      "title": "Blending experimental electron density information to protein-ligand interaction",
+      "abstract": "Machine learning models for protein-ligand interactions commonly rely on atomic coordinates, which are constructed by fitting molecular models to experimental electron-density maps. However, most models represent each complex as a single fitted structure, which can omit information about conformational heterogeneity, positional uncertainty, and local density support for individual atoms at binding interfaces. To fill this gap, we present CoDE, a Coordinate and Density Encoder, pre-trained on experimental density maps. We represent each binding site on a shared three-dimensional voxel grid combining atomic occupancy, experimental electron density, and its gradient magnitude. Using approximately 100K curated complexes, we pre-train a channel-wise vision transformer to jointly reconstruct masked atomic and density channels, learning a representation that integrates structural and experimental information. We evaluate the frozen encoder on two downstream tasks: (i) binding-affinity regression under leakage-controlled splits and (ii) pocket-conditioned ligand generation. Across these settings, CoDE improves over an identically pre-trained coordinate-only encoder and remains competitive with task-specific baselines, showing that density complements fitted atomic coordinates for protein-ligand interaction modeling and that the density-blended representation is useful for structure-based ligand generation.",
+      "authors": [
+        "Seonghyun Park",
+        "Shuan Chen",
+        "Jun Jin Choong",
+        "Noboru Kuno",
+        "Gyubok Lee",
+        "Kaushalya Madhawa",
+        "Keisuke Ozawa",
+        "Hikaru Shindo",
+        "Sungsoo Ahn"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-10-10T12:32:01+00:00",
+      "link": "https://arxiv.org/pdf/2610.14862v1",
+      "tags": [
+        "keyword:AIDD",
+        "query:AIDD"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "protein-ligand interaction model using experimental electron density",
+      "llm_evidence_cn": "融合实验电子密度的蛋白质-配体相互作用模型",
+      "llm_evidence": "融合实验电子密度的蛋白质-配体相互作用模型",
+      "canonical_evidence": "融合实验电子密度的蛋白质-配体相互作用模型",
+      "llm_tldr_en": "CoDE encodes protein-ligand binding sites on a voxel grid combining atomic occupancy and experimental electron density, capturing conformational heterogeneity and positional uncertainty.",
+      "llm_tldr_cn": "现有蛋白质-配体相互作用模型多依赖单一拟合结构，忽略了构象异质性、位置不确定性与结合界面原子的局域密度支持。作者提出CoDE坐标与密度编码器，在共享三维体素网格上融合原子占据、实验电子密度及其梯度幅值，并在约10万个复合物上预训练。该方法提升了相互作用建模的信息量，为更准确的蛋白质-配体结合预测与基于结构的药物设计提供新表征。",
+      "llm_tldr": "现有蛋白质-配体相互作用模型多依赖单一拟合结构，忽略了构象异质性、位置不确定性与结合界面原子的局域密度支持。作者提出CoDE坐标与密度编码器，在共享三维体素网格上融合原子占据、实验电子密度及其梯度幅值，并在约10万个复合物上预训练。该方法提升了相互作用建模的信息量，为更准确的蛋白质-配体结合预测与基于结构的药物设计提供新表征。",
+      "llm_tags": [
+        "query:aidd"
+      ],
+      "matched_query_tag": "query:aidd",
+      "matched_query_text": "predicting interactions between drug compounds and target proteins",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2610.09389v1",
+      "source": "arxiv",
+      "title": "Accelerating dynamic polarizability calculations of organic molecules using equivariant graph neural networks",
+      "abstract": "Predicting the dynamic polarizability tensor of organic molecules is essential for simulating light-matter interactions in optoelectronic devices, yet conventional quantum-chemical methods such as time-dependent density functional theory (TD-DFT) are computationally expensive and limit large-scale screening. We present an equivariant graph neural network architecture that predicts frequency-dependent, complex-valued dynamic polarizability tensors directly from readily available molecular information, such as 3D geometry and UV-vis spectra. The model learns to approximate the shape and magnitude of the dynamic polarizability tensor, capturing both dispersive and absorptive features that define the molecular optical response. We evaluate the model on molecules from both the QM9 dataset and the Harvard organic photovoltaic dataset using various metrics, including the earth mover's distance, which is suitable for comparing spectral quantities. For both datasets, the model successfully reproduces the main features of the dynamic polarizability tensor and generalizes across diverse molecules. To assess the applicability, we further validated the model using a downstream workflow to calculate the optical properties of organic photovoltaic devices. We used the model-predicted polarizabilities to perform device-level optical simulations, yielding charge carrier generation rates in agreement with TD-DFT-based results ($R^2 = 0.94$). Our approach offers a promising complement, or even an alternative, to conventional methods such as TD-DFT, enabling faster and more efficient screening of photoactive organic molecules for optoelectronic applications.",
+      "authors": [
+        "Houssam Metni",
+        "Maria Kraus",
+        "Marie Louise Schubert",
+        "Marjan Krstic",
+        "Carsten Rockstuhl",
+        "Pascal Friederich"
+      ],
+      "primary_category": "physics.chem-ph",
+      "categories": [
+        "physics.chem-ph",
+        "cond-mat.mtrl-sci"
+      ],
+      "published": "2026-10-07T03:47:04+00:00",
+      "link": "https://arxiv.org/pdf/2610.09389v1",
+      "tags": [
+        "keyword:AIDD",
+        "query:AIDD"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "equivariant graph neural network predicting molecular properties",
+      "llm_evidence_cn": "等变图神经网络预测分子性质",
+      "llm_evidence": "等变图神经网络预测分子性质",
+      "canonical_evidence": "等变图神经网络预测分子性质",
+      "llm_tldr_en": "Dynamic polarizability tensors are costly to compute with TD-DFT, limiting large-scale screening. An equivariant graph neural network predicts frequency-dependent complex polarizability from 3D geometry and UV-vis spectra, capturing dispersive and absorptive features of organic molecules.",
+      "llm_tldr_cn": "有机分子的动态极化率张量对模拟光与物质相互作用至关重要，但TD-DFT等量子化学方法计算昂贵，限制了大规模筛选。本文提出一种等变图神经网络架构，直接由三维几何和紫外-可见光谱等易得分子信息预测频率相关的复值动态极化率张量。模型能够学习张量的形状与量级，同时捕捉色散与吸收特征。该工作展示了图神经网络在分子性质预测中的潜力，可加速光电材料与分子的高效筛选。",
+      "llm_tldr": "有机分子的动态极化率张量对模拟光与物质相互作用至关重要，但TD-DFT等量子化学方法计算昂贵，限制了大规模筛选。本文提出一种等变图神经网络架构，直接由三维几何和紫外-可见光谱等易得分子信息预测频率相关的复值动态极化率张量。模型能够学习张量的形状与量级，同时捕捉色散与吸收特征。该工作展示了图神经网络在分子性质预测中的潜力，可加速光电材料与分子的高效筛选。",
+      "llm_tags": [
+        "query:aidd"
+      ],
+      "matched_query_tag": "query:aidd",
+      "matched_query_text": "machine learning models for predicting molecular properties and activities",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2610.09558v1",
+      "source": "arxiv",
+      "title": "DrugTargetWorld: A Synthetic Biobank for Training and Benchmarking AI Scientists",
+      "abstract": "Drug target discovery requires distinguishing molecules that causally drive disease from those that are merely associated with it. Training and evaluating AI agents to perform this workflow end-to-end is difficult because real world biobanks lack known causal ground truth and participant-level data is access controlled. We introduce DrugTargetWorld, a framework that procedurally generates simulated biobanks, or \"worlds,\" with known but concealed causal structure. Each world contains genotypes, proteins, health records, outcomes, and synthetic magnetic resonance imaging (MRI) for 54,000 participants. Agents must construct a disease phenotype, identify causal driver proteins, infer the beneficial direction of modulation, and optionally conduct virtual 'wet lab' experiments. We evaluated nine agents in 540 episodes across 20 cardiovascular worlds and three experimental budgets. Opus 5 and GPT-5.6 Sol achieved the highest mean composite scores, 39.98 and 35.38 of 100, respectively, and both recovered 64% of causal drivers on average. However, no agent reliably distinguished misleading non-causal proteins, and performance remained limited by the integrative judgments required to connect phenotype construction, causal evidence, and intervention decisions. By making each world's causal structure known to the evaluator but hidden from the agent, DrugTargetWorld turns end-to-end drug target discovery into a scalable training and evaluation problem with verifiable reward.",
+      "authors": [
+        "Samuel Margolis",
+        "Paul Schmiedmayer",
+        "Alan Huang",
+        "Ethan Chen",
+        "Ishan Bhattacharjee",
+        "Atman Shah",
+        "Ben Viggiano",
+        "Fang Cao",
+        "Shriya Reddy",
+        "Roger Xia",
+        "Jack O'Sullivan",
+        "Daniel Katz",
+        "Matthew Wheeler",
+        "Euan Ashley",
+        "Bruna Gomes"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-10-07T06:59:54+00:00",
+      "link": "https://arxiv.org/pdf/2610.09558v1",
+      "tags": [
+        "keyword:AIDD",
+        "query:AIDD"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "synthetic biobank for training and benchmarking drug target discovery AI agents",
+      "llm_evidence_cn": "用于训练与评测药物靶点发现AI的合成生物样本库",
+      "llm_evidence": "用于训练与评测药物靶点发现AI的合成生物样本库",
+      "canonical_evidence": "用于训练与评测药物靶点发现AI的合成生物样本库",
+      "llm_tldr_en": "Real biobanks lack causal ground truth for drug target discovery. DrugTargetWorld procedurally generates simulated biobanks with concealed causal structure, 54,000 participants, genotypes, proteins and synthetic MRI, enabling end-to-end training and benchmarking of AI agents.",
+      "llm_tldr_cn": "药物靶点发现需区分因果驱动分子与仅相关分子，但真实生物样本库缺乏已知因果真值且数据受访问限制，难以端到端训练与评测AI智能体。本文提出DrugTargetWorld，程序化生成含隐藏因果结构的模拟生物样本库，包含5.4万名参与者的基因型、蛋白、健康记录与合成MRI。智能体需构建疾病表型并识别因果驱动蛋白。为药物靶点发现的AI研究提供了可基准评测的环境。",
+      "llm_tldr": "药物靶点发现需区分因果驱动分子与仅相关分子，但真实生物样本库缺乏已知因果真值且数据受访问限制，难以端到端训练与评测AI智能体。本文提出DrugTargetWorld，程序化生成含隐藏因果结构的模拟生物样本库，包含5.4万名参与者的基因型、蛋白、健康记录与合成MRI。智能体需构建疾病表型并识别因果驱动蛋白。为药物靶点发现的AI研究提供了可基准评测的环境。",
+      "llm_tags": [
+        "query:aidd"
+      ],
+      "matched_query_tag": "query:aidd",
+      "matched_query_text": "artificial intelligence methods for drug discovery and development",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2610.16920v1",
+      "source": "arxiv",
+      "title": "Multi-Objective Amortized CDRH3 Sequence Sampling Diversifies Promising Antibody Candidates",
+      "abstract": "Antibody therapeutics have transformed treatment across diverse therapeutic areas and have become central to modern medicine. While recent machine learning approaches aim to accelerate antibody discovery through structure-based design and target-affinity optimization, successful candidates must also satisfy broad developability constraints, including structural compatibility, low immunogenicity, and favorable biophysical properties, while remaining sufficiently diverse to provide sufficient coverage of design space to mitigate later-stage development failures. We introduce a preference-conditioned multi-objective generative flow network (GFN) fine-tuning pipeline for fixed-framework CDRH3 loop redesign that fine-tunes a biological sequence model against many inexpensive proxies covering backbone compatibility, sequence likelihood, immunogenicity risk, novelty, and developability liabilities. It combines up to fourteen predictive rewards in a single policy trained to sample CDRH3 loops across 623 SAbDab antibody structures, leveraging a reward reduction strategy to preserve Pareto dominance under this learned map. We also introduce a novel autoregressive span-in-filling variant of AMPLIFY-350M that serves both as a scaffold-conditioned CDRH3 generation prior and as a direct conditional likelihood scorer. We evaluated reward scores, diversity, and design quality on loops sampled on 45 held-out antibody complexes to assess structural consistency, confidence, aggregation propensity, stability, and antigen binding. Compared with the inverse-folding methods ProteinMPNN and ESM-IF, our approach produces roughly 10x more distinct acceptable candidates per design at 50% sequence identity, while holding 10% of the 14-objective Pareto front pooled across methods, trading per-sample quality for greater exploration of novel possible structures.",
+      "authors": [
+        "Joseph D. Viviano",
+        "Almer van der Sloot",
+        "Quentin Fournier",
+        "Robert M. Vernon",
+        "Christopher James Langmead",
+        "Yoshua Bengio"
+      ],
+      "primary_category": "cs.CE",
+      "categories": [
+        "cs.CE"
+      ],
+      "published": "2026-10-12T15:05:52+00:00",
+      "link": "https://arxiv.org/pdf/2610.16920v1",
+      "tags": [
+        "keyword:AIDD",
+        "query:AIDD"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "generative flow network for structure-based antibody design and affinity optimization",
+      "llm_evidence_cn": "生成流网络用于基于结构的抗体设计与亲和力优化",
+      "llm_evidence": "生成流网络用于基于结构的抗体设计与亲和力优化",
+      "canonical_evidence": "生成流网络用于基于结构的抗体设计与亲和力优化",
+      "llm_tldr_en": "Antibody discovery must balance target affinity with developability constraints and diversity. A preference-conditioned multi-objective generative flow network fine-tuning pipeline redesigns fixed-framework CDRH3 loops, diversifying promising candidates for structure-based design.",
+      "llm_tldr_cn": "抗体治疗需兼顾靶点亲和力与可开发性约束，如结构兼容性、低免疫原性与良好生物物理性质，同时保持足够多样性。本文提出偏好条件化的多目标生成流网络微调流程，用于固定框架CDRH3环的重设计。通过多目标摊销采样生成多样且具潜力的抗体候选。为结构导向的抗体设计提供了兼顾亲和力与可开发性的方案。",
+      "llm_tldr": "抗体治疗需兼顾靶点亲和力与可开发性约束，如结构兼容性、低免疫原性与良好生物物理性质，同时保持足够多样性。本文提出偏好条件化的多目标生成流网络微调流程，用于固定框架CDRH3环的重设计。通过多目标摊销采样生成多样且具潜力的抗体候选。为结构导向的抗体设计提供了兼顾亲和力与可开发性的方案。",
+      "llm_tags": [
+        "query:aidd"
+      ],
+      "matched_query_tag": "query:aidd",
+      "matched_query_text": "structure-based ligand design using artificial intelligence",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2610.11454v2",
+      "source": "arxiv",
+      "title": "Zatom-2: Multitask Pretraining on Atomistic Data for Generative Modeling across Domains",
+      "abstract": "Unified atomistic modeling has the potential to accelerate discovery in chemistry, materials science, and biology by bridging data-rich chemical domains and data-scarce biological contexts. However, existing generative approaches to atomistic modeling remain highly specialized to scientific disciplines (chemistry vs. biology) or do not leverage both high-volume organic (molecule) and inorganic (material) data for general-purpose pretraining. To this end, we introduce Zatom-2, an atomistic generative model pretrained on approximately five million structures from the OMol25 and OMat24 electronic structure datasets. Zatom-2 features a multiscale Transformer architecture coupled with conditional flow matching that supports force conditioning and foundational pretraining tasks such as generation, structure prediction, and prediction of molecular and material energies and forces. Empirically, Zatom-2 achieves better molecular distribution fidelity than Zatom-1 and achieves strong performance on existing molecule and material generation benchmarks. Zatom-2 demonstrates the ability to control sample generation across low- and high-force regimes, and enhances protein generation in a low-data setting through joint generative-predictive pretraining and transfer learning, increasing protein backbone designability in a length extrapolation setting from 67.8% without pretraining to 74.8% after finetuning on 2,000 protein domains.",
+      "authors": [
+        "Miruna Cretu",
+        "Alex Abrudan",
+        "Antonia Panescu",
+        "Tynan Perez",
+        "Rishabh Anand",
+        "N. Benjamin Erichson",
+        "Michael W. Mahoney",
+        "Samuel Blau",
+        "Joseph Jacobson",
+        "Rafael Gómez-Bombarelli",
+        "Rex Ying",
+        "Tuomas Knowles",
+        "Pietro Liò",
+        "Alex Morehead"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-10-08T08:09:17+00:00",
+      "link": "https://arxiv.org/pdf/2610.11454v2",
+      "tags": [
+        "keyword:AIDD",
+        "query:AIDD"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Atomistic generative model with conditional flow matching for molecular generation",
+      "llm_evidence_cn": "基于条件流匹配的原子级生成模型用于分子生成",
+      "llm_evidence": "基于条件流匹配的原子级生成模型用于分子生成",
+      "canonical_evidence": "基于条件流匹配的原子级生成模型用于分子生成",
+      "llm_tldr_en": "Existing atomistic generative models stay specialized to one discipline. Zatom-2 uses a multiscale Transformer with conditional flow matching, pretrained on about five million electronic-structure samples, enabling unified generative modeling across chemistry, materials and biology.",
+      "llm_tldr_cn": "现有原子级生成模型多局限于化学或生物单一学科，难以同时利用有机分子与无机材料的大规模数据。本文提出Zatom-2，在约五百万个电子结构样本上预训练，采用多尺度Transformer架构并结合条件流匹配，支持力条件生成。该统一建模框架可在数据分布差异较大的领域间实现迁移，为跨领域分子与材料发现提供基础生成模型。",
+      "llm_tldr": "现有原子级生成模型多局限于化学或生物单一学科，难以同时利用有机分子与无机材料的大规模数据。本文提出Zatom-2，在约五百万个电子结构样本上预训练，采用多尺度Transformer架构并结合条件流匹配，支持力条件生成。该统一建模框架可在数据分布差异较大的领域间实现迁移，为跨领域分子与材料发现提供基础生成模型。",
+      "llm_tags": [
+        "query:aidd"
+      ],
+      "matched_query_tag": "query:aidd",
+      "matched_query_text": "generative models for de novo molecular design and generation",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2610.13917v1",
+      "source": "arxiv",
+      "title": "Designing Protein Structures from Natural Language",
+      "abstract": "A central challenge in de novo protein design is generating proteins with desired structural and functional properties. Existing design models typically require a dedicated input representation for each property, limiting the design objectives they support. We develop Prompteina, the first all-atom structure generation model that supports new and broader design objectives specified in natural language, analogous to text-to-image generation. To train Prompteina, we construct Prompteina-Data, a paired text--protein structure dataset of 1.8M structures and 50M+ captions describing global and residue-specific structural and functional properties. We adapt Proteina-Complexa, a pretrained structure generation model, through text-conditioned pretraining and finetuning that aligns residues with their corresponding text. Prompteina outperforms baselines on 15 of 18 structural properties and generates proteins that more closely match descriptions of their intended functions. In binder design, it leads baselines on at least 13 of 20 targets and improves interface confidence by 14\\% over the strongest baseline. With iterative in silico feedback, Prompteina's gain over non-iterative generation is 57\\% larger than the next-best baseline on the hardest targets. Finally, we experimentally validate Prompteina designs against GM2A, a target with no reported de novo binders. We identify nine binders, with the strongest at an apparent $K_{\\mathrm{D}}$ of 107 nM. These results establish natural language as an effective and powerful conditioning interface for protein structure generation.",
+      "authors": [
+        "Joseph Lee",
+        "Yanjing Li",
+        "Bo Qiang",
+        "Gregory Lau",
+        "Allyson Ettinger",
+        "Noah A. Smith",
+        "Rory Donovan-Maiye",
+        "David Baker",
+        "Hanna Hajishirzi",
+        "Pang Wei Koh"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "q-bio.BM"
+      ],
+      "published": "2026-10-09T17:51:55+00:00",
+      "link": "https://arxiv.org/pdf/2610.13917v1",
+      "tags": [
+        "keyword:AIDD",
+        "query:AIDD"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "text-conditioned all-atom protein structure generation",
+      "llm_evidence_cn": "文本条件全原子蛋白质结构生成",
+      "llm_evidence": "文本条件全原子蛋白质结构生成",
+      "canonical_evidence": "文本条件全原子蛋白质结构生成",
+      "llm_tldr_en": "Prompteina is an all-atom structure generation model that designs proteins from natural language, using a 1.8M text-structure dataset to support flexible multi-property design objectives.",
+      "llm_tldr_cn": "从头蛋白质设计需生成具有目标结构与功能的蛋白，但现有模型对每种性质都需专用输入表示，限制了设计目标范围。本文提出Prompteina，首个支持自然语言指定设计目标的全原子结构生成模型，并构建含180万结构与5000万条描述的配对数据集。通过文本条件预训练与微调对齐预训练生成模型，实现了类似文本到图像的多目标蛋白设计，拓展了生成式模型在生物分子设计中的应用。",
+      "llm_tldr": "从头蛋白质设计需生成具有目标结构与功能的蛋白，但现有模型对每种性质都需专用输入表示，限制了设计目标范围。本文提出Prompteina，首个支持自然语言指定设计目标的全原子结构生成模型，并构建含180万结构与5000万条描述的配对数据集。通过文本条件预训练与微调对齐预训练生成模型，实现了类似文本到图像的多目标蛋白设计，拓展了生成式模型在生物分子设计中的应用。",
+      "llm_tags": [
+        "query:aidd"
+      ],
+      "matched_query_tag": "query:aidd",
+      "matched_query_text": "generative models for de novo molecular design and generation",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2610.16975v1",
+      "source": "arxiv",
+      "title": "MADDIE: Multi-Agent Drug Discovery Engine",
+      "abstract": "Drug discovery remains a resource-intensive and time-consuming process, involving billions of dollars and a decade of development to advance a drug to market. While many in silico tools have accelerated this process, operating them still demands substantial time, effort, and expertise from medicinal chemists. Autonomous systems built on Large Language Models (LLMs) have emerged as a promising solution, yet current designs limit their performance. Existing single-agent systems scale poorly to long-horizon, multi-step, and realistic tasks, whereas multi-agent systems typically execute predefined workflows that cannot capture the iterative, non-linear nature of a real drug discovery campaign. Here, we present MADDIE, a multi-agent drug discovery engine. It comprises a central agent, Orchestrator, and four specialized worker agents: HitIdentifier, LeadOptimizer, Synthesizer, and Evaluator, each representing a critical step in a drug discovery campaign. Under Orchestrator's orchestration and coordination, these worker agents are composed into flexible workflows, enabling MADDIE to adapt its strategy and navigate the drug discovery pipeline end-to-end. Across 50 protein targets, MADDIE produces molecules satisfying key property requirements and their synthesis routes, outperforming existing agentic systems, generative models, and general-purpose LLMs by a wide margin. Our analysis reveals how these agents collaborate and that MADDIE can employ different strategies across targets to achieve the campaign's goal, while still being efficient in time and tokens. Together, they demonstrate MADDIE as a low-cost, effective, and efficient autonomous engine for accelerating drug discovery. Code and dataset is available via https://github.com/ninglab/MADDIE.",
+      "authors": [
+        "Ye Liu",
+        "Reza Averly",
+        "Avery Meyer",
+        "Frazier N. Baker",
+        "Ruoxi Gao",
+        "Daniel Adu-Ampratwum",
+        "Xia Ning"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-10-12T15:37:37+00:00",
+      "link": "https://arxiv.org/pdf/2610.16975v1",
+      "tags": [
+        "keyword:AIDD",
+        "query:AIDD"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Multi-agent LLM engine for autonomous drug discovery campaigns",
+      "llm_evidence_cn": "面向自主药物发现的多智能体LLM引擎",
+      "llm_evidence": "面向自主药物发现的多智能体LLM引擎",
+      "canonical_evidence": "面向自主药物发现的多智能体LLM引擎",
+      "llm_tldr_en": "Drug discovery is costly and slow, and existing LLM systems either scale poorly on long-horizon tasks or run fixed workflows. MADDIE is a multi-agent drug discovery engine with a central coordinating agent that follows the iterative, non-linear nature of real campaigns.",
+      "llm_tldr_cn": "药物发现成本高、周期长，现有LLM单智能体难以应对长程多步任务，多智能体又多为固定流程。本文提出MADDIE多智能体药物发现引擎，由中心智能体协调多个智能体迭代式推进真实药物发现流程。该引擎能够适应迭代、非线性的发现过程，表现优于单智能体与预定义工作流方案。这为自主化、可扩展的AI药物发现提供了多智能体协同框架。",
+      "llm_tldr": "药物发现成本高、周期长，现有LLM单智能体难以应对长程多步任务，多智能体又多为固定流程。本文提出MADDIE多智能体药物发现引擎，由中心智能体协调多个智能体迭代式推进真实药物发现流程。该引擎能够适应迭代、非线性的发现过程，表现优于单智能体与预定义工作流方案。这为自主化、可扩展的AI药物发现提供了多智能体协同框架。",
+      "llm_tags": [
+        "query:aidd"
+      ],
+      "matched_query_tag": "query:aidd",
+      "matched_query_text": "artificial intelligence methods for drug discovery and development",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2610.12039v1",
+      "source": "arxiv",
+      "title": "MPGE: A Multi-Perspective Graph Explainer for Molecular Classification Explanation",
+      "abstract": "Graph neural networks (GNNs) predict molecular properties from chemical graph data, but predictive accuracy does not explain how graph information supports an individual decision. A compact prediction-preserving rationale does not necessarily reveal which changes reverse the decision or which modifications the model tolerates. We propose the Multi-Perspective Graph Explainer (MPGE), unifying factual support, counterfactual sensitivity, and exemplar tolerance for a frozen classifier. The factual view, originally termed prototype (PT), seeks a compact retained edge set with the same label and required confidence. Counterfactual (CF) explanations seek bounded prediction-changing deletions; exemplar (EXE) explanations seek non-trivial bounded deletions that preserve the label and confidence. A shared constrained formulation connects prediction behavior, compactness, and edit cost, while separate objectives generate the three views. Our graph-classification extension of CF-GNNExplainer learns symmetric edge rankings and verifies discrete candidates, recording unsuccessful searches. A separate BBBP fragment backend returns RDKit-sanitized molecules. We evaluate the primary GCN implementation on MUTAG, Mutagenicity, AIDS, COX2_MD, and BBBP using semantic coverage, conditional quality, stability, and runtime. Successful factual masks retained 8.6%--15.5% of input edges on average across datasets; bounded counterfactual coverage was 4.8%--67.6%, and exemplar preservation coverage was 98.9%--100.0%. Exploratory controls reveal the influence of hard projection and retained node information. Quantitative comparisons and molecular visualizations characterize model support, sensitivity, and tolerance without treating them as validated chemical mechanisms.",
+      "authors": [
+        "Mahtab Sarvmaili"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-10-08T14:28:47+00:00",
+      "link": "https://arxiv.org/pdf/2610.12039v1",
+      "tags": [
+        "keyword:AIDD",
+        "query:AIDD"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "graph neural network explanation for molecular classification",
+      "llm_evidence_cn": "面向分子分类的图神经网络解释",
+      "llm_evidence": "面向分子分类的图神经网络解释",
+      "canonical_evidence": "面向分子分类的图神经网络解释",
+      "llm_tldr_en": "GNNs predict molecular properties but accuracy does not explain decisions; MPGE unifies factual support, counterfactual sensitivity and exemplar tolerance to give multi-perspective explanations for frozen molecular classifiers.",
+      "llm_tldr_cn": "问题：图神经网络可从分子图预测性质，但准确率无法解释图信息如何支撑单个决策，且保预测依据未必揭示反事实变化。方法：提出多视角图解释器MPGE，统一事实支撑、反事实敏感性与样例容忍度。结果：可同时给出保持预测的紧凑依据、改变预测的删减与可容忍修改。意义：为分子分类模型提供更全面的可解释性。",
+      "llm_tldr": "问题：图神经网络可从分子图预测性质，但准确率无法解释图信息如何支撑单个决策，且保预测依据未必揭示反事实变化。方法：提出多视角图解释器MPGE，统一事实支撑、反事实敏感性与样例容忍度。结果：可同时给出保持预测的紧凑依据、改变预测的删减与可容忍修改。意义：为分子分类模型提供更全面的可解释性。",
+      "llm_tags": [
+        "query:aidd"
+      ],
+      "matched_query_tag": "query:aidd",
+      "matched_query_text": "Applications of graph neural networks and transformers in molecular property prediction",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2610.14626v1",
+      "source": "arxiv",
+      "title": "TagBO: LLM-Driven Task-Aware Graph Bayesian Optimization for Scientific Discovery",
+      "abstract": "Mixed-variable optimization in scientific discovery often requires exploring large combinatorial spaces under costly experimental evaluations, making sample?efficient Bayesian optimization (BO) essential. However, existing BO methods typ?ically rely on structural descriptors to define similarity among categorical variables, implicitly assuming that structural similarity reflects similarity in task performance. In scientific optimization, this assumption is often violated, leading to surrogate representations that are poorly aligned with the optimization objective. To address this limitation, we propose TagBO (Task-aware Graph Bayesian Optimization), a method that integrates LLM-derived relational priors with descriptor-based struc?tural information for mixed-variable Bayesian optimization. Rather than directly using LLM outputs as predictive scores, TagBO treats LLM outputs as a potentially noisy source of task-aware relational priors and extracts coarse ordinal relational signals from LLM reasoning to construct task-aware similarity structures for scien?tific optimization. TagBO then performs constrained Gaussian process Bayesian optimization over the resulting joint discrete-continuous representation space. Ex?periments on diverse chemistry and materials formulation tasks demonstrate that TagBO consistently improves sample efficiency under fixed evaluation budgets across LLMs of varying capabilities.",
+      "authors": [
+        "Xinzhe Yuan",
+        "Zimu Zeng",
+        "Zhuo Chen",
+        "Jianshu Zhang",
+        "Jinzong Dong",
+        "Jingyi Chen",
+        "Nanyang Ye",
+        "Huan Xiong",
+        "Qinying Gu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-10-10T06:21:40+00:00",
+      "link": "https://arxiv.org/pdf/2610.14626v1",
+      "tags": [
+        "keyword:AIDD",
+        "query:AIDD"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "LLM-driven Bayesian optimization for molecular and scientific discovery",
+      "llm_evidence_cn": "大模型驱动的贝叶斯优化用于分子与科学发现",
+      "llm_evidence": "大模型驱动的贝叶斯优化用于分子与科学发现",
+      "canonical_evidence": "大模型驱动的贝叶斯优化用于分子与科学发现",
+      "llm_tldr_en": "Mixed-variable scientific optimization needs sample-efficient Bayesian optimization, but structural descriptors often misalign with task performance. TagBO integrates LLM-derived relational priors with structural descriptors for task-aware graph Bayesian optimization, improving molecular and materials discovery.",
+      "llm_tldr_cn": "科学发现中的混合变量优化需在昂贵实验下探索巨大组合空间，因此样本高效的贝叶斯优化至关重要，但现有方法依赖结构描述子定义类别变量相似度，隐含假设结构相似即性能相似，在科学优化中常被违背。本文提出TagBO，将大语言模型导出的关系先验与描述子结构信息结合，实现任务感知的图贝叶斯优化。实验表明该方法能获得与优化目标更对齐的代理表示，提升分子与材料发现效率。",
+      "llm_tldr": "科学发现中的混合变量优化需在昂贵实验下探索巨大组合空间，因此样本高效的贝叶斯优化至关重要，但现有方法依赖结构描述子定义类别变量相似度，隐含假设结构相似即性能相似，在科学优化中常被违背。本文提出TagBO，将大语言模型导出的关系先验与描述子结构信息结合，实现任务感知的图贝叶斯优化。实验表明该方法能获得与优化目标更对齐的代理表示，提升分子与材料发现效率。",
+      "llm_tags": [
+        "query:aidd"
+      ],
+      "matched_query_tag": "query:aidd",
+      "matched_query_text": "What are machine learning methods for molecular generation and drug design?",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2610.17696v1",
+      "source": "arxiv",
+      "title": "zPocket: Better Pocket Finding with Frozen Co-Folding Features",
+      "abstract": "Identifying protein-ligand binding sites (pockets) is important for understanding protein function and developing drugs. However, no public method has leveraged co-folding models for novel pocket prediction; furthermore, this task lacks a suitable benchmark as existing benchmarks are within the training distribution of co-folding models. We therefore developed PocketWatch,a curated dataset of biologically relevant ligand pockets. The PocketWatch test set consists of unseen pockets stratified by sequence similarity, structural similarity, and crypticity to enable evaluation of generalization to novel and challenging pockets. Using this dataset, we develop zPocket, a method that trains pocket-prediction heads on top of frozen features from co-folding models. We show that zPocket heads outperform baseline methods across all stratifications. Our best zPocket model achieves overall per-target AUPRC of 0.745 compared to 0.598 and 0.595 for the strongest baselines, VN-EGNN and UniSite-1D retrained on the PocketWatch split (0.559 and 0.531 when using the published weights); the widely used P2Rank reaches 0.477. We further show that zPocket can be used to outperform baseline methods on top-N+2 recall of predicted pocket centroids through clustering per-residue predictions or using zPocket to rescore centroids proposed by other models. Finally, we explore two applications of zPocket: crystallographic fragment screens and a proteome-scale scan for uncharacterized pockets on human proteins. Together these results suggest that zPocket heads built on co-folding trunk features can greatly advance ligand binding site prediction.",
+      "authors": [
+        "Tally Portnoi",
+        "Allison M Keys",
+        "Benjamin R DiFrancesco",
+        "Nate Gruver"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-10-13T04:23:31+00:00",
+      "link": "https://arxiv.org/pdf/2610.17696v1",
+      "tags": [
+        "keyword:AIDD",
+        "query:AIDD"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "pocket prediction using frozen co-folding features for structure-based design",
+      "llm_evidence_cn": "利用冻结共折叠特征进行口袋预测以支持基于结构的药物设计",
+      "llm_evidence": "利用冻结共折叠特征进行口袋预测以支持基于结构的药物设计",
+      "canonical_evidence": "利用冻结共折叠特征进行口袋预测以支持基于结构的药物设计",
+      "llm_tldr_en": "zPocket predicts protein-ligand binding pockets by training prediction heads on frozen co-folding model features, supported by the new PocketWatch benchmark of unseen biologically relevant pockets.",
+      "llm_tldr_cn": "识别蛋白质-配体结合口袋对理解蛋白功能与药物开发至关重要，但现有方法未利用共折叠模型，且缺乏训练分布之外的合适基准。本文构建PocketWatch数据集，按序列相似性、结构相似性与隐蔽性分层，评估对新颖口袋的泛化能力，并提出zPocket，在冻结的共折叠模型特征上训练口袋预测头。该方法提升了新颖与困难口袋的预测表现，为基于结构的药物设计与配体发现提供了新工具。",
+      "llm_tldr": "识别蛋白质-配体结合口袋对理解蛋白功能与药物开发至关重要，但现有方法未利用共折叠模型，且缺乏训练分布之外的合适基准。本文构建PocketWatch数据集，按序列相似性、结构相似性与隐蔽性分层，评估对新颖口袋的泛化能力，并提出zPocket，在冻结的共折叠模型特征上训练口袋预测头。该方法提升了新颖与困难口袋的预测表现，为基于结构的药物设计与配体发现提供了新工具。",
+      "llm_tags": [
+        "query:aidd"
+      ],
+      "matched_query_tag": "query:aidd",
+      "matched_query_text": "structure-based ligand design using artificial intelligence",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2610.12522v1",
+      "source": "arxiv",
+      "title": "MolP2SBench: Do LLMs Really Reason from Molecular Properties to Structure?",
+      "abstract": "Large language models (LLMs) are increasingly used in molecular discovery and structure elucidation, where decisions depend on physical observations. Existing evaluations primarily focus on end-to-end molecular reconstruction, where correct predictions do not necessarily indicate reliance on the supplied properties. We introduce MolP2SBench, a benchmark for molecular property-to-structure (P2S) reasoning in LLMs. Each task presents a masked molecular scaffold with given properties and asks the model to select the missing structure from plausible candidates. We shuffle or replace properties to test reliance on correct property-structure pairing and responsiveness to counterfactual property changes. A channel-wise leaderboard uses Property-Grounded Recovery (PGR), giving equal weight to source and counterfactual recovery. Evaluating seven models, we find that LLMs can use physical properties for structure prediction, but performance varies substantially across property types. Higher accuracy with a property does not necessarily imply greater responsiveness to it: a model may benefit more from $^1$H NMR than from $^{13}$C NMR, yet be less likely to change its prediction when the $^1$H data is replaced. LLM performance also need not reflect the relative difficulty of these properties for human chemists. Although UV-Vis spectra provide less direct structural information than NMR spectra, Astra achieves higher accuracy with UV-Vis data than with NMR peaks. MolP2SBench supports studying how LLMs extract and use physical-property information, revealing patterns that may differ from conventional chemical intuition and providing a foundation for more reliably property-grounded models for molecular and quantum-chemical inference. Code and dataset: https://github.com/DUAL-Xiao/MolP2SBench.",
+      "authors": [
+        "Yuhang Xie",
+        "Zhiyi Shi",
+        "Zeyi Zhang",
+        "Zhisheng Qi",
+        "Yushun Dong",
+        "Yu Wang",
+        "Xiongye Xiao"
+      ],
+      "primary_category": "physics.chem-ph",
+      "categories": [
+        "physics.chem-ph",
+        "cs.LG"
+      ],
+      "published": "2026-10-08T01:26:45+00:00",
+      "link": "https://arxiv.org/pdf/2610.12522v1",
+      "tags": [
+        "keyword:AIDD",
+        "query:AIDD"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "benchmark for LLM molecular property-to-structure reasoning",
+      "llm_evidence_cn": "面向LLM分子性质到结构推理的基准",
+      "llm_evidence": "面向LLM分子性质到结构推理的基准",
+      "canonical_evidence": "面向LLM分子性质到结构推理的基准",
+      "llm_tldr_en": "MolP2SBench evaluates whether LLMs genuinely reason from molecular properties to structure by masking scaffolds and shuffling properties to test property-grounded reliance.",
+      "llm_tldr_cn": "大语言模型越来越多用于分子发现与结构解析，但现有评估多为端到端重构，正确预测未必表明模型依赖给定性质。作者提出MolP2SBench基准，给出带性质的掩码分子骨架，要求模型从候选中选出缺失结构，并通过打乱或替换性质检验其是否真正依赖性质-结构配对。该基准揭示了LLM在分子性质到结构推理上的真实能力，为可靠分子设计评估提供工具。",
+      "llm_tldr": "大语言模型越来越多用于分子发现与结构解析，但现有评估多为端到端重构，正确预测未必表明模型依赖给定性质。作者提出MolP2SBench基准，给出带性质的掩码分子骨架，要求模型从候选中选出缺失结构，并通过打乱或替换性质检验其是否真正依赖性质-结构配对。该基准揭示了LLM在分子性质到结构推理上的真实能力，为可靠分子设计评估提供工具。",
+      "llm_tags": [
+        "query:aidd"
+      ],
+      "matched_query_tag": "query:aidd",
+      "matched_query_text": "machine learning models for predicting molecular properties and activities",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

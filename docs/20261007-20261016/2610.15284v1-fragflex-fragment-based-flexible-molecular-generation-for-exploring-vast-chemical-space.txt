@@ -1,0 +1,541 @@
+Title: FragFlex: Fragment-Based Flexible Molecular Generation for Exploring Vast Chemical Space
+
+URL Source: https://arxiv.org/pdf/2610.15284v1
+
+Published Time: Wed, 14 Oct 2026 01:26:03 GMT
+
+Number of Pages: 15
+
+Markdown Content:
+# FragFlex: Fragment-Based Flexible Molecular Generation for Exploring Vast Chemical Space 
+
+Sihyun Park 
+
+Carnegie Mellon University 
+
+sihyunpa@andrew.cmu.edu 
+
+David Ryan Koes 
+
+University of Pittsburgh 
+
+dkoes@pitt.edu 
+
+## Abstract 
+
+Drug discovery requires efficient exploration of an astronomically large chemical space. Molecular graph diffusion models offer a promising approach to this task, but many require graph size to be fixed before generation. Although atom-level insertion and deletion can enable flexible-size generation, jointly modeling molecular size, atom types, and bonds while maintaining chemical validity remains challenging. We introduce FragFlex, a flexible-length discrete diffusion model that performs node insertion and deletion at the fragment level. During denoising, FragFlex jointly learns the size, fragment identities, and inter-fragment connectivity of the fragment graph. A neural attachment-site predictor and valence-aware assembler then convert the generated fragment graph into an atom-level molecule. In large-scale experiments generating 10 million molecules, FragFlex achieves near-perfect chemical validity while maintaining high uniqueness, demonstrating a strong balance between the two. 
+
+## 1 Introduction 
+
+Drug discovery requires exploring an astronomically large chemical space. Estimates of the size of drug-like chemical space vary substantially with the underlying molecular constraints and enumeration strategies, ranging from approximately 10 33 molecules [25] to 10 60 molecules [4]. Efficiently searching this space is therefore key to reducing the computational and experimental costs of finding promising drug candidates [27, 32]. De novo molecular generation offers a promising strategy for exploring chemical space by directly proposing novel molecular structures. Deep generative models can learn molecular distributions from existing compound datasets and generate new molecules. Notably, denoising diffusion models have driven substantial progress across image generation [9], discrete text generation [1, 21], and molecular graph generation [33]. However, many existing molecular graph diffusion models keep the number of nodes fixed throughout denoising, requiring molecular size to be determined before generation begins. Attempts to overcome fixed-length generation are not unique to molecular graphs: masked diffusion models (MDMs) [26] have been extended to support flexible-length text generation through mask-token insertion [15]. For molecular graphs, Ninniri et al. proposed GrIDDD [23], allowing atom nodes to be inserted and deleted during denoising. Despite this flexibility, maintaining high chemical validity remains challenging when molecular graph size is allowed to vary through atom-level insertion and deletion. This difficulty arises because the model must jointly learn molecular size, atom types, and bond assignments while satisfying strict chemical constraints, such as atomic valence. Fragment-based molecular generation offers a natural way to mitigate this challenge. Instead of constructing every ring and functional group atom by atom, these methods assemble reusable substructures, reducing invalid intermediates [10, 11]. Fragment-level diffusion and flow models further improve efficiency and scalability by denoising a coarser graph [18]. In particular, Levy 
+
+> Accepted at the NeurIPS 2026 Workshop on AI for Drug Discovery: Bridging the Translation Gap. arXiv:2610.15284v1 [cs.LG] 11 Oct 2026
+
+and Rector-Brooks proposed FragDiffusion [19], extending discrete graph diffusion from atoms to fragments. Nevertheless, the two capabilities have largely developed separately: flexible-size diffusion typically operates on atoms or generic tokens, whereas representative fragment diffusion models initialize a fragment graph whose size is sampled before denoising. To bridge this gap, we introduce FragFlex, a flexible-length discrete diffusion model that performs node insertion and deletion at the fragment level. The model jointly learns fragment count, frag-ment identities, and inter-fragment connectivity while dynamically adjusting the graph size during denoising. This design allows molecular size and composition to co-evolve within a single generative trajectory while retaining the chemical inductive bias of fragment-based generation. Finally, a neural attachment-site predictor and valence-aware assembler convert the generated fragment graph into an atom-level molecule. In large-scale experiments generating 10 million molecules, FragFlex maintains both high uniqueness and chemical validity, showing a favorable trade-off between the two. Our main contributions are as follows: • We introduce FragFlex, a discrete diffusion model that enables flexible molecular-size generation through fragment-level node insertion and deletion. • We develop a neural attachment-site predictor and valence-aware assembler for converting fragment graphs into valid molecules. • In experiments generating 10 million molecules, FragFlex achieves high chemical validity and a favorable uniqueness–validity trade-off. 
+
+## 2 Related Work 
+
+2.1 De Novo Molecular Generation 
+
+De novo molecular generation aims to learn distributions over molecular structures for unconditional or property-guided sampling [24]. Early neural approaches often represented molecules as SMILES strings and applied recurrent models or variational autoencoders [8, 16, 28]. Graph-based methods instead operate directly on atoms and bonds, using variational autoencoders, autoregressive models, and normalizing flows [20, 22, 29, 30]. More recently, score-based and diffusion models have formulated molecular generation as iterative denoising of molecular graphs [13, 14]. In particular, discrete diffusion methods such as D3PM [1] enable diffusion over categorical variables, providing a natural framework for molecular graphs with discrete atom and bond types. DiGress applies this framework to graph generation using categorical transition kernels and a permutation-equivariant graph transformer [33]. 
+
+2.2 Flexible-Length Molecular Generation 
+
+Autoregressive models can naturally generate molecules of varying sizes through a stopping decision, whereas many graph diffusion models sample the graph size beforehand and keep it fixed during denoising. DiGress, for instance, samples the graph size from the training-set size distribution before denoising and keeps it fixed throughout generation [33]. Recent methods instead allow graph size to change during generation. IFH uses insertion, filling, and halting operations [5], while GrIDDD deletes nodes during forward diffusion and inserts them during reverse generation [23]. In the sequence domain, FlexMDM enables flexible-length diffusion through mask-token insertion [15]. FragFlex applies this size-adaptive principle at the fragment level. Starting from a single root fragment, it predicts fragment insertions and jointly denoises fragment identities and connectivity. 
+
+2.3 Fragment-Based Molecular Generation 
+
+Fragment-based molecular generative models construct molecules from reusable molecular sub-structures, or fragments, rather than individual atoms. This coarse representation can reduce the number of generative decisions while incorporating chemically meaningful substructures into the generation process [12, 34]. JT-VAE generates a junction tree over molecular substructures before 2Valence-Aware Neural Assembly Fragment Graph Preprocessing Figure 1: Overview of FragFlex. An atom-level molecule M is preprocessed into a clean fragment graph G0. Forward diffusion applies categorical noise ¯Qt and structural deletion ζ′(t) while protecting one root, yielding the single-fragment state GT . During sampling, gϕ predicts the insertion count b∆t,and fθ predicts the node types and edge connections of the added DEL ∗ placeholders. At the final denoising step, predicted attachment sites guide the valence-aware assembly of the final molecule. assembling the molecular graph [10], while HierVAE extends this approach with hierarchical motifs and coarse-to-fine generation [11]. Fragment-level denoising methods instead operate directly on coarse fragment graphs. FragDiffusion applies discrete diffusion to BRICS-derived fragment graphs whose size is selected before denoising and reconstructs atom-level molecules using attachment modes stored in a precomputed lookup table [19]. FragFM combines fragment-level discrete flow matching with coarse-to-fine atom-level reconstruction [18]. FragFlex combines fragment-level generation with size-adaptive diffusion. Unlike prior fragment-level denoising methods, it allows the number of fragments to change during generation while jointly modeling fragment identities and connectivity. It further predicts attachment sites directly and uses a valence-aware assembler to reconstruct the final atom-level molecule. 
+
+## 3 Methods 
+
+Overview. FragFlex generates a molecule in two stages (Figure 1). First, starting from a single root fragment, a discrete diffusion model generates a coarse graph by jointly modeling fragment identities, connectivity, and graph size (Figure 2). Second, a neural attachment-site predictor and a valence-aware assembler convert this fragment graph into an atom-level molecular graph. Our model combines FragDiffusion [19], a discrete diffusion model over fragment graphs, with GrIDDD [23], an atom-level diffusion model that enables variable graph sizes through node insertions and deletions. 
+
+Problem definition. Let V = {F1, . . . , F K } be a fixed vocabulary of BRICS-derived fragment types extracted from the training molecules [6]. Each Fk specifies an atom-and-bond substructure and may contain either a single heavy atom or multiple heavy atoms. We retain the K = 100 
+
+most frequent fragment types. We represent an atom-level molecule M by a clean fragment graph 
+
+G0 = ( X0, E 0, S 0) with N fragments. The node label X0,i ∈ { 1, . . . , K } identifies the fragment at node i, and E0,ij ∈ { 0, 1} indicates whether fragments i and j are connected. For each connected fragment pair (i, j ), S0,ij and S0,ji denote the local indices of the attachment atoms in fragments i
+
+and j, respectively, with S0,ij ∈ { 0, . . . , A i − 1}, where Ai is the number of atoms in fragment i.Our goal is to jointly model fragment identities, topology, attachment sites, and graph size. Unlike FragDiffusion [19], which assembles molecules using a fragment-pair lookup table precomputed from attachment frequencies in the training data, FragFlex represents fragment connectivity with binary edges and directly predicts the corresponding attachment atoms. 
+
+Training. Given a clean fragment graph G0 = ( X0, E 0, S 0) with node set V0 = {1, . . . , N },we sample t ∼ Unif {1, . . . , T } and a root r ∼ Unif( V0). Each non-root fragment is assigned a deletion time τi ∼ Cat( ζ′), while we set τr = T + 1 so that the root is never deleted. Following GrIDDD [23], ζ′(t) is a normalized logistic event density. At time t, fragments with τi < t are removed and boundary fragments with τi = t are represented by the transient state DEL ∗; their incident edges are marked identically. The retained fragment and edge labels are corrupted using the 3Table 1: Validity and uniqueness across generation scales. |V ∩ U | denotes the number of valid and unique molecules obtained from 10 7 generated samples. QED and SA are evaluated at n = 10 5.                                                                                         
+
+> Validity (%) ↑Uniqueness (%) ↑QED ↑SA ↓|V∩U| ↑
+> Model Unit Ins./del. 10 510 610 710 510 610 7n= 10 5n= 10 7
+> DiGress Atom No 71.47 71.33 71.36 99.99 99.95 99.68 0.733 3.702 7,113,016 GrIDDD Atom Yes 88.10 88.23 88.22 99.83 99.04 97.10 0.651 3.413 8,566,049 IFH Atom Yes 57.98 57.87 57.92 99.98 99.85 99.40 0.725 5.367 5,757,629 JT-VAE Fragment No 99.73 99.74 99.75 99.25 96.72 89.40 0.762 3.418 8,916,975 FragDiffusion Fragment No 96.25 96.16 96.18 99.81 99.07 96.33 0.609 6.840 9,265,827
+> FragFlex Fragment Yes 99.67 99.67 99.67 99.94 99.37 95.52 0.764 3.021 9,520,600
+
+empirical-marginal kernel ¯Qt(m) = ¯ αtI + (1 − ¯αt)1m⊤, (1) where m is the corresponding training marginal and ¯αt follows a cosine schedule. At t = T , the terminal state therefore contains one protected fragment drawn from the empirical fragment marginal. An edge-aware graph transformer [35] fθ serves as the main denoiser and predicts clean fragment logits ZX , binary edge logits ZE , and directed attachment-site logits ZS from Gt. Its encoder combines time and root embeddings with the cycle features of DiGress [33]. A separate count model 
+
+gϕ receives Gt after removing the DEL ∗ fragments and predicts their number ∆t. We optimize the joint objective 
+
+L = LX + λE LE + λ∆L∆ + λS LS , (2) where all terms are cross-entropies. These four terms supervise fragment identities, fragment edges, deletion counts, and attachment sites, respectively. 
+
+Fragment graph sampling. Starting from a single root fragment at t = T , the reverse process constructs a fragment graph until t = 1 . At each reverse step, gϕ predicts how many DEL ∗ placehold-ers to append. The denoiser fθ outputs clean node and edge logits, which parameterize the reverse distribution 
+
+pθ (zt−1 | zt, G t, t ) = X
+
+> z0
+
+q(zt−1 | zt, z 0)pθ (z0 | Gt, t ). (3) Since attachment sites are needed only for final molecular assembly, we evaluate the site head only at 
+
+t = 1 , avoiding unnecessary computation during reverse diffusion. The resulting probabilities bP S are passed to the atom-level assembler. 
+
+Atom-level assembly. After masking infeasible attachment atoms and renormalizing bP S to eP S ,the assembler considers the top-k atoms for each generated fragment edge (i, j ) and scores candidate pairs (a, b ) by 
+
+ℓij (a, b ) = log eP Sij (a) + log eP Sji (b). (4) Beam search processes the fragment edges sequentially, adding one candidate single bond at each step and discarding duplicate bonds or candidates that violate valence constraints under RDKit [17]. The assembler keeps up to a fixed number of distinct valid molecules and selects one uniformly at random. Thus, chemical constraints filter the learned site proposals without requiring an attachment lookup table at inference. 
+
+## 4 Results 
+
+Dataset and experiments. The evaluated models use datasets derived from ZINC [31]. For each baseline, we retain the default dataset and model configuration specified in its original implementation. FragFlex follows the preprocessing pipeline of FragDiffusion [19], using BRICS fragmentation and fragment graph construction. Conventional molecular generation evaluations typically consider tens to hundreds of thousands of generated molecules. To assess chemical-space exploration at a substantially larger scale, we generate up to 10 7 molecules from each model. All models are evaluated at the same sample sizes using 4Figure 2: FragFlex sampling steps. 85 90 95 100  
+
+> Uniqueness (%)
+> 60 70 80 90 100
+> Validity (%)
+> 60% 70% 80% 90% 95%
+> DiGress GrIDDD JT-VAE FragDiffusion IFH
+> FragFlex
+> Unique-valid yield (% of 10M samples)
+
+Figure 3: Validity–uniqueness trade-off at 10 7 samples. identical metric definitions. Validity is the fraction of generated molecules accepted by RDKit, while uniqueness is computed over canonicalized valid molecules. 
+
+Large-scale molecular generation. Table 1 reports validity and uniqueness as the number of generated molecules increases from 10 5 to 10 7. We omit novelty from the main comparison because it is nearly saturated at 100% across all evaluated models and therefore provides little discriminative value. Across all models, validity remains largely unaffected by the number of generated samples. In contrast, uniqueness gradually decreases as repeated molecules accumulate at larger sampling scales. Fragment-based models consistently achieve substantially higher validity than atom-based models, although they generally exhibit lower uniqueness at 10 7 samples. JT-VAE achieves the highest validity at every evaluated scale but also exhibits the largest decline in uniqueness as the sampling scale increases. FragDiffusion shows the lowest validity among the fragment-based models. FragFlex approaches JT-VAE’s high validity while retaining uniqueness comparable to FragDiffusion, thereby combining the strengths of the two fragment-based baselines. In addition, at n = 10 5, FragFlex achieves the highest QED [3] score ( 0.764 ) and the lowest SA [7] score ( 3.021 ) across all evaluated atom- and fragment-based models. Figure 3 highlights the relationship between validity and uniqueness at 10 7 samples. FragFlex maintains 99 .67% validity across all three scales while retaining 95 .52% uniqueness at 10 7 samples. This balance results in 9,520 ,600 distinct valid molecules, the highest |V ∩U | count among all models. FragFlex lies closest to the upper-right corner and is the only model above the 95% unique-valid yield contour, demonstrating the strongest balance between validity and uniqueness at scale. 
+
+## 5 Conclusion 
+
+We introduced FragFlex, a flexible-length molecular diffusion model that performs node insertion and deletion at the fragment level. FragFlex jointly predicts the number, identities, and connectivity of molecular fragments. A neural attachment-site predictor and valence-aware assembler then convert the generated fragment graph into an atom-level molecule. Together, these components allow molecular size to evolve throughout generation while retaining structural information encoded by fragments. At a scale of 10 7 generated molecules, FragFlex produces more than 9.5 million distinct valid molecules, demonstrating a strong balance between validity and uniqueness. These results suggest that fragment-level structural flexibility provides an effective foundation for large-scale chemical-space exploration. This flexibility also suggests a promising extension to reinforcement learning, where property-based rewards could balance the exploration of new fragment combinations with the exploitation of promising molecules. The effectiveness of size-adaptive diffusion models such as GrIDDD in molecular property targeting motivates extending FragFlex to protein-target-conditioned generation. This extension would allow fragment composition and molecular size to adapt to target-specific binding environments. Future work will also investigate property-guided optimization and downstream drug discovery applications. 5References 
+
+[1] Jacob Austin, Daniel D Johnson, Jonathan Ho, Daniel Tarlow, and Rianne van den Berg. Structured denoising diffusion models in discrete state-spaces. Advances in Neural Information Processing Systems , 34:17981–17993, 2021. [2] Guy W Bemis and Mark A Murcko. The properties of known drugs. 1. molecular frameworks. 
+
+Journal of Medicinal Chemistry , 39(15):2887–2893, 1996. [3] G Richard Bickerton, Gaia V Paolini, Jérémy Besnard, Sorel Muresan, and Andrew L Hopkins. Quantifying the chemical beauty of drugs. Nature Chemistry , 4(2):90–98, 2012. [4] Regine S Bohacek, Colin McMartin, and Wayne C Guida. The art and practice of structure-based drug design: a molecular modeling perspective. Medicinal Research Reviews , 16(1):3–50, 1996. [5] Samuel Cognolato, Alessandro Sperduti, and Luciano Serafini. IFH: A diffusion framework for flexible design of graph generative models. In ECAI 2024: 27th European Conference on Artificial Intelligence , pages 3039–3046, 2024. [6] Jörg Degen, Christof Wegscheid-Gerlach, Andrea Zaliani, and Matthias Rarey. On the art of compiling and using ‘drug-like’ chemical fragment spaces. ChemMedChem , 3(10):1503–1507, 2008. doi: 10.1002/cmdc.200800178. [7] Peter Ertl and Ansgar Schuffenhauer. Estimation of synthetic accessibility score of drug-like molecules based on molecular complexity and fragment contributions. Journal of Cheminfor-matics , 1(1):8, 2009. [8] Rafael Gómez-Bombarelli, Jennifer N Wei, David Duvenaud, José Miguel Hernández-Lobato, Benjamín Sánchez-Lengeling, Dennis Sheberla, Jorge Aguilera-Iparraguirre, Timothy D Hirzel, Ryan P Adams, and Alán Aspuru-Guzik. Automatic chemical design using a data-driven continuous representation of molecules. ACS Central Science , 4(2):268, 2018. [9] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion probabilistic models. Advances in Neural Information Processing Systems , 33:6840–6851, 2020. [10] Wengong Jin, Regina Barzilay, and Tommi Jaakkola. Junction tree variational autoencoder for molecular graph generation. In International Conference on Machine Learning , pages 2323–2332. PMLR, 2018. [11] Wengong Jin, Regina Barzilay, and Tommi Jaakkola. Hierarchical generation of molecular graphs using structural motifs. In International Conference on Machine Learning , pages 4839–4848. PMLR, 2020. [12] Shao Jinsong, Jia Qifeng, Chen Xing, Yajie Hao, and Li Wang. Molecular fragmentation as a crucial step in the AI-based drug development pathway. Communications Chemistry , 7(1):20, 2024. [13] Jaehyeong Jo, Seul Lee, and Sung Ju Hwang. Score-based generative modeling of graphs via the system of stochastic differential equations. In International Conference on Machine Learning , pages 10362–10383. PMLR, 2022. [14] Jaehyeong Jo, Dongki Kim, and Sung Ju Hwang. Graph generation with diffusion mixture. 
+
+arXiv preprint arXiv:2302.03596 , 2023. [15] Jaeyeon Kim, Lee Kit, Carles Domingo i Enrich, Yilun Du, Sham Kakade, Timothy Ngotiaoco, Sitan Chen, and Michael Albergo. Any-order flexible length masked diffusion. In International Conference on Learning Representations , 2026. [16] Matt J Kusner, Brooks Paige, and José Miguel Hernández-Lobato. Grammar variational autoencoder. In International Conference on Machine Learning , pages 1945–1954. PMLR, 2017. 6[17] Greg Landrum, Paolo Tosco, Brian Kelley, David Cosgrove, Riccardo Vianello, Eisuke Kawashima, Gareth Jones, Andrew Dalke, Brian Cole, Matt Swain, et al. RDKit/RDKit: 2023_03_1 (Q1 2023) release. Zenodo , 2023. [18] Joongwon Lee, Seonghwan Kim, Seokhyun Moon, Hyunwoo Kim, and Woo Youn Kim. FragFM: Hierarchical framework for efficient molecule generation via fragment-level discrete flow matching. In International Conference on Learning Representations , 2026. [19] Daniel Levy and Jarrid Rector-Brooks. Molecular fragment-based diffusion model for drug discovery. In ICLR 2023 Workshop on Machine Learning for Drug Discovery , 2023. [20] Qi Liu, Miltiadis Allamanis, Marc Brockschmidt, and Alexander Gaunt. Constrained graph variational autoencoders for molecule design. Advances in Neural Information Processing Systems , 31, 2018. [21] Aaron Lou, Chenlin Meng, and Stefano Ermon. Discrete diffusion modeling by estimating the ratios of the data distribution. arXiv preprint arXiv:2310.16834 , 2023. [22] Youzhi Luo, Keqiang Yan, and Shuiwang Ji. GraphDF: A discrete flow model for molecular graph generation. In International Conference on Machine Learning , pages 7192–7203. PMLR, 2021. [23] Matteo Ninniri, Marco Podda, and Davide Bacciu. Graph diffusion that can insert and delete. In Advances in Neural Information Processing Systems , volume 38, pages 78375–78401, 2025. doi: 10.52202/085713-2625. [24] Chao Pang, Jianbo Qiao, Xiangxiang Zeng, Quan Zou, and Leyi Wei. Deep generative models in de novo drug molecule generation. Journal of Chemical Information and Modeling , 64(7): 2174–2194, 2024. [25] Pavel G Polishchuk, Timur I Madzhidov, and Alexandre Varnek. Estimation of the size of drug-like chemical space based on GDB-17 data. Journal of Computer-Aided Molecular Design ,27(8):675–679, 2013. [26] Subham S Sahoo, Marianne Arriola, Yair Schiff, Aaron Gokaslan, Edgar Marroquin, Justin T Chiu, Alexander Rush, and Volodymyr Kuleshov. Simple and effective masked diffusion language models. Advances in Neural Information Processing Systems , 37:130136–130184, 2024. [27] Petra Schneider, W Patrick Walters, Alleyn T Plowright, Norman Sieroka, Jennifer Listgarten, Robert A Goodnow Jr, Jasmin Fisher, Johanna M Jansen, José S Duca, Thomas S Rush, et al. Rethinking drug design in the artificial intelligence era. Nature Reviews Drug Discovery , 19(5): 353–364, 2020. [28] Marwin HS Segler, Thierry Kogej, Christian Tyrchan, and Mark P Waller. Generating focused molecule libraries for drug discovery with recurrent neural networks. ACS Central Science , 4 (1):120–131, 2018. [29] Chence Shi, Minkai Xu, Zhaocheng Zhu, Weinan Zhang, Ming Zhang, and Jian Tang. GraphAF: A flow-based autoregressive model for molecular graph generation. arXiv preprint arXiv:2001.09382 , 2020. [30] Martin Simonovsky and Nikos Komodakis. GraphVAE: Towards generation of small graphs using variational autoencoders. In International Conference on Artificial Neural Networks ,pages 412–422. Springer, 2018. [31] Teague Sterling and John J Irwin. ZINC 15–ligand discovery for everyone. Journal of Chemical Information and Modeling , 55(11):2324–2337, 2015. [32] Morgan Thomas, Raul Astudillo, Yasir S Raouf, Carles Navarro, Gianni De Fabritiis, and Andreas Bender. Generative virtual screening: from search to generate and back. Digital Discovery , 2026. 7[33] Clément Vignac, Igor Krawczuk, Antoine Siraudin, Bohan Wang, Volkan Cevher, and Pas-cal Frossard. DiGress: Discrete denoising diffusion for graph generation. arXiv preprint arXiv:2209.14734 , 2022. [34] Sergei Voloboev. A review on fragment-based de novo 2D molecule generation. arXiv preprint arXiv:2405.05293 , 2024. [35] Seongjun Yun, Minbyul Jeong, Raehyun Kim, Jaewoo Kang, and Hyunwoo J Kim. Graph transformer networks. Advances in Neural Information Processing Systems , 32, 2019. 
+
+## A Detailed Methods 
+
+A.1 Notation 
+
+Table 2: Notation used in the main text and Appendix A. 
+
+Symbol Meaning 
+
+M Atom-level molecule. 
+
+V = {F1, . . . , F K } Fixed vocabulary of K molecular fragments. 
+
+G0 = ( X0, E 0, S 0) Clean fragment graph with fragment labels, binary fragment edges, and directed attachment sites. 
+
+Gt Fragment graph after structural deletion and categorical corruption at timestep t.
+
+V0 = {1, . . . , N } Node set of the clean fragment graph. 
+
+Ai Number of atoms in the fragment assigned to node i.
+
+r Uniformly selected root node that is protected from structural deletion. 
+
+τi Structural deletion time assigned to non-root node i.
+
+ζ′(t) Normalized probability mass of a structural event at timestep t.
+
+sp Reverse step near which fragment additions are most likely. 
+
+∆t Number of nodes at the deletion boundary at timestep t.
+
+fθ Main denoiser producing ZX , ZE , and ZS .
+
+gϕ Auxiliary model predicting the boundary count ∆t.
+
+bP Sij Predicted distribution over local attachment atoms in fragment i for its edge to fragment j.
+
+P Ranked pool of unique valid products returned by the assembler. 
+
+cM Final atom-level molecule selected from P.
+
+A.2 Fragment Graph Preprocessing 
+
+Each molecule is decomposed into fragments using the preprocessing pipeline of FragDiffusion. In FragDiffusion, each connection between two fragments is represented by a single categorical code called an attachment mode. For an edge (i, j ), this code identifies the atom in fragment Fi, the atom in fragment Fj , and the bond type connecting them. For example, one attachment mode may represent “connect atom 3 of Fi to atom 1 of Fj with a single bond.” The possible attachment modes and their empirical frequencies are obtained from the training data and stored in a lookup table. FragFlex uses this lookup table only during preprocessing to convert the attachment-mode labels into neural attachment-site targets. For each fragment edge (i, j ), preprocessing recovers the two local atom indices and stores them as S0,ij and S0,ji , while replacing the attachment-mode edge with the binary labels 
+
+E0,ij = E0,ji = 1 .
+
+Consequently, the model is trained and sampled using binary fragment topology and explicit directed attachment-site targets. Unlike FragDiffusion, FragFlex does not use an attachment-mode lookup table during inference; instead, its neural attachment-site predictor directly proposes the atom-level connection for each generated fragment edge. 8A.3 FragFlex Training Algorithm 1 FragFlex training 
+
+Require: Dataset of clean fragment graphs G0 = ( X0, E 0, S 0) 
+
+> 1:
+
+repeat  
+
+> 2:
+
+Sample a minibatch and t ∼ Unif {1, . . . , T } 
+
+> 3:
+
+Select a root r ∼ Unif( V0) 
+
+> 4:
+
+Sample τi ∼ Cat( ζ′) for each i̸ = r; set τr = T + 1  
+
+> 5:
+
+Vt ← { i ∈ V0 : τi ≥ t} 
+
+> 6:
+
+Bt ← { i ∈ V0 \ { r} : τi = t} 
+
+> 7:
+
+Remove nodes with τi < t and their incident edges  
+
+> 8:
+
+Mark nodes in Bt and their incident edges as DEL ∗ 
+
+> 9:
+
+Corrupt all other retained node and edge labels with ¯Qt to obtain Gt 
+
+> 10:
+
+Form the count-network input G− 
+
+> t
+
+← Gt \ Bt 
+
+> 11:
+
+Set the count target ∆t ← | Bt| 
+
+> 12:
+
+(ZX , Z E , Z S ) ← fθ (Gt, t ) 
+
+> 13:
+
+Z∆ ← gϕ(G− 
+
+> t
+
+, t ) 
+
+> 14:
+
+LX ← CE( ZX , X 0) over retained nodes  
+
+> 15:
+
+LE ← CE( ZE , E 0) over retained node pairs  
+
+> 16:
+
+Mask ZSij,a for a ≥ Ai 
+
+> 17:
+
+LS ← CE( ZS , S 0) over directed endpoints of clean fragment edges  
+
+> 18:
+
+L∆ ← CE( Z∆, ∆t) 
+
+> 19:
+
+L ← L X + λE LE + λ∆L∆ + λS LS 
+
+> 20:
+
+Update θ and ϕ with AdamW  
+
+> 21:
+
+until Nepoch epochs have been completed 
+
+Forward corruption. For each clean graph G0, we sample a timestep t ∼ Unif {1, . . . , T } and a root r ∼ Unif( V0). Each non-root node receives a deletion time τi ∼ Cat( ζ′), while τr = T + 1 .Define the retained nodes Vt and deletion-boundary nodes Bt as 
+
+Vt = {i ∈ V0 : τi ≥ t}, Bt = {i ∈ V0 \ { r} : τi = t}. (5) Nodes with τi < t are absent from Gt. Following GrIDDD, nodes in Bt use the transient state DEL ∗,and every edge incident to a boundary node uses the corresponding transient edge state. All other retained node and edge labels are corrupted with the empirical-marginal kernel, 
+
+¯Qt(m) = ¯ αtI + (1 − ¯αt)1m⊤, (6) where m is the empirical fragment or edge marginal and ¯αt is the cumulative cosine schedule. The protected root uses the empirical fragment marginal as its terminal prior. Thus, GT contains one fragment sampled from the empirical fragment distribution and is not restricted to a single-atom fragment. The resulting corrupted graph Gt and the current timestep t are passed to the main denoiser fθ . The denoiser predicts logits for the clean fragment identities, binary fragment-edge labels, and directed attachment sites: 
+
+(ZX , Z E , Z S ) = fθ (Gt, t ).
+
+Here, ZX , ZE , and ZS denote the node, edge, and attachment-site logits, respectively. For a source fragment Fi containing Ai atoms, positions a ≥ Ai in ZSij,a are masked because they do not correspond to real atoms. 
+
+Fragment deletion and insertion schedule. The structural schedule ζ′(t) determines when each non-root fragment is removed during forward corruption or, equivalently, added during reverse sampling. Because reverse sampling proceeds from t = T to t = 1 , we define st = T − t as the number of reverse steps completed after the initial one-root graph GT . The parameter sp specifies the reverse step near which fragment additions are most likely to occur. We compute the unnormalized timestep weights as 
+
+ut = σ(xt) 1 − σ(xt), ζ′(t) = ut
+
+PTτ =1 uτ
+
+, xt = st − sp
+
+w T . (7) 9where σ is the sigmoid function and w T controls the temporal spread of fragment additions. Each non-root fragment then receives an event time τi ∼ Cat( ζ′). We use T = 500 , sp = 0 , and w = 0 .05 ,concentrating graph growth near the beginning of reverse sampling. 
+
+Fragment-count model. At timestep t, the boundary set Bt contains the fragments whose event time is τi = t. Its size ∆t = |Bt| is the number of fragments that must be added at that step during reverse sampling. The count network gϕ is trained to predict this number. In the corrupted graph Gt, the boundary fragments are represented by DEL ∗ nodes. If these nodes were given directly to gϕ, the network could obtain the correct answer simply by counting them. We therefore remove the boundary nodes from the count-network input: 
+
+G− 
+
+> t
+
+= Gt \ Bt. (8) The count network then predicts ∆t from G− 
+
+> t
+
+and the current timestep: 
+
+Z∆ 
+
+> t
+
+= gϕ(G− 
+
+> t
+
+, t ), p∆ 
+
+> ϕ
+
+= softmax( Z∆ 
+
+> t
+
+),
+
+where p∆ 
+
+> ϕ
+
+is the predicted distribution over the possible values of ∆t. Consequently, gϕ must infer how many fragments should be added from the current graph structure and timestep, rather than reading the answer from visible DEL ∗ nodes. 
+
+Training objective. We use cross-entropy losses for fragment identity, edge, attachment-site, and fragment-count prediction: 
+
+LX = CE( ZX , X 0), LE = CE( ZE , E 0),
+
+LS = CE( ZS , S 0), L∆ = CE( Z∆ 
+
+> t
+
+, ∆t). (9) The first two losses are evaluated over retained nodes and node pairs, respectively. The total objective is 
+
+L = LX + λE LE + λ∆L∆ + λS LS . (10) 
+
+A.4 Flexible-Length Reverse Sampling Algorithm 2 FragFlex sampling 
+
+Require: Trained fθ and gϕ; empirical fragment marginal; Nmax  
+
+> 1:
+
+Sample one root fragment from the empirical fragment marginal to form GT 
+
+> 2:
+
+for t = T, T − 1, . . . , 1 do  
+
+> 3:
+
+Sample b∆t from gϕ(G− 
+
+> t
+
+, t ) and clip to the remaining capacity  
+
+> 4:
+
+Append b∆t nodes and mark them and their incident edges as DEL ∗ 
+
+> 5:
+
+Predict clean node and edge logits with fθ (Gt, t ) 
+
+> 6:
+
+if t = 1 then  
+
+> 7:
+
+Also compute and retain the attachment-site logits ZS 
+
+> 8:
+
+Combine clean predictions with the exact categorical posterior pθ (zt−1 | zt, G t, t ) 
+
+> 9:
+
+Sample Xt−1 and the upper triangle of Et−1; symmetrize Et−1 
+
+> 10:
+
+Connect each newly resolved node that has no neighbor in the pre-insertion graph  
+
+> 11:
+
+if t − 1 = 0 and the fragment graph is disconnected then  
+
+> 12:
+
+Add highest-confidence cross-component edges until the graph is connected  
+
+> 13:
+
+Mask padded site positions and convert the retained ZS to bP S 
+
+> 14:
+
+return ( bX0, bE0, bP S )
+
+Fragment insertion. The count network gϕ predicts how many fragment nodes should be added. Note that the current graph has the same form as G− 
+
+> t
+
+, which is used to train the count network. After sampling the predicted count b∆t, that many DEL ∗ nodes are appended, up to the maximum graph size 
+
+Nmax . These nodes are temporary placeholders. Their fragment identities and edges are determined by the subsequent denoising step. 
+
+Categorical denoising. For each node or edge variable z, the main denoiser fθ (Gt, t ) outputs clean-category logits defining pθ (z0 | Gt, t ) after softmax. This clean-category distribution is 10 combined with the known forward transition kernel to obtain the reverse distribution 
+
+pθ (zt−1 | zt, G t, t ) = X
+
+> z0
+
+q(zt−1 | zt, z 0) pθ (z0 | Gt, t ). (11) A new category zt−1 is then sampled from this distribution. Before sampling, probability assigned to the transient DEL ∗ state is removed and the remaining probabilities are renormalized. 
+
+Connectivity repair. Because fragment edges are sampled independently, the generated fragment graph is not guaranteed to be connected. If a newly inserted node is resolved into a fragment without an edge to the existing graph, the sampler connects it to the existing node with the highest predicted probability of a real edge. After the final reverse step, any remaining components are joined by repeatedly adding the highest-scoring edge between two different components. If the final graph contains C connected components before this repair, exactly C − 1 edges are added. 
+
+Attachment-site prediction. The attachment-site logits do not participate in the categorical reverse posterior. They are therefore computed only at t = 1 , when the fragment identities and topology are about to be resolved into G0. Positions that do not correspond to real atoms are masked, and the remaining logits are normalized to produce the directed attachment-site distributions bP S . These distributions are subsequently used by the neural assembler to select atom-level connections. 
+
+A.5 Valence-Aware Neural Assembly Algorithm 3 Neural top-k valence-aware assembly 
+
+Require: Generated ( bX0, bE0, bP S ); k, Bbeam , and Pmax  
+
+> 1:
+
+Extract the generated fragment-edge set E 
+
+> 2:
+
+for all (i, j ) ∈ E do  
+
+> 3:
+
+Construct and score the top-k candidate pairs Cij  
+
+> 4:
+
+Order edges by increasing |C ij | 
+
+> 5:
+
+Initialize B with the disconnected RDKit fragments  
+
+> 6:
+
+for all edges e in the selected order do  
+
+> 7:
+
+Expand B over Ce, retaining only RDKit-valence-safe branches  
+
+> 8:
+
+if E contains a cycle then  
+
+> 9:
+
+Add skip branches with penalty  
+
+> 10:
+
+Rank by more successfully added bonds, fewer skips, a higher site score, and fewer non-top-1 choices  
+
+> 11:
+
+Retain the best Bbeam states in B 
+
+> 12:
+
+if B = ∅ then  
+
+> 13:
+
+return failure  
+
+> 14:
+
+Form P from the first Pmax unique, connected, and sanitized products in beam order  
+
+> 15:
+
+if P = ∅ then  
+
+> 16:
+
+return failure  
+
+> 17:
+
+Sample cM ∼ Unif( P) 
+
+> 18:
+
+return cM
+
+Before top-k selection, the assembler uses RDKit to exclude atoms that cannot accept an external single bond, treating an explicit capping hydrogen as replaceable. Here, bP S denotes the attachment-site distribution predicted by the neural network, and eP S denotes the distribution obtained by applying this feasibility mask and renormalizing the remaining probabilities. For each generated fragment edge (i, j ), define 
+
+Ai→j = TopK k( eP Sij ), Aj→i = TopK k( eP Sji ). (12) The Cartesian product of these sets Cij = Ai→j × A j→i contains at most k2 candidate atom pairs. For a candidate pair (ai, a j ) ∈ C ij , the neural score is 
+
+ℓij (ai, a j ) = log eP Sij,a i + log eP Sji,a j . (13) Fragment edges are processed in increasing order of |C ij |, so edges with fewer candidate atom pairs are considered first. For each edge, every beam state is expanded over its candidate pairs. Each 11 Table 3: Molecular properties, distinct valid molecules, and unique Bemis–Murcko (BM) scaffolds across generation scales. QED and SA are evaluated at n = 10 5. Acyclic molecules are excluded from the BM scaffold counts.                                                                                  
+
+> QED ↑SA ↓|V∩U|molecules ↑Unique BM scaffolds ↑
+> Model Unit Ins./del. n= 10 510 510 610 710 510 610 7
+> DiGress Atom No 0.733 3.702 71,458 712,891 7,113,016 55,465 479,402 3,990,775 GrIDDD Atom Yes 0.651 3.413 87,949 873,848 8,566,049 77,285 691,875 5,889,181
+> IFH Atom Yes 0.725 5.367 57,964 577,867 5,757,629 57,093 558,945 5,402,044 JT-VAE Fragment No 0.762 3.418 98,975 964,773 8,916,975 66,996 504,974 3,404,902 FragDiffusion Fragment No 0.609 6.840 96,073 952,672 9,265,827 74,771 618,016 4,734,767
+> FragFlex Fragment Yes 0.764 3.021 99,619 990,390 9,520,600 67,250 516,485 3,492,520
+
+expansion replaces an explicit cap hydrogen when needed, adds a single bond, and is retained only if RDKit’s strict valence check succeeds. In a cyclic graph, an invalid predicted edge can be skipped because the remaining edges may still keep the graph connected. Skipping is penalized and is not allowed for trees, where every edge is required for connectivity. Beam states are ranked by the following priorities: more successfully added fragment edges, fewer skipped edges, a higher accumulated neural pair score, and fewer non-top-1 attachment choices. After each fragment edge, only the best Bbeam states are retained. Thus, k limits the local atom choices for each edge, whereas Bbeam limits the number of global partial assemblies. After all edges are processed, beam molecules are examined in the same ranking order. They are fully sanitized, required to be connected, and deduplicated by canonical SMILES. At most Pmax unique valid products are collected into a pool P, and the final molecule is sampled as 
+
+cM ∼ Unif( P), |P| ≤ Pmax . (14) Assembly fails if P = ∅.The search is score-based until P is constructed, while the final product is sampled uniformly from this pool. This prevents the assembler from always selecting the highest-scoring valid product and increases atom-level assembly diversity for the same fragment graph. Because both the local candidate sets and beam states are truncated, assembly may fail even when an unexamined valid assembly exists. 
+
+## B Additional Results 
+
+B.1 Scaffold Diversity and Molecular Quality 
+
+We additionally evaluate scaffold-level diversity by counting unique non-empty Bemis–Murcko (BM) scaffolds [2]. As shown in Table 3, models generating more unique BM scaffolds tend to produce molecules with less favorable QED and SA profiles, characterized by lower QED and/or higher SA scores. Although FragFlex does not achieve the highest scaffold diversity, it obtains the best QED and SA scores while still generating millions of unique BM scaffolds. These results indicate that FragFlex provides a favorable balance between scaffold diversity and molecular quality rather than maximizing scaffold count alone. 
+
+B.2 Ablation Study 
+
+We evaluate three design choices in FragFlex using 10 5 generated molecules. The default FragFlex uniformly selects the final molecule from the valid product pool P and uses a terminal graph 
+
+GT containing a single fragment. FragFlex-Top1 instead selects the highest-ranked product in P.FragFlex-Middle shifts the peak insertion and deletion activity to the midpoint, sp = T / 2, following the schedule used by GrIDDD. FragFlex-Multi allows the terminal graph GT to contain multiple fragments, following the variable-size terminal-state formulation used by GrIDDD. The default FragFlex configuration achieves the highest number of distinct valid molecules. Selecting only the highest-scoring assembly candidate reduces uniqueness, suggesting that uniform selection 12 Table 4: Ablation of the assembly selection rule, structural schedule, and terminal graph at n = 10 5.
+
+|V ∩ U | denotes the number of distinct valid molecules.                                
+
+> Variant Modification Validity (%) ↑Uniqueness (%) ↑|V∩U| ↑
+> FragFlex-Top1 cM=M(Top1) 99.66 99.22 98,888 FragFlex-Middle sp=T / 299.76 99.32 99,076 FragFlex-Multi Multi-fragment GT99.40 99.97 99,370
+> FragFlex Default 99.67 99.94 99,619
+
+helps preserve molecular diversity. Moving the insertion and deletion peak to the midpoint slightly improves validity but decreases uniqueness. The multi-fragment terminal state achieves the highest uniqueness but reduces validity. Overall, the default configuration provides the strongest balance between the two metrics. 
+
+## C Implementation Details 
+
+Table 5: Hyperparameters and model configuration 
+
+Component Setting Diffusion T = 500 with a cosine noise schedule ¯αt (s = 0 .008 )Deletion/insertion schedule Logistic ζ′(t) with sp = 0 , w = 0 .05 
+
+Terminal prior GT One fragment from the empirical fragment marginal Main denoiser fθ 7 layers, node width 384, edge width 96, 8 heads Count model gϕ 2 layers, node width 128, edge width 32, 8 heads Maximum graph size Nmax = 32 fragments Training 200 epochs, 4 GPUs, batch 32 per GPU, dropout 0.05 Optimizer AdamW, LR 2 × 10 −4, weight decay 10 −3
+
+LR schedule 5% warmup from 0.1, cosine decay to 0.05 Assembly k = 4 , Bbeam = 512 , Pmax = 16 , cM ∼ Unif( P)
+
+Training was performed on four NVIDIA L40 GPUs. Training the 14.2M-parameter model for 200 epochs required approximately 10 hours of wall-clock time. Sampling was performed on a single NVIDIA GeForce RTX 2080 Ti GPU, requiring approximately 3 hours to generate 10 5 molecules. 
+
+## D Code Availability 
+
+Our code is available at https://github.com/SihyunPark99/FragFlex 
+
+13 E Fragment Visualization 
+
+Figure 4: The 100 fragment types used by FragFlex, arranged in descending order of frequency in the ZINC training set. 14 F Generated Molecules 
+
+Figure 5: 50 random samples generated by FragFlex. 15

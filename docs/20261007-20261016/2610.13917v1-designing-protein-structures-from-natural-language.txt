@@ -1,0 +1,4214 @@
+Preprint
+DESIGNING PROTEIN STRUCTURES
+FROM NATURAL LANGUAGE
+Joseph Lee1, Yanjing Li1, Bo Qiang1, Gregory Lau2, Allyson Ettinger3, Noah A. Smith1,3,
+Rory Donovan-Maiye3, David Baker1,4, Hanna Hajishirzi1, Pang Wei Koh1
+1University of Washington
+2National University of Singapore
+3Allen Institute for AI (Ai2)
+4Howard Hughes Medical Institute
+ABSTRACT
+A central challenge in de novo protein design is generating proteins with desired
+structural and functional properties. Existing design models typically require a
+dedicated input representation for each property, limiting the design objectives
+they support. We develop Prompteina, the first all-atom structure generation
+model that supports new and broader design objectives specified in natural lan-
+guage, analogous to text-to-image generation. To train Prompteina, we construct
+Prompteina-Data, a paired text–protein structure dataset of 1.8M structures and
+50M+ captions describing global and residue-specific structural and functional
+properties. We adapt Proteina-Complexa, a pretrained structure generation model,
+through text-conditioned pretraining and finetuning that aligns residues with their
+corresponding text. Prompteina outperforms baselines on 15 of 18 structural prop-
+erties and generates proteins that more closely match descriptions of their intended
+functions. In binder design, it leads baselines on at least 13 of 20 targets and im-
+proves interface confidence by 14% over the strongest baseline. With iterative in
+silico feedback, Prompteina’s gain over non-iterative generation is 57% larger than
+the next-best baseline on the hardest targets. Finally, we experimentally validate
+Prompteina designs against GM2A, a target with no reported de novo binders. We
+identify nine binders, with the strongest at an apparent KD of 107 nM. These re-
+sults establish natural language as an effective and powerful conditioning interface
+for protein structure generation. Code, data and model weights on
+.
+Figure 1: Prompteina generates all-atom protein structures directly from natural language. (a)
+A single natural-language interface supports diverse design objectives spanning global and residue-
+specific properties. (b) In agentic binder design, an agent researches target biology and writes text
+prompts describing candidate binders. Prompteina then realizes these research-informed specifica-
+tions directly in generated structures. Experimental validation against GM2A identifies nine diverse
+binders, with the best replicate at an apparent KD of 68.8 nM. (c) Across 20 targets, Prompteina
+achieves the highest interface confidence when the same agent specifies designs for every model.
+1
+arXiv:2610.13917v1  [cs.LG]  9 Oct 2026
+
+
+Preprint
+1
+INTRODUCTION
+A central challenge in de novo protein design is generating proteins with specified properties, from
+their overall fold or function to properties of the individual residues that make up the protein. Ex-
+isting protein structure generation models allow control over such properties, but a custom input
+representation must typically be engineered for each property to condition generation (Watson et al.,
+2023; Geffner et al., 2025; Stark et al., 2026). For instance, a protein’s desired fold may be rep-
+resented by a single categorical label, and its desired secondary structure by a sequence that labels
+each residue as part of a helix, strand, or loop. While this form of conditioning provides precise
+control, the need to define a separate representation for each property limits the range of design
+objectives that any one model can support.
+An ideal conditioning approach would support a diverse set of properties without the need to en-
+gineer a custom representation for each. Image generation provides a precedent: natural language
+offers a unified conditioning interface for expressing diverse visual attributes that would otherwise
+require task-specific labels or controls (Reed et al., 2016; Rombach et al., 2022).
+We introduce Prompteina, the first text-conditioned all-atom protein structure generation model
+that supports diverse design objectives through a single natural-language interface. Given an input
+prompt, Prompteina jointly generates an all-atom protein structure and sequence conditioned on the
+prompt’s text embeddings. By contrast, existing approaches either use text to guide structure gen-
+eration only at inference time (Ingraham et al., 2023) or use it to generate sequences that must then
+be folded into structures (Dai et al., 2025; Pei et al., 2026). This limits robust, fine-grained control
+over both structure and sequence. By directly conditioning the generation of both modalities on text,
+Prompteina enables steering of global properties such as fold class alongside residue-specific proper-
+ties including specific disulfide bonds and binder–target contacts (Fig. 1; App. E.4). Prompteina also
+complements work on agentic protein design by letting language-model agents pass specifications
+directly to the structure generator in natural language rather than translate them into fixed, model-
+specific inputs that constrain which design decisions they can express (Shanehsazzadeh, 2026).
+Training Prompteina for direct, fine-grained control requires paired text–structure data describing
+both global and residue-specific properties. Existing text–protein datasets, however, pair sequences
+with only high-level functional descriptions (Dai et al., 2025; Song et al., 2026). We construct
+Prompteina-Data, comprising 1.8M structures and 52.4M captions describing both functional and
+structural properties. We transform annotations mined from databases and scientific literature or
+computed directly from structures into diverse natural-language captions and annotate, where pos-
+sible, correspondences between phrases in the captions and the residues they describe (§2.1). Using
+this data, we extend Complexa (Didi et al., 2026), a pretrained all-atom protein structure gener-
+ation model, with two text-conditioning pathways (§2.2). We adapt the model at scale through
+text-conditioned continual pretraining on Prompteina-Data, then fine-tune it with direct supervision
+of the correspondences between caption text and residues for finer residue-level control (§2.3).
+Across five groups of structural properties, Prompteina leads evaluated baselines on 15 of 18 tasks,
+supports more properties than any single baseline, and generates proteins that more closely match
+descriptions of their intended functions (§§3.1.1–3.1.2). At finer structural scales, Prompteina steers
+the number of residues at the binder–target interface across 20 targets (ρ > 0.99, §3.2.1). Beyond
+steering individual interface properties, we evaluate Prompteina in agent-guided protein binder de-
+sign. The same language-model agent writes specifications based on the properties supported by
+each model’s conditioning interface. Prompteina outperforms every baseline on at least 13 of 20
+targets and raises interface confidence by 14% over the strongest baseline (§3.2.2). When we al-
+low the agent to iteratively refine designs, Prompteina shows larger gains over matched-budget i.i.d.
+generation than either baseline, especially on the most difficult targets (§3.2.3). As a proof of con-
+cept, we conducted a prospective, agent-guided design campaign against GM2 ganglioside activator
+protein (GM2A), a therapeutic target implicated in GM2 gangliosidosis (Deschenes et al., 2023).
+GM2A has no reported de novo binders and was one of three targets without a hit in a prior cam-
+paign (Stark et al., 2026). In our campaign, nine of 89 assayed designs were classified as binders,
+with the strongest yielding an overall apparent KD of 107 nM across three replicates (§3.3).
+These results establish natural language as an effective conditioning interface, enabling structural
+and functional control across scales and integrating language-based reasoning and iterative refine-
+ment into protein design. We make our code, data, and model weights available on GitHub.
+2
+
+
+Preprint
+Figure 2: Paired text–structure data and text-conditioned structure generation. (a) Structural
+and functional annotations are curated and (b) passed to a large language model for caption genera-
+tion. (c) Residues are aligned to their corresponding caption text spans for supervised alignment fine-
+tuning. (d) Captions are embedded into pooled and per-token text representations, then projected to
+condition the structure generation model. (e) The denoiser is first trained on caption–structure pairs
+with a flow-matching objective, then fine-tuned with supervised text–residue alignment (§2.2).
+2
+TEXT-GUIDED PROTEIN STRUCTURE GENERATION
+A natural-language conditioning interface should let protein designers specify properties across
+structural scales, from global properties of the whole protein, such as fold class and overall shape,
+to residue-specific properties, such as disulfide bonds, catalytic sites, and binder–target contacts.
+We therefore construct Prompteina-Data, a dataset pairing protein structures with natural-language
+descriptions spanning these scales (§2.1), and use it to train Prompteina, an all-atom structure gen-
+eration model conditioned on natural language for monomer and binder design (Fig. 2; §§2.2–2.3).
+2.1
+PROMPTEINA-DATA: TEXT–STRUCTURE DATA
+We construct Prompteina-Data from experimental structures in the Protein Data Bank (PDB; Berman
+et al., 2000), predicted structures in the AlphaFold Database (AFDB; Varadi et al., 2022), and Ted-
+dymer synthetic dimers (Didi et al., 2026) (App. B.1). Prompteina generates one chain at a time,
+so we treat each chain as a separate entry, giving about 1.8M entries. The dataset includes up to
+59 annotations per entry, derived from database fields and atomic coordinates (Fig. 2a; App. B.2).
+Annotations span global properties, including fold class and compactness, and residue-specific prop-
+erties with residue positions, such as disulfide bonds, catalytic sites, and protein–protein contacts.
+At inference, prompts may specify one property or combine several, so we vary caption content
+and length in the training data (Wu et al., 2025) (App. B.3). For each entry, we sample several
+subsets that differ in the number and choice of annotations, then prompt Qwen3-235B-A22B (Yang
+et al., 2025) to write one caption from each subset (Fig. 2b; App. B.4). In total, we generate 52.4M
+captions, averaging 29 captions per entry. We use an LLM judge to compare 80 generated captions
+with their ground-truth annotations (App. B.5). Across this sample, the generated captions match
+their ground-truth annotations closely (97.8% recall, 89.8% precision, and 95.7% accuracy).
+2.2
+PROMPTEINA: TEXT-CONDITIONED STRUCTURE GENERATION
+Our model, Prompteina, builds on the pretrained Complexa model (Didi et al., 2026) (App. C.1),
+adding two text-conditioning pathways and an auxiliary text–residue alignment objective.
+Global and residue-level text conditioning.
+Complexa’s denoiser generates backbone coordi-
+nates and one side-chain latent per residue before a frozen variational autoencoder decodes both
+into an all-atom structure and amino acid sequence. To give every residue the same conditioning
+signal for global properties, we broadcast a pooled embedding from frozen Qwen3-Embedding-8B
+(Zhang et al., 2025) through adaptive layer normalization. For residue-specific properties, each
+residue attends to frozen Qwen3-8B token states (Yang et al., 2025) via cross-attention before pro-
+tein self-attention in each denoiser layer (Fig. 2d; Apps. C.2–C.3). Two-layer MLPs map both
+3
+
+
+Preprint
+representations to denoiser dimensions. We ablate pooled conditioning, cross-attention, and their
+combination, which performs best across tasks (App. D).
+Text–residue alignment.
+In text-conditioned pretraining, we train the denoiser using a flow-
+matching loss but do not directly supervise which residues correspond to each text span. Prompteina-
+Data contains residue positions for many annotations, which we use to construct text–residue align-
+ment annotations (Fig. 2c). For each Prompteina-Data annotation selected for a caption, we call its
+associated residue positions the annotation’s residue span. A residue span contains, for example, the
+helix residues for a mainly alpha fold annotation and the participating residues for a disulfide bond or
+protein–protein contact. We attempt to locate the corresponding text span with regular expressions
+and TF-IDF-weighted token matching. If either span is unavailable, we retain the caption–structure
+pair but omit that alignment annotation. We validate span matching on held-out captions (App. B.6).
+We train an auxiliary alignment head on these annotations, following work using segmenta-
+tion masks for token-level supervision in text-to-image diffusion (Wang et al., 2024).
+For N
+protein residues and T caption tokens, we represent alignment annotations as a binary matrix
+M ∈{0, 1}N×T , where Mn,i = 1 when token i is aligned to residue n. The alignment head
+predicts a logit An,i using cross-attention updates for every residue–token pair (App. C.4). Let
+V ⊆{1, . . . , N}×{1, . . . , T} contain residue–token pairs used for alignment supervision, and let σ
+denote the sigmoid function. Aligned residue–token pairs are sparse, so for each supervised example
+we set w+ to the ratio of negative to positive pairs (App. C.4). The alignment loss is
+Lalign = −1
+|V|
+X
+(n,i)∈V
+[w+Mn,i log σ(An,i) + (1 −Mn,i) log(1 −σ(An,i))] .
+(1)
+After alignment fine-tuning, Prompteina gains finer control over features such as disulfide-bond and
+salt-bridge counts and retains global fold control without the alignment head at inference (Table 10).
+2.3
+TRAINING AND INFERENCE
+Training.
+We first adapt the Complexa denoiser to natural-language conditioning using newly ini-
+tialized parameters for pooled and token-level text conditioning (§2.2; App. C.5). These parameters
+are first trained with the denoiser frozen before we unfreeze it for joint text-conditioned contin-
+ual pretraining on Prompteina-Data, following staged training in text-to-image models (Chen et al.,
+2023) (Fig. 2e; App. C.6). For alignment fine-tuning, we freeze the denoiser and update text projec-
+tors, cross-attention layers, and alignment head. We describe other Complexa training modifications
+that improve performance and their ablations (Apps. C.6, D).
+Inference.
+At inference, Prompteina takes a prompt and protein length and, for binder design, a
+target structure and optional target contact residues. Prompteina samples backbone coordinates and
+side-chain latents with the same stochastic differential equation as Complexa and uses classifier-
+free guidance to adjust text-conditioning strength (Ho & Salimans, 2022) (App. C.7). The frozen
+variational autoencoder decodes these into an all-atom structure and amino acid sequence.
+3
+EXPERIMENTS
+We show that Prompteina’s natural-language conditioning interface controls structure generation
+from prompts specifying structural and functional properties (§3.1). This control extends to pro-
+tein binding, where Prompteina directly steers the binder–target interface (§3.2.1) and gives agent-
+written designs higher interface confidence than state-of-the-art binder design models do (§3.2.2).
+Iterative revision yields the largest interface-confidence gains with Prompteina, especially on the
+hardest targets (§3.2.3). Finally, we prospectively design and experimentally test candidates against
+GM2A, identifying nine binders among 89 designs assayed by surface plasmon resonance (§3.3).
+3.1
+TEXT-GUIDED STRUCTURE GENERATION
+We first test Prompteina on prompts for structural properties (§3.1.1) or protein function (§3.1.2).
+4
+
+
+Preprint
+Figure 3: Natural language controls global and residue-specific structural properties. Examples
+span global properties (shape, architecture, domain composition, and symmetry), residue-specific
+properties (disulfide and salt-bridge counts), and combinations of both (fold class with disulfide
+count). All structures match their captions and are designable (scRMSD < 2 ˚A).
+Table 1: Prompteina controls the broadest range of structural properties. (a) Text-guided
+models. All models receive identical free-form prompts for 18 tasks in five property columns. Cells
+average task scores by column; parentheses give task counts (full results in Table 11).
+† denotes
+accuracy within 2.1 pp of chance (33.3%). (b) Property-specific models. Baselines use property-
+specific labels or structured inputs. Columns show tasks supported by at least one baseline; dashes
+mark unsupported tasks. We report within-prompt half-widths of 95% stratified-bootstrap intervals.
+(a)
+Accuracy (%) (↑)
+Spearman ρ (↑)
+Accuracy (%) / ρ (↑)
+Method
+Fold (6)
+Shape (3)
+Secondary (3)
+Tertiary (2)
+Fold + sec./tert. (4)
+Prompteina
+53.1
+62.2
+0.82
+0.48
+90.2 / 0.60
+Chroma (text)
+10.9
+34.2†
+0.52
+0.35
+33.9† / 0.33
+Pinal
+12.7
+35.1†
+0.38
+0.17
+35.4† / 0.12
+BioMatrix
+9.9
+32.7†
+0.32
+0.18
+31.4† / 0.15
+(b)
+Accuracy (%) (↑)
+Spearman ρ (↑)
+Method
+CATH class
+CATH arch.
+Compactness
+Helix
+Strand
+Sheet
+Prompteina
+96.0 ± 3.0
+51.1 ± 1.6
+76.7 ± 5.3
+0.94 ± 0.01
+0.88 ± 0.02
+0.64 ± 0.04
+Chroma (label)
+64.7 ± 7.7
+7.5 ± 1.0
+39.3 ± 5.3
+0.86 ± 0.02
+0.58 ± 0.04
+0.59 ± 0.05
+Proteina
+96.7 ± 3.0
+27.5 ± 1.4
+—
+—
+—
+—
+RFdiffusion
+—
+—
+—
+0.87 ± 0.01
+0.92 ± 0.01
+0.82 ± 0.02
+3.1.1
+CONTROL OF STRUCTURAL PROPERTIES
+Baselines.
+For structural control, we benchmark text-guided models that accept free-form prompts
+and property-specific models that take labels or structured inputs.
+Text-guided models receive
+the same free-form prompts as Prompteina: Chroma (text) uses a structure-captioning model for
+inference-time text guidance (Ingraham et al., 2023), whereas Pinal (Dai et al., 2025) and BioMa-
+trix (Pei et al., 2026) generate amino acid sequences from natural-language descriptions, which we
+fold with ESMFold. Property-specific models, comprising Chroma (label) (Ingraham et al., 2023),
+Proteina (Geffner et al., 2025), and RFdiffusion (Watson et al., 2023), receive their native labels or
+structured inputs. For each baseline, we specify every property it supports and evaluate it only on
+tasks expressible through its conditioning interface. All use paper-default settings (App. E).
+Evaluation.
+We compare Prompteina with six baselines across 18 tasks organized into five prop-
+erty groups: fold and topology, secondary structure, tertiary structure, global shape and surface
+properties, and combinations of fold class with secondary-structure or disulfide counts (Table 1a).
+Complete task definitions and scoring procedures are included in App. E. For categorical properties,
+we report accuracy, and for count-valued properties such as helix count, we report the Spearman
+rank correlation (ρ) between requested and realized values measured in each generated structure.
+Prompteina enables new and broader forms of structural control.
+Across the benchmark,
+Prompteina controls all five property groups and leads on 15 of 18 tasks (Table 1a and Table 11).
+5
+
+
+Preprint
+It also enables CATH labels for multiple domains in one protein and prompts specifying multiple
+structural constraints, such as fold class and helix or disulfide count (Table 11). With one natural-
+language interface, Prompteina nearly matches Proteina on CATH class and leads property-specific
+models on CATH architecture, compactness, and helix count (Table 1b). RFdiffusion performs better
+on strand and sheet counts because it accepts per-residue secondary-structure inputs. Prompteina’s
+structural control is robust to paraphrasing (App. E.1) and preserves designability and novelty, with
+a higher designable fraction than every baseline on shared tasks and more novel designable struc-
+tures than Complexa (Tables 14 and 15). We show representative Prompteina samples in Fig. 3, with
+additional designable examples and their refolds in App. Fig. 7.
+3.1.2
+GENERATION FROM FUNCTIONAL SPECIFICATIONS
+We next test whether Prompteina can generate structures for protein families, such as lysozymes and
+green fluorescent proteins, from functional prompts. In this setting, we compare against Pinal (Dai
+et al., 2025) and BioMatrix (Pei et al., 2026), which generate sequences from functional prompts;
+we fold their outputs with ESMFold. Since functional prompts lack a directly verifiable structural
+property, we evaluate each generated protein with ProTrek (Su et al., 2025), a contrastive encoder
+of sequences, structures, and text. We report similarities between each prompt and its generated
+sequence or structure. A high ProTrek score is less meaningful for a low-confidence predicted
+fold, so we also weight each score by predicted-structure confidence (pLDDT). We use four prompt
+formats for all 122 families, including at least one from each model’s training distribution.
+Table 2: Prompteina leads on functional prompts. Each cell reports a model’s highest mean across
+four prompt formats, with a 95% bootstrap CI over 122 families. pLDDT-weighted scores multiply
+each ProTrek similarity by mean per-residue pLDDT divided by 100. No samples are filtered.
+Sequence similarity (↑)
+Structure similarity (↑)
+Method
+Unweighted
+pLDDT-weighted
+Unweighted
+pLDDT-weighted
+Prompteina
+8.46 ± 0.98
+7.12 ± 0.88
+7.36 ± 1.04
+6.20 ± 0.90
+Pinal
+7.55 ± 0.79
+5.98 ± 0.70
+7.09 ± 0.73
+5.49 ± 0.68
+BioMatrix
+5.73 ± 0.68
+3.70 ± 0.58
+4.64 ± 0.63
+3.20 ± 0.56
+Prompteina generates structures consistent with functional specifications.
+At each model’s
+best prompt format, Prompteina achieves the highest mean on both ProTrek similarity metrics (Ta-
+ble 2). With pLDDT weighting, it significantly outperforms BioMatrix on both metrics and Pinal on
+sequence similarity, while retaining the highest mean ProTrek structure similarity (Table 2; App. F).
+3.2
+TEXT-GUIDED PROTEIN BINDER DESIGN
+Designing strong binders requires control over both global binder properties, such as fold class, and
+the size and chemistry of the binder–target interface (Cao et al., 2022; Watson et al., 2023). We test
+whether Prompteina can steer these properties through natural language (§3.2.1) and produce better
+predicted binders than methods using predefined, property-specific inputs (§§3.2.2–3.2.3).
+3.2.1
+BINDER–TARGET INTERFACE STEERING
+We first test control over binder–target interface size, which is associated with binding specificity
+(Prasad Bahadur et al., 2004). We use interface residue count, defined as the number of binder
+residues that contact the target, as a proxy (App. G.1). Across 20 targets from the Complexa binder-
+design benchmark (Didi et al., 2026), we generate binders with Prompteina while requesting inter-
+face residue counts from 8 to 30 and holding the target and binder-length distribution fixed. For each
+target, we compare requested and realized counts using Spearman correlation (ρ) and a linear fit.
+Prompteina reliably steers binder–target interface residue count.
+The mean realized count
+tracks the requested count closely and nearly linearly across all 20 targets (Spearman’s ρ = 0.994–
+1.000 and linear-fit R2 = 0.916–0.996; App. Fig. 8). Across the 20 targets, Prompteina steers
+interface residue counts below and above unconditional generation, allowing the size of the resulting
+6
+
+
+Preprint
+Figure 4: Prompteina steers binder–target interface residue count. (a) Requested versus mean
+realized count across 20 targets. The line shows the median across targets, the bands show the in-
+terquartile and 10th–90th percentile ranges, and the dashed line marks equality. (b–d) Predicted
+TrkA binder–target complexes whose realized counts are within one residue of the requested counts
+(requested: 8, 14, 24; realized: 8, 13, 24). Binders (white cartoons) contact the target (surface)
+through interface residues (colored sticks). For each complex, ipSAEmin (↑) reports interface confi-
+dence and complex-averaged pLDDT (↑) reports confidence in the predicted complex structure.
+binder–target interface to be tuned (App. Fig. 8). Figure 4 shows binders for the same target with
+low and high realized counts. This control is robust to prompt paraphrasing (Table 17).
+3.2.2
+AGENTIC PROTEIN BINDER DESIGN
+Designing a binder against a new target begins with research into the shape and chemistry of its
+surface, which epitopes known partners engage, and what scaffolds have succeeded against related
+targets. Previous work shows that LLM agents can conduct this research and operate design tools end
+to end (Ghafarollahi & Buehler, 2024; Shanehsazzadeh, 2026). However, an agent can communicate
+design decisions only through the conditioning inputs a model accepts. Existing models require a
+separate input representation for each property and therefore support a narrower range of properties,
+whereas Prompteina’s single natural-language interface supports a broader range. We test whether
+this broader range of supported properties allows the same agent to produce better binders.
+Setup and baselines.
+We compare Prompteina with Complexa (Didi et al., 2026), RFdiffusion3
+(Butcher et al., 2025), and BoltzGen (Stark et al., 2026) on Complexa’s 20-target benchmark. For
+each target, Claude Opus 4.6 compiles a research dossier and writes 200 binder specifications using
+each model’s supported input properties (App. G.2). Each model samples one structure per specifi-
+cation. We also run all three baselines in a non-agentic setting, where they receive only the target
+structure, binder-length range, and fixed benchmark hotspots. We do not run Complexa with the
+agent because its released checkpoint supports no additional input properties (App. G.3).
+Evaluation.
+We score each design under three sequence conditions: the generated sequence
+(self), full ProteinMPNN redesign (MPNN), and fixed-interface redesign (MPNN-FI) (Dauparas
+et al., 2022). ESMFold2-Fast ipSAEmin separates binders from non-binders more accurately than
+the AlphaProteo AF2 filters used by Complexa (App. G.4), corroborating Shanehsazzadeh (2026), so
+we use it to measure binder–target interface confidence throughout our binder-design experiments.
+To compare methods across design budgets, let M(k) be the mean ipSAEmin of a target’s k best
+designs, out of N generated. We report the expected top-k ipSAEmin,
+E
+
+M(K)
+
+=
+PN
+k=1
+1
+k
+−1 PN
+k=1 M(k)/k.
+(2)
+This quantity averages M(k) under a log-uniform prior on K, weighting equally each order of
+magnitude of k. We compute the statistic separately for each target before averaging across all 20,
+and report the full comparison across design budgets for each sequence condition in App. G.6.
+Prompteina achieves the highest interface confidence.
+Prompteina leads in expected top-k
+ipSAEmin across all three sequence conditions (Table 3). Prompteina’s lead is largest for the gener-
+ated sequence and fixed-interface redesign, narrows under full ProteinMPNN redesign, and is robust
+under AlphaFold3 evaluation of the generated sequence (Abramson et al., 2024) (Table 21). RFd-
+iffusion3 and BoltzGen achieve similar interface-confidence scores with or without the agent, and
+7
+
+
+Preprint
+Table 3: Prompteina achieves the highest interface confidence. We evaluate 200 designs per
+method on 20 targets. Expected top-k ipSAEmin (Eq. 2) measures interface confidence in each
+sequence condition. Diversity is one minus the mean pairwise TM-score among each method’s 32
+best MPNN-FI designs on 18 targets with at least 32 positive-scoring designs per method.
+Expected top-k ipSAEmin (↑)
+Diversity (↑)
+Method
+Agent
+self
+MPNN
+MPNN-FI
+1−TM sim.
+Prompteina
+✓
+0.455
+0.584
+0.549
+0.584
+Complexa
+✗
+0.400
+0.538
+0.510
+0.520
+BoltzGen
+✓
+0.359
+0.575
+0.490
+0.516
+BoltzGen
+✗
+0.376
+0.577
+0.493
+0.399
+RFdiffusion3
+✓
+0.237
+0.559
+0.454
+0.587
+RFdiffusion3
+✗
+0.251
+0.563
+0.469
+0.541
+all four variants score below Prompteina (Table 3). Under redesign, its top designs are more diverse
+than either BoltzGen variant and match agent-guided RFdiffusion3 in diversity (App. G.9).
+Prompteina achieves higher binding confidence when interface properties are specified.
+Prompteina lets the agent specify binder–target interface size through residue count and buried sur-
+face area, neither of which RFdiffusion3 or BoltzGen accepts (App. Table 19). Prompteina generates
+larger interfaces than either baseline, and within each target greater realized buried surface area is
+associated with higher interface confidence (App. G.7). To test this directly, we rerun Prompteina
+on all 20 targets, first allowing only overall fold to be specified, then adding shape and finally inter-
+face properties. We find only a modest gain from adding shape, but the largest gain from interface
+properties, suggesting that specifying them is important for interface confidence (Table 4).
+Table 4: Binder specification ablation. Mean top-k ipSAEmin across 20 targets using generated
+sequences. We evaluate 200 designs per target with successively more detailed specifications.
+Specification
+k=8
+16
+32
+64
+Expected top-k ipSAEmin (↑)
+Prompteina (default: fold + shape + interface)
+0.534
+0.470
+0.376
+0.253
+0.455
+Prompteina (fold + shape)
+0.430
+0.356
+0.267
+0.176
+0.364
+Prompteina (fold only)
+0.412
+0.336
+0.250
+0.164
+0.362
+Prompteina’s language interface preserves rich design intent for generation.
+For CD45, we
+trace how each model represents agent-selected binder–target interface properties (App. G.2.5).
+Claude identifies distinct CD45 sites, including the charged and polar BC8 epitope and hydrophobic
+M47/I48/F49 patch, then proposes a fold and interface geometry for each (App. Fig. 9). All three
+models receive the same CD45 structure and research dossier, but only Prompteina can condition
+on the resulting fold, interface geometry, size, and chemistry in natural language. For RFdiffusion3,
+Claude encodes a non-loop flag and, in some designs, atom-level hydrogen-bond or burial labels.
+For BoltzGen, Claude encodes residue-level helix, sheet, and loop ranges (App. G.2.5). With these
+richer specifications, Prompteina’s two best designs outscore every baseline design while targeting
+CD45 sites and adopting distinct beta-rich and alpha-helical folds specified in their prompts.
+3.2.3
+ITERATIVE BINDER PROMPT OPTIMIZATION
+Recent design models perform inference-time search by scoring partial structures during generation
+and retaining promising candidates (Didi et al., 2026; Rector-Brooks et al., 2026). Analogously,
+when agents call design models as tools, they can use in-silico or experimental feedback on com-
+pleted designs to identify promising design strategies and revise the next batch of specifications
+(Shanehsazzadeh, 2026). We test whether this iterative revision yields larger gains when the agent
+uses Prompteina’s broader conditioning interface than when it uses RFdiffusion3 or BoltzGen. For
+each method and target, we run four rounds of 50 designs, matching the 200-design budget of §3.2.2.
+Round 1 contains 50 i.i.d. designs generated as in §3.2.2. Before each later round, the agent reads
+all scores so far and writes 50 new specifications (App. H.1). At budgets of 50, 100, 150, and 200
+designs, we compare the accumulated iterative pool with matched-budget i.i.d. generation.
+8
+
+
+Preprint
+Figure 5: Prompteina gains most from iterative optimization on Claudin-1. (a) Difference in
+cumulative top-1 ipSAEmin between iterative and matched-budget i.i.d. generation, using the same
+initial pool of 50 designs. (b) Planning excerpts and selected Claudin-1 designs from the first two
+feedback rounds. The agent explores alternative topologies in round 1 and enlarges the requested
+interface in round 2. For each complex, ipSAEmin (↑) reports binder–target interface confidence.
+Prompteina gains most from iterative optimization on the hardest targets.
+Across 20 targets,
+iterative feedback benefits Prompteina more than either baseline. The advantage is largest on the
+hardest targets: stratifying by difficulty (App. H.2), Prompteina shows larger top-1 and top-8 gains
+than either baseline (Table 29). Using Claudin-1 as an example, we find that the agent first tests
+new topologies, then requests a larger interface, improving the best design after each round (Fig. 5;
+App. H.1). Paired with either baseline, the agent also identifies productive patterns, but each model’s
+interface offers fewer properties to revise (App. H.1). This suggests that Prompteina’s broader con-
+ditioning lets the agent make more useful changes in response to in-silico feedback.
+3.3
+EXPERIMENTAL VALIDATION OF GM2A BINDER DESIGNS
+As a proof of concept, we conducted a prospective, agent-guided campaign against GM2 ganglioside
+activator protein (GM2A), implicated in GM2 gangliosidosis (Deschenes et al., 2023). GM2A has
+no reported de novo binders and yielded none in a prior 30-design campaign (Stark et al., 2026).
+We ran iterative optimization (§3.2.3) with a 1,000-design budget, then selected 90 designs for
+experimental testing by Adaptyv Bio (App. I.1).
+Of these, 89 were expressed and assayed by
+SPR (App. I.2). Adaptyv classified nine binders, eight with fitted apparent KD values. Six sub-
+micromolar binders spanned diverse architectures, corresponding to a 6.7% assay hit rate (Fig. 6a).
+The strongest binder had an overall apparent KD of 107 nM across three replicates (Fig. 6a,c).
+Prompteina realized the agent’s two-layer alpha/beta architecture around GM2A residue W94, with
+five strands, a hydrophobic interface, and 21 interface residues versus 22 requested (Fig. 6b).
+Figure 6: Experimental validation identifies diverse GM2A binders. (a) ESMFold2-Fast pre-
+dictions of six sub-micromolar binders, ordered by apparent KD. Despite distinct agent-specified
+architectures, all six target the same GM2A face around W94 (GM2A, gray; W94, pink). (b) Agent
+reasoning and the design prompt for the strongest binder. (c) SPR sensorgrams for this binder across
+three replicates and five analyte concentrations, labeled with per-replicate apparent KD values.
+9
+
+
+Preprint
+4
+RELATED WORK
+Protein structure generation.
+Early diffusion and flow-matching models generated protein back-
+bones (Yim et al., 2023; Watson et al., 2023; Geffner et al., 2025), while newer all-atom models
+jointly generate structure and sequence (Geffner et al., 2026; Didi et al., 2026; Butcher et al., 2025;
+Rector-Brooks et al., 2026; Stark et al., 2026). Existing protein structure generation models use
+custom input representations to specify desired folds, motif coordinates, target hotspots, and in-
+teractions, and some also require separate checkpoints or inference-time classifiers and rewards
+(Watson et al., 2023; Didi et al., 2026; Rector-Brooks et al., 2026; Ingraham et al., 2023). RFdif-
+fusion3 and BoltzGen combine many controls in one model, but each property has a distinct model
+input and its own training annotations (Butcher et al., 2025; Stark et al., 2026). ESM3 jointly gener-
+ates sequence, structure, and function through dedicated token tracks (Hayes et al., 2025). Chroma
+provides the closest precedent for using natural language to control protein structure generation. It
+guides sampling through a separate structure-to-caption model rather than conditioning its denoiser
+on text (Ingraham et al., 2023). This approach requires gradients during sampling and does not use
+supervised text–residue alignment. The authors report that its natural-language conditioning remains
+sensitive to guidance strength. Prompteina instead directly conditions the denoising process on text,
+enabling a single natural-language interface to specify global and residue-specific properties.
+Protein–text multimodal models.
+Protein–text multimodal models support alignment, caption-
+ing, and text-guided generation. Alignment models learn shared representations for retrieval and
+classification (Xu et al., 2023b; Su et al., 2025; Xu et al., 2023a), while captioning models describe
+protein sequences or structures (Liu et al., 2024; Fei et al., 2025; Abdine et al., 2024). Neither
+generates protein sequences or structures from text. Text-guided protein models such as ProteinDT,
+Pinal, InstructPro, InstructBioMol, and BioMatrix produce amino-acid sequences rather than struc-
+tures (Liu et al., 2025; Dai et al., 2025; Song et al., 2026; Zhuang et al., 2025; Pei et al., 2026).
+Their prompts usually provide high-level functional descriptions, and the resulting sequences must
+then be folded into structures. ProteinDT uses a text-aligned latent representation, while Pinal pre-
+dicts Foldseek structure tokens before generating the sequence. HelixProtX emits backbone torsion
+angles from text, but its pretrained parameters are unavailable for evaluation (Chen et al., 2024).
+Prompteina instead directly conditions the generation of protein sequence and all-atom structure on
+text, with supervised text–residue alignment connecting phrases to the residues they describe.
+We provide an extended survey of related work in Appendix A, including conditioning interfaces
+supported by protein structure generation models and their property-specific representations.
+5
+DISCUSSION
+We introduce Prompteina, a text-conditioned all-atom protein structure generation model, and its
+paired text–structure dataset, Prompteina-Data. Prompteina uses a single natural-language inter-
+face to control global and residue-specific structural and functional properties. Prompteina matches
+or exceeds existing approaches on shared properties while supporting a broader range. Its natural-
+language interface lets an agent turn research directly into design prompts, yielding higher inter-
+face confidence than the same agent achieves with existing models. Experimental validation then
+identified Prompteina binders for GM2A, a target with no previously reported de novo binders.
+As language-model agents improve, specialist generative models need interfaces that let agents
+use scientific knowledge and language-based reasoning to guide generation. Prompteina makes
+this connection more seamless: agents can incorporate experimental feedback into rich specifica-
+tions realized directly in generated structures. Together, these results establish natural language as
+an effective, powerful conditioning interface that lets agents directly connect scientific knowledge,
+language-based reasoning, and experimental results to protein structure generation and design.
+AUTHOR CONTRIBUTIONS
+Y.J.L., B.Q., and J.L. conceptualized the project. J.L. led the project, implemented the methods,
+conducted experiments, and wrote the manuscript. Y.J.L., B.Q., and R.D. contributed to method
+implementation. G.L. contributed to project discussions. R.D. supervised the project and provided
+compute and API resources through Ai2. A.E. and N.A.S. provided funding through Ai2. D.B.,
+10
+
+
+Preprint
+H.H., and P.W.K. supervised the project and provided funding. P.W.K., Y.J.L., B.Q., R.D., G.L.,
+H.H., D.B., N.A.S., and A.E. reviewed or edited the manuscript.
+ACKNOWLEDGMENTS
+We thank Molly Park for providing Anthropic credits used in our agentic binder design campaigns,
+Bingxu Liu for screening structures for our experimental campaign, Chang Ma for proofreading, and
+Kieran Didi, Jasper Butcher, Jie Chen, Jeremy Koob, Scott Geng, and Maya Venkatraman for help-
+ful discussions. We also thank members of the Koh Lab, H2Lab, Ai2 Open Ecosystem team, DSO
+National Laboratories, and GLOW.AI for their feedback on this work, and Madeline May, Jillian
+Willis, and Taira Anderson for their executive support. This work was supported by the Singapore
+National Research Foundation and the National AI Group in the Singapore Ministry of Digital De-
+velopment and Information through the AI Visiting Professorship Programme (award AIVP-2024-
+001), by the AI2050 program at Schmidt Sciences, and by the National Science Foundation under
+Award No. 2413244.
+REFERENCES
+Hadi Abdine, Michail Chatzianastasis, Costas Bouyioukos, and Michalis Vazirgiannis. Prot2Text:
+Multimodal Protein’s Function Generation with GNNs and Transformers. AAAI, 38(10):10757–
+10765, March 2024. ISSN 2374-3468, 2159-5399. doi: 10.1609/aaai.v38i10.28948.
+Josh Abramson, Jonas Adler, Jack Dunger, Richard Evans, Tim Green, Alexander Pritzel, Olaf
+Ronneberger, Lindsay Willmore, Andrew J. Ballard, Joshua Bambrick, Sebastian W. Bodenstein,
+David A. Evans, Chia-Chun Hung, Michael O’Neill, David Reiman, Kathryn Tunyasuvunakool,
+Zachary Wu, Akvil˙e ˇZemgulyt˙e, Eirini Arvaniti, Charles Beattie, Ottavia Bertolli, Alex Bridg-
+land, Alexey Cherepanov, Miles Congreve, Alexander I. Cowen-Rivers, Andrew Cowie, Michael
+Figurnov, Fabian B. Fuchs, Hannah Gladman, Rishub Jain, Yousuf A. Khan, Caroline M. R. Low,
+Kuba Perlin, Anna Potapenko, Pascal Savy, Sukhdeep Singh, Adrian Stecula, Ashok Thillaisun-
+daram, Catherine Tong, Sergei Yakneen, Ellen D. Zhong, Michal Zielinski, Augustin ˇZ´ıdek, Vic-
+tor Bapst, Pushmeet Kohli, Max Jaderberg, Demis Hassabis, and John M. Jumper. Accurate
+structure prediction of biomolecular interactions with AlphaFold 3. Nature, 630(8016):493–500,
+June 2024. ISSN 1476-4687. doi: 10.1038/s41586-024-07487-w.
+Woody Ahern, Jason Yim, Doug Tischer, Saman Salike, Seth M. Woodbury, Donghyo Kim, Indrek
+Kalvet, Yakov Kipnis, Brian Coventry, Han Raut Altae-Tran, Magnus S. Bauer, Regina Barzilay,
+Tommi S. Jaakkola, Rohith Krishna, and David Baker. Atom-level enzyme active site scaffolding
+using RFdiffusion2. Nat Methods, 23(1):96–105, January 2026. ISSN 1548-7105. doi: 10.1038/
+s41592-025-02975-x.
+Helen M. Berman, John Westbrook, Zukang Feng, Gary Gilliland, T. N. Bhat, Helge Weissig, Ilya N.
+Shindyalov, and Philip E. Bourne. The Protein Data Bank. Nucleic Acids Res, 28(1):235–242,
+January 2000. ISSN 0305-1048. doi: 10.1093/nar/28.1.235.
+Jasper Butcher, Rohith Krishna, Raktim Mitra, Rafael I. Brent, Yanjing Li, Nathaniel Corley, Paul T.
+Kim, Jonathan Funk, Simon Mathis, Saman Salike, Aiko Muraishi, Helen Eisenach, Tuscan Rock
+Thompson, Jie Chen, Yuliya Politanska, Enisha Sehgal, Brian Coventry, Odin Zhang, Bo Qiang,
+Kieran Didi, Max Kazman, Frank DiMaio, and David Baker.
+De novo Design of All-atom
+Biomolecular Interactions with RFdiffusion3, November 2025. ISSN 2692-8205.
+Salvatore Candido, Thomas Hayes, Alexander Derry, Roshan Rao, Zeming Lin, Robert Verkuil,
+Bryan Z. Wu, Jin Sub Lee, Elise S. Bruguera, Jehan A. Keval, Mykhailo Kopylov, John E. Pak,
+Wesley Wu, Neil Thomas, Samson Mataraso, Alvin Hsu, Ashton C. Trotman-Grant, Kilian Fatras,
+Allan dos Santos Costa, Rohil Badkundri, Halil Akın, Deniz Oktay, Jonathan Deaton, Elizabeth
+Montabana, Hrishita Sitwala, Yue Yu, Marius Wiggert, Dylan Alexander Carlin, Anthony W.
+Goering, Tomasz Blazejewski, McCullen Sandora, Michael Hla, Tina Z. Jia, Leon H. Kloker,
+Nicholas J. Sofroniew, Masatoshi Uehara, Jassi Pannu, Sharrol Bachas, Daniel S. Liu, Tom Sercu,
+and Alexander Rives. Language Modeling Materializes a World Model of Protein Biology, June
+2026. ISSN 2692-8205.
+11
+
+
+Preprint
+Longxing Cao, Brian Coventry, Inna Goreshnik, Buwei Huang, William Sheffler, Joon Sung Park,
+Kevin M. Jude, Iva Markovi´c, Rameshwar U. Kadam, Koen H. G. Verschueren, Kenneth Ver-
+straete, Scott Thomas Russell Walsh, Nathaniel Bennett, Ashish Phal, Aerin Yang, Lisa Kozodoy,
+Michelle DeWitt, Lora Picton, Lauren Miller, Eva-Maria Strauch, Nicholas D. DeBouver, Al-
+lison Pires, Asim K. Bera, Samer Halabiya, Bradley Hammerson, Wei Yang, Steffen Bernard,
+Lance Stewart, Ian A. Wilson, Hannele Ruohola-Baker, Joseph Schlessinger, Sangwon Lee, Sav-
+vas N. Savvides, K. Christopher Garcia, and David Baker. Design of protein-binding proteins
+from the target structure alone. Nature, 605(7910):551–560, May 2022. ISSN 1476-4687. doi:
+10.1038/s41586-022-04654-9.
+Junsong Chen, Jincheng Yu, Chongjian Ge, Lewei Yao, Enze Xie, Yue Wu, Zhongdao Wang, James
+Kwok, Ping Luo, Huchuan Lu, and Zhenguo Li. PixArt-α: Fast Training of Diffusion Transformer
+for Photorealistic Text-to-Image Synthesis, December 2023.
+Zhiyuan Chen, Tianhao Chen, Chenggang Xie, Yang Xue, Xiaonan Zhang, Jingbo Zhou, and Xi-
+aomin Fang. Unifying Sequences, Structures, and Descriptions for Any-to-Any Protein Genera-
+tion with the Large Multimodal Model HelixProtX, July 2024.
+Hua Cheng, R. Dustin Schaeffer, Yuxing Liao, Lisa N. Kinch, Jimin Pei, Shuoyong Shi, Bong-Hyun
+Kim, and Nick V. Grishin. ECOD: An Evolutionary Classification of Protein Domains. PLOS
+Computational Biology, 10(12):e1003926, December 2014. ISSN 1553-7358. doi: 10.1371/
+journal.pcbi.1003926.
+Pawel Dabrowski-Tumanski, Pawel Rubach, Dimos Goundaroulis, Julien Dorier, Piotr Sułkowski,
+Kenneth C Millett, Eric J Rawdon, Andrzej Stasiak, and Joanna I Sulkowska. KnotProt 2.0:
+A database of proteins with knots and other entangled structures. Nucleic Acids Res, 47(D1):
+D367–D375, January 2019. ISSN 0305-1048. doi: 10.1093/nar/gky1140.
+Fengyuan Dai, Shiyang You, Yudian Zhu, Yuan Gao, Lihao Fu, Xibin Zhou, Jin Su, Chentong Wang,
+Yuliang Fan, Xiaoxiao Ma, Xianjun Deng, Letong Yu, Hui Qian, Yan He, Yitao Ke, Chenchen
+Han, Xing Chang, Liangzhen Zheng, Sheng Wang, Yajie Wang, Anping Zeng, Shunzhi Wang,
+Tong Si, Jianming Liu, Hongyuan Lu, and Fajie Yuan. Toward De Novo Protein Design from
+Natural Language, September 2025. ISSN 2692-8205.
+Jose M Dana, Aleksandras Gutmanas, Nidhi Tyagi, Guoying Qi, Claire O’Donovan, Maria Mar-
+tin, and Sameer Velankar.
+SIFTS: Updated Structure Integration with Function, Taxonomy
+and Sequences resource allows 40-fold increase in coverage of structure-based annotations for
+proteins.
+Nucleic Acids Res, 47(D1):D482–D489, January 2019.
+ISSN 0305-1048.
+doi:
+10.1093/nar/gky1114.
+J. Dauparas, I. Anishchenko, N. Bennett, H. Bai, R. J. Ragotte, L. F. Milles, B. I. M. Wicky,
+A. Courbet, R. J. de Haas, N. Bethel, P. J. Y. Leung, T. F. Huddy, S. Pellock, D. Tischer, F. Chan,
+B. Koepnick, H. Nguyen, A. Kang, B. Sankaran, A. K. Bera, N. P. King, and D. Baker. Robust
+deep learning–based protein sequence design using ProteinMPNN. Science, 378(6615):49–56,
+October 2022. doi: 10.1126/science.add2187.
+Natalie M. Deschenes, Camilyn Cheng, Alex E. Ryckman, Brianna M. Quinville, Prem Khanal,
+Melissa Mitchell, Zhilin Chen, Waheed Sangrar, Steven J. Gray, and Jagdeep S. Walia. Bio-
+chemical Correction of GM2 Ganglioside Accumulation in AB-Variant GM2 Gangliosidosis. In-
+ternational Journal of Molecular Sciences, 24(11):9217, January 2023. ISSN 1422-0067. doi:
+10.3390/ijms24119217.
+Kieran Didi, Zuobai Zhang, Guoqing Zhou, Danny Reidenbach, Zhonglin Cao, Sooyoung Cha,
+Tomas Geffner, Christian Dallago, Jian Tang, Michael M. Bronstein, Martin Steinegger, Emine
+Kucukbenli, Arash Vahdat, and Karsten Kreis. Scaling Atomistic Protein Binder Design with
+Generative Pretraining and Test-Time Compute, March 2026.
+James Dunbar, Konrad Krawczyk, Jinwoo Leem, Terry Baker, Angelika Fuchs, Guy Georges, Jiye
+Shi, and Charlotte M. Deane. SAbDab: The structural antibody database. Nucleic Acids Res, 42
+(D1):D1140–D1146, January 2014. ISSN 0305-1048. doi: 10.1093/nar/gkt1043.
+12
+
+
+Preprint
+Patrick Esser, Sumith Kulal, Andreas Blattmann, Rahim Entezari, Jonas M¨uller, Harry Saini, Yam
+Levi, Dominik Lorenz, Axel Sauer, Frederic Boesel, Dustin Podell, Tim Dockhorn, Zion En-
+glish, Kyle Lacey, Alex Goodwin, Yannik Marek, and Robin Rombach. Scaling Rectified Flow
+Transformers for High-Resolution Image Synthesis, March 2024.
+Xiao Fei, Michail Chatzianastasis, Sarah Almeida Carneiro, Hadi Abdine, Lawrence P. Petalidis, and
+Michalis Vazirgiannis. Prot2Text-V2: Protein Function Prediction with Multimodal Contrastive
+Alignment, October 2025.
+Tomas Geffner, Kieran Didi, Zuobai Zhang, Danny Reidenbach, Zhonglin Cao, Jason Yim, Mario
+Geiger, Christian Dallago, Emine Kucukbenli, Arash Vahdat, and Karsten Kreis. Proteina: Scal-
+ing Flow-based Protein Structure Generative Models, March 2025.
+Tomas Geffner, Kieran Didi, Zhonglin Cao, Danny Reidenbach, Zuobai Zhang, Christian Dallago,
+Emine Kucukbenli, Karsten Kreis, and Arash Vahdat. La-Proteina: Atomistic Protein Generation
+via Partially Latent Flow Matching, May 2026.
+Alireza Ghafarollahi and Markus J. Buehler.
+ProtAgents: Protein discovery via large language
+model multi-agent collaborations combining physics and machine learning. Digital Discovery, 3
+(7):1389–1409, July 2024. ISSN 2635-098X. doi: 10.1039/d4dd00013g.
+Thomas Hayes, Roshan Rao, Halil Akin, Nicholas J. Sofroniew, Deniz Oktay, Zeming Lin, Robert
+Verkuil, Vincent Q. Tran, Jonathan Deaton, Marius Wiggert, Rohil Badkundri, Irhum Shafkat,
+Jun Gong, Alexander Derry, Raul S. Molina, Neil Thomas, Yousuf A. Khan, Chetan Mishra,
+Carolyn Kim, Liam J. Bartie, Matthew Nemeth, Patrick D. Hsu, Tom Sercu, Salvatore Candido,
+and Alexander Rives. Simulating 500 million years of evolution with a language model. Science,
+387(6736):850–858, February 2025. doi: 10.1126/science.ads0018.
+Maarten L. Hekkelman, Daniel ´Alvarez Salmoral, Anastassis Perrakis, and Robbie P. Joosten. DSSP
+4: FAIR annotation of protein secondary structure. Protein Sci, 34(8):e70208, July 2025. ISSN
+0961-8368. doi: 10.1002/pro.70208.
+Jonathan Ho and Tim Salimans. Classifier-Free Diffusion Guidance, July 2022.
+John B. Ingraham, Max Baranov, Zak Costello, Karl W. Barber, Wujie Wang, Ahmed Ismail, Vincent
+Frappier, Dana M. Lord, Christopher Ng-Thow-Hing, Erik R. Van Vlack, Shan Tie, Vincent Xue,
+Sarah C. Cowles, Alan Leung, Jo˜ao V. Rodrigues, Claudio L. Morales-Perez, Alex M. Ayoub,
+Robin Green, Katherine Puentes, Frank Oplinger, Nishant V. Panwar, Fritz Obermeyer, Adam R.
+Root, Andrew L. Beam, Frank J. Poelwijk, and Gevorg Grigoryan. Illuminating protein space
+with a programmable generative model. Nature, 623(7989):1070–1078, November 2023. ISSN
+1476-4687. doi: 10.1038/s41586-023-06728-8.
+S Jones and J M Thornton. Principles of protein-protein interactions. Proceedings of the National
+Academy of Sciences, 93(1):13–20, January 1996. doi: 10.1073/pnas.93.1.13.
+John Jumper, Richard Evans, Alexander Pritzel, Tim Green, Michael Figurnov, Olaf Ronneberger,
+Kathryn Tunyasuvunakool, Russ Bates, Augustin ˇZ´ıdek, Anna Potapenko, Alex Bridgland,
+Clemens Meyer, Simon A. A. Kohl, Andrew J. Ballard, Andrew Cowie, Bernardino Romera-
+Paredes, Stanislav Nikolov, Rishub Jain, Jonas Adler, Trevor Back, Stig Petersen, David Reiman,
+Ellen Clancy, Michal Zielinski, Martin Steinegger, Michalina Pacholska, Tamas Berghammer, Se-
+bastian Bodenstein, David Silver, Oriol Vinyals, Andrew W. Senior, Koray Kavukcuoglu, Push-
+meet Kohli, and Demis Hassabis. Highly accurate protein structure prediction with AlphaFold.
+Nature, 596(7873):583–589, August 2021. ISSN 1476-4687. doi: 10.1038/s41586-021-03819-2.
+W. Kabsch and C. Sander.
+Dictionary of protein secondary structure: Pattern recognition of
+hydrogen-bonded and geometrical features. Biopolymers, 22(12):2577–2637, December 1983.
+ISSN 0006-3525. doi: 10.1002/bip.360221211.
+D´aniel Kozma, Istv´an Simon, and G´abor E. Tusn´ady. PDBTM: Protein Data Bank of transmembrane
+proteins after 8 years. Nucleic Acids Res, 41(Database issue):D524–D529, January 2013. ISSN
+0305-1048. doi: 10.1093/nar/gks1169.
+13
+
+
+Preprint
+Yeqing Lin and Mohammed AlQuraishi. Generating Novel, Designable, and Diverse Protein Struc-
+tures by Equivariantly Diffusing Oriented Residue Clouds, June 2023.
+Yeqing Lin, Minji Lee, Zhao Zhang, and Mohammed AlQuraishi. Out of Many, One: Designing
+and Scaffolding Proteins at the Scale of the Structural Universe with Genie 2, May 2024.
+Yeqing Lin, Minji Lee, Aakarsh Vermani, Ellena Jiang, Sebastiaan De Cooman, Matej ˇSpeˇtko, and
+Mohammed AlQuraishi. Fast and Ultra-Capable Protein Design: Advancing the Frontier Through
+Atomistic SE(3)-Equivariance with Genie 3, May 2026. ISSN 2692-8205.
+Shengchao Liu, Yanjing Li, Zhuoxinran Li, Anthony Gitter, Yutao Zhu, Jiarui Lu, Zhao Xu, Weili
+Nie, Arvind Ramanathan, Chaowei Xiao, Jian Tang, Hongyu Guo, and Anima Anandkumar. A
+text-guided protein design framework. Nat Mach Intell, 7(4):580–591, April 2025. ISSN 2522-
+5839. doi: 10.1038/s42256-025-01011-z.
+Zhiyuan Liu, An Zhang, Hao Fei, Enzhi Zhang, Xiang Wang, Kenji Kawaguchi, and Tat-Seng Chua.
+ProtT3: Protein-to-Text Generation for Text-based Protein Understanding, May 2024.
+Douglas Myers-Turnbull, Spencer E. Bliven, Peter W. Rose, Zaid K. Aziz, Philippe Youkharibache,
+Philip E. Bourne, and Andreas Prli´c. Systematic detection of internal symmetry in proteins using
+CE-Symm. J Mol Biol, 426(11):2255–2268, May 2014. ISSN 1089-8638. doi: 10.1016/j.jmb.
+2014.03.010.
+Max D. Overath, Andreas S. H. Rygaard, Christian P. Jacobsen, Valentas Brasas, Oliver Morell,
+Pietro Sormanni, and Timothy P. Jenkins. Predicting Experimental Success in De Novo Binder
+Design: A Meta-Analysis of 3,766 Experimentally Characterised Binders, September 2025. ISSN
+2692-8205.
+Martin Pacesa, Lennart Nickel, Christian Schellhaas, Joseph Schmidt, Ekaterina Pyatova, Lucas
+Kissling, Patrick Barendse, Jagrity Choudhury, Srajan Kapoor, Ana Alcaraz-Serna, Yehlin Cho,
+Kourosh H. Ghamary, Laura Vinu´e, Brahm J. Yachnin, Andrew M. Wollacott, Stephen Buckley,
+Adrie H. Westphal, Simon Lindhoud, Sandrine Georgeon, Casper A. Goverde, Georgios N. Hat-
+zopoulos, Pierre G¨onczy, Yannick D. Muller, Gerald Schwank, Daan C. Swarts, Alex J. Vecchio,
+Bernard L. Schneider, Sergey Ovchinnikov, and Bruno E. Correia. One-shot design of functional
+protein binders with BindCraft. Nature, 646(8084):483–492, October 2025. ISSN 1476-4687.
+doi: 10.1038/s41586-025-09429-6.
+Lisanna Paladin, Martina Bevilacqua, Sara Errigo, Damiano Piovesan, Ivan Miˇceti´c, Marco Necci,
+Alexander Miguel Monzon, Maria Laura Fabre, Jose Luis Lopez, Juliet F Nilsson, Javier Rios,
+Pablo Lorenzano Menna, Maia Cabrera, Martin Gonzalez Buitron, Mariane Gonc¸alves Kulik,
+Sebastian Fernandez-Alberti, Maria Silvina Fornasari, Gustavo Parisi, Antonio Lagares, Layla
+Hirsh, Miguel A Andrade-Navarro, Andrey V Kajava, and Silvio C E Tosatto. RepeatsDB in
+2021: Improved data and extended classification for protein tandem repeat structures. Nucleic
+Acids Res, 49(D1):D452–D457, January 2021. ISSN 0305-1048. doi: 10.1093/nar/gkaa1097.
+William Peebles and Saining Xie. Scalable Diffusion Models with Transformers, March 2023.
+Qizhi Pei, Zhimeng Zhou, Yi Duan, Yiyang Zhao, Wei Li, Han Guo, Liang He, Chengping Li,
+Chang-Yu Hsieh, Conghui He, Rui Yan, and Lijun Wu. BioMatrix: Towards a Comprehensive
+Biological Foundation Model Spanning the Modality Matrix of Sequences, Structures, and Lan-
+guage, June 2026.
+Lauri Peil, Agata L. Starosta, J¨urgen Lassak, Gemma C. Atkinson, Kai Virum¨ae, Michaela Spitzer,
+Tanel Tenson, Kirsten Jung, Jaanus Remme, and Daniel N. Wilson. Distinct XPPX sequence
+motifs induce ribosome stalling, which is rescued by the translation elongation factor EF-P. Proc
+Natl Acad Sci U S A, 110(38):15265–15270, September 2013. ISSN 0027-8424. doi: 10.1073/
+pnas.1310642110.
+Dustin Podell, Zion English, Kyle Lacey, Andreas Blattmann, Tim Dockhorn, Jonas M¨uller, Joe
+Penna, and Robin Rombach. SDXL: Improving Latent Diffusion Models for High-Resolution
+Image Synthesis, July 2023.
+14
+
+
+Preprint
+Ranjit Prasad Bahadur, Pinak Chakrabarti, Francis Rodier, and Jo¨el Janin. A Dissection of Specific
+and Non-specific Protein–Protein Interfaces.
+Journal of Molecular Biology, 336(4):943–955,
+February 2004. ISSN 0022-2836. doi: 10.1016/j.jmb.2003.12.073.
+Luk´aˇs Pravda, David Sehnal, Radka Svobodov´a Vaˇrekov´a, Veronika Navr´atilov´a, Dominik Touˇsek,
+Karel Berka, Michal Otyepka, and Jaroslav Koˇca. ChannelsDB: Database of biomacromolecular
+tunnels and pores. Nucleic Acids Res, 46(D1):D399–D405, January 2018. ISSN 0305-1048. doi:
+10.1093/nar/gkx868.
+Yanru Qu, Cheng-Yen Hsieh, Zaixiang Zheng, Ge Liu, and Quanquan Gu. Protein Autoregressive
+Modeling via Multiscale Structure Generation, May 2026.
+Jarrid Rector-Brooks, Th´eophile Lambert, Marta Skreta, Daniel Roth, Yueming Long, Zi-Qi Li,
+Xi Zhang, Miruna Cretu, Francesca-Zhoufan Li, Tanvi Ganapathy, Emily Jin, Avishek Joey Bose,
+Jason Yang, Kirill Neklyudov, Yoshua Bengio, Alexander Tong, Frances H. Arnold, and Cheng-
+Hao Liu. General Multimodal Protein Design Enables DNA-Encoding of Chemistry, April 2026.
+Scott Reed, Zeynep Akata, Xinchen Yan, Lajanugen Logeswaran, Bernt Schiele, and Honglak Lee.
+Generative Adversarial Text to Image Synthesis, June 2016.
+Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Bj¨orn Ommer. High-
+Resolution Image Synthesis with Latent Diffusion Models, April 2022.
+Burkhard Rost. Twilight zone of protein sequence alignments. Protein Engineering, 12(2):85–94,
+February 1999. ISSN 0269-2139. doi: 10.1093/protein/12.2.85.
+Chitwan Saharia, William Chan, Saurabh Saxena, Lala Li, Jay Whang, Emily Denton, Seyed Kam-
+yar Seyed Ghasemipour, Burcu Karagol Ayan, S. Sara Mahdavi, Rapha Gontijo Lopes, Tim Sal-
+imans, Jonathan Ho, David J. Fleet, and Mohammad Norouzi. Photorealistic Text-to-Image Dif-
+fusion Models with Deep Language Understanding, May 2022.
+Amir Shanehsazzadeh. Autonomous De Novo Protein Binder Design with Claude, 2026.
+Ian Sillitoe, Tony E. Lewis, Alison Cuff, Sayoni Das, Paul Ashford, Natalie L. Dawson, Nicholas
+Furnham, Roman A. Laskowski, David Lee, Jonathan G. Lees, Sonja Lehtinen, Romain A. Studer,
+Janet Thornton, and Christine A. Orengo. CATH: Comprehensive structural and functional an-
+notations for genome sequences. Nucleic Acids Res, 43(D1):D376–D381, January 2015. ISSN
+0305-1048. doi: 10.1093/nar/gku947.
+Zhenqiao Song, Ramith Hettiarachchi, Chuan Li, Jianwen Xie, and Lei Li. InstructPro: Natural
+Language Guided Ligand-Binding Protein Design, March 2026.
+Hannes Stark, Felix Faltings, MinGyu Choi, Yuxin Xie, Eunsu Hur, Timothy O’Donnell, Anton
+Bushuiev, Talip Uc¸ar, Saro Passaro, Weian Mao, Mateo Reveiz, Roman Bushuiev, Tally Portnoi,
+Tom´aˇs Pluskal, Josef Sivic, Karsten Kreis, Arash Vahdat, Shamayeeta Ray, Jonathan T. Goldstein,
+Andrew Savinov, Jacob A. Hambalek, Anshika Gupta, Diego A. Taquiri-Diaz, Yaotian Zhang,
+Samuel J. Snyder, A. Katherine Hatstat, Angelika Arada, Nam Hyeong Kim, Haoyu Fan, Ethel
+Tackie-Yarboi, Dylan Boselli, Lee Schnaider, Chang C. Liu, Gene-Wei Li, Denes Hnisz, David M.
+Sabatini, William F. DeGrado, Jeremy Wohlwend, Gabriele Corso, Regina Barzilay, and Tommi
+Jaakkola. BoltzGen: Toward Universal Binder Design, June 2026. ISSN 2692-8205.
+Jin Su, Yan He, Shiyang You, Shiyu Jiang, Xibin Zhou, Xuting Zhang, Yuxuan Wang, Xining Su,
+Igor Tolstoy, Xing Chang, Hongyuan Lu, and Fajie Yuan. A trimodal protein language model
+enables advanced protein searches. Nat Biotechnol, pp. 1–7, October 2025. ISSN 1546-1696.
+doi: 10.1038/s41587-025-02836-0.
+The Gene Ontology Consortium. The Gene Ontology resource: Enriching a GOld mine. Nucleic
+Acids Res, 49(D1):D325–D334, January 2021. ISSN 0305-1048. doi: 10.1093/nar/gkaa1113.
+The UniProt Consortium. UniProt: The Universal Protein Knowledgebase in 2025. Nucleic Acids
+Res, 53(D1):D609–D617, January 2025. ISSN 1362-4962. doi: 10.1093/nar/gkae1010.
+15
+
+
+Preprint
+Michel van Kempen, Stephanie S. Kim, Charlotte Tumescheit, Milot Mirdita, Jeongjae Lee,
+Cameron L. M. Gilchrist, Johannes S¨oding, and Martin Steinegger. Fast and accurate protein
+structure search with Foldseek. Nat Biotechnol, 42(2):243–246, February 2024. ISSN 1546-
+1696. doi: 10.1038/s41587-023-01773-0.
+Mihaly Varadi, Stephen Anyango, Mandar Deshpande, Sreenath Nair, Cindy Natassia, Galabina
+Yordanova, David Yuan, Oana Stroe, Gemma Wood, Agata Laydon, Augustin ˇZ´ıdek, Tim Green,
+Kathryn Tunyasuvunakool, Stig Petersen, John Jumper, Ellen Clancy, Richard Green, Ankur
+Vora, Mira Lutfi, Michael Figurnov, Andrew Cowie, Nicole Hobbs, Pushmeet Kohli, Gerard
+Kleywegt, Ewan Birney, Demis Hassabis, and Sameer Velankar. AlphaFold Protein Structure
+Database: Massively expanding the structural coverage of protein-sequence space with high-
+accuracy models. Nucleic Acids Res, 50(D1):D439–D444, January 2022. ISSN 0305-1048. doi:
+10.1093/nar/gkab1061.
+Zirui Wang, Zhizhou Sha, Zheng Ding, Yilin Wang, and Zhuowen Tu. TokenCompose: Text-to-
+Image Diffusion with Token-level Supervision, June 2024.
+Joseph L. Watson, David Juergens, Nathaniel R. Bennett, Brian L. Trippe, Jason Yim, Helen E.
+Eisenach, Woody Ahern, Andrew J. Borst, Robert J. Ragotte, Lukas F. Milles, Basile I. M.
+Wicky, Nikita Hanikel, Samuel J. Pellock, Alexis Courbet, William Sheffler, Jue Wang, Preetham
+Venkatesh, Isaac Sappington, Susana V´azquez Torres, Anna Lauko, Valentin De Bortoli, Emile
+Mathieu, Sergey Ovchinnikov, Regina Barzilay, Tommi S. Jaakkola, Frank DiMaio, Minkyung
+Baek, and David Baker. De novo design of protein structure and function with RFdiffusion. Na-
+ture, 620(7976):1089–1100, August 2023. ISSN 1476-4687. doi: 10.1038/s41586-023-06415-8.
+Jude Wells, Alex Hawkins-Hooker, Nicola Bordin, Ian Sillitoe, Brooks Paige, and Christine Orengo.
+Chainsaw: Protein domain segmentation with fully convolutional neural networks. Bioinformat-
+ics, 40(5):btae296, May 2024. ISSN 1367-4811. doi: 10.1093/bioinformatics/btae296.
+Henry R. Wilman, Jiye Shi, and Charlotte M. Deane. Helix kinks are equally prevalent in soluble
+and membrane proteins. Proteins: Structure, Function, and Bioinformatics, 82(9):1960–1970,
+2014. ISSN 1097-0134. doi: 10.1002/prot.24550.
+Chenfei Wu, Jiahao Li, Jingren Zhou, Junyang Lin, Kaiyuan Gao, Kun Yan, Sheng-ming Yin, Shuai
+Bai, Xiao Xu, Yilei Chen, Yuxiang Chen, Zecheng Tang, Zekai Zhang, Zhengyi Wang, An Yang,
+Bowen Yu, Chen Cheng, Dayiheng Liu, Deqing Li, Hang Zhang, Hao Meng, Hu Wei, Jingyuan
+Ni, Kai Chen, Kuan Cao, Liang Peng, Lin Qu, Minggang Wu, Peng Wang, Shuting Yu, Tingkun
+Wen, Wensen Feng, Xiaoxiao Xu, Yi Wang, Yichang Zhang, Yongqiang Zhu, Yujia Wu, Yuxuan
+Cai, and Zenan Liu. Qwen-Image Technical Report, August 2025.
+Hanwen Xu, Addie Woicik, Hoifung Poon, Russ B. Altman, and Sheng Wang. Multilingual transla-
+tion for zero-shot biomedical classification using BioTranslator. Nat Commun, 14(1):738, Febru-
+ary 2023a. ISSN 2041-1723. doi: 10.1038/s41467-023-36476-2.
+Minghao Xu, Xinyu Yuan, Santiago Miret, and Jian Tang. ProtST: Multi-Modality Learning of
+Protein Sequences and Biomedical Texts, July 2023b.
+An Yang, Anfeng Li, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chang
+Gao, Chengen Huang, Chenxu Lv, Chujie Zheng, Dayiheng Liu, Fan Zhou, Fei Huang, Feng Hu,
+Hao Ge, Haoran Wei, Huan Lin, Jialong Tang, Jian Yang, Jianhong Tu, Jianwei Zhang, Jianxin
+Yang, Jiaxi Yang, Jing Zhou, Jingren Zhou, Junyang Lin, Kai Dang, Keqin Bao, Kexin Yang,
+Le Yu, Lianghao Deng, Mei Li, Mingfeng Xue, Mingze Li, Pei Zhang, Peng Wang, Qin Zhu, Rui
+Men, Ruize Gao, Shixuan Liu, Shuang Luo, Tianhao Li, Tianyi Tang, Wenbiao Yin, Xingzhang
+Ren, Xinyu Wang, Xinyu Zhang, Xuancheng Ren, Yang Fan, Yang Su, Yichang Zhang, Yinger
+Zhang, Yu Wan, Yuqiong Liu, Zekun Wang, Zeyu Cui, Zhenru Zhang, Zhipeng Zhou, and Zihan
+Qiu. Qwen3 Technical Report, May 2025.
+Jason Yim, Brian L. Trippe, Valentin De Bortoli, Emile Mathieu, Arnaud Doucet, Regina Barzilay,
+and Tommi Jaakkola. SE(3) diffusion model with application to protein backbone generation,
+May 2023.
+16
+
+
+Preprint
+Vinicius Zambaldi, David La, Alexander E. Chu, Harshnira Patani, Amy E. Danson, Tristan O. C.
+Kwan, Thomas Frerix, Rosalia G. Schneider, David Saxton, Ashok Thillaisundaram, Zachary
+Wu, Isabel Moraes, Oskar Lange, Eliseo Papa, Gabriella Stanton, Victor Martin, Sukhdeep Singh,
+Lai H. Wong, Russ Bates, Simon A. Kohl, Josh Abramson, Andrew W. Senior, Yilmaz Alguel,
+Mary Y. Wu, Irene M. Aspalter, Katie Bentley, David L. V. Bauer, Peter Cherepanov, Demis
+Hassabis, Pushmeet Kohli, Rob Fergus, and Jue Wang. De novo design of high-affinity protein
+binders with AlphaProteo. https://arxiv.org/abs/2409.08022v1, September 2024.
+Yang Zhang and Jeffrey Skolnick. Scoring function for automated assessment of protein structure
+template quality. Proteins, 57(4):702–710, December 2004. ISSN 1097-0134. doi: 10.1002/prot.
+20264.
+Yanzhao Zhang, Mingxin Li, Dingkun Long, Xin Zhang, Huan Lin, Baosong Yang, Pengjun Xie,
+An Yang, Dayiheng Liu, Junyang Lin, Fei Huang, and Jingren Zhou. Qwen3 Embedding: Ad-
+vancing Text Embedding and Reranking Through Foundation Models, June 2025.
+Zuobai Zhang, Minghao Xu, Arian Jamasb, Vijil Chenthamarakshan, Aurelie Lozano, Payel Das,
+and Jian Tang. Protein Representation Learning by Geometric Structure Pretraining, January
+2023.
+Xiang Zhuang, Keyan Ding, Tianwen Lyu, Yinuo Jiang, Xiaotong Li, Zhuoyi Xiang, Zeyuan Wang,
+Ming Qin, Kehua Feng, Jike Wang, Qiang Zhang, and Huajun Chen. Advancing biomolecular
+understanding and design following human instructions. Nat Mach Intell, 7(7):1154–1167, July
+2025. ISSN 2522-5839. doi: 10.1038/s42256-025-01064-0.
+APPENDIX CONTENTS
+A Extended related work
+18
+B
+Prompteina-Data construction
+21
+B.1
+Data sources and scale . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+21
+B.2
+Annotation extraction and categories
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+21
+B.3
+Residue-specific captions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+22
+B.4
+Caption sampling
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+23
+B.5
+LLM caption generation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+23
+B.6
+Text–residue alignment annotations . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+24
+C Model and training details
+24
+C.1
+Inherited Complexa model . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+24
+C.2
+Text encoders
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+25
+C.3
+Token cross-attention
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+25
+C.4
+Text–residue alignment head
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+26
+C.5
+Initialization and gating . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+26
+C.6
+Training . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+26
+C.7
+Sampling . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+28
+D Ablations
+28
+E
+Monomer generation evaluation
+30
+E.1
+Prompt paraphrase robustness . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+32
+E.2
+Designability
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+32
+17
+
+
+Preprint
+E.3
+Structural novelty . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+34
+E.4
+Full prompts for Figure 1a . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+35
+F
+Functional specification evaluation
+35
+G Binder design protocols and evaluation
+37
+G.1
+Interface-residue steering . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+37
+G.2
+Agentic binder design protocol
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+38
+G.3
+Baseline agent specifications
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+42
+G.4
+Binder score calibration . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+43
+G.5
+Prediction-model replication . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+45
+G.6
+Interface confidence across design budgets . . . . . . . . . . . . . . . . . . . . . . . . . . .
+45
+G.7
+Generated binder–target interface properties
+. . . . . . . . . . . . . . . . . . . . . . . . . .
+46
+G.8
+Binder specification ablation
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+46
+G.9
+Structural diversity . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+47
+H Iterative binder design
+48
+H.1
+Iterative design protocol and analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+48
+H.2
+Full-panel evaluation
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+50
+I
+GM2A experimental validation
+51
+I.1
+Candidate selection
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+51
+I.2
+Binding assay results
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+53
+A
+EXTENDED RELATED WORK
+Recent protein structure generation models control different properties through distinct architectural
+components, training procedures, and inference-time operations. We survey these mechanisms be-
+fore describing the text-conditioning techniques that Prompteina adopts from image generation. The
+comparison focuses on the dedicated input formats and procedures that existing models require for
+each controlled property.
+RFdiffusion (Watson et al., 2023).
+RFdiffusion fine-tunes a pretrained RoseTTAFold structure
+prediction network as a denoiser for the reverse diffusion process. Five separately fine-tuned vari-
+ants handle unconditional generation, fold-conditioned generation, binder design, fold-conditioned
+binder design, and enzyme active-site scaffolding.
+Fold control takes per-residue secondary-
+structure labels and a residue-by-residue block adjacency matrix that specifies long-range contacts.
+Binder design takes a user-specified subset of target-chain residues as interface hotspots and can
+combine them with fold properties to control binder scaffold topology. Motif scaffolding fixes the
+sequence identity and three-dimensional coordinates of motif backbone and side-chain atoms during
+denoising. Symmetric oligomer design takes a cyclic, dihedral, tetrahedral, octahedral, or icosahe-
+dral point group and initializes noise with the corresponding symmetry. Each task therefore uses a
+distinct input format and separately trained model.
+RFdiffusion2 (Ahern et al., 2026).
+RFdiffusion2 uses the RoseTTAFold All-Atom architecture
+and combines Euclidean flow matching for atom coordinates with Riemannian flow matching on
+SE(3) for backbone frames. The model is trained from random initialization and focuses on enzyme
+active-site scaffolding. Atomic motif conditioning supplies individual heavy atoms from catalytic
+side chains. During training, a random residue subset forms the motif, and each selected residue is
+represented either as a backbone frame or as an atomized subgraph of its heavy atoms. Unindexed
+18
+
+
+Preprint
+motif conditioning removes sequence indices from these residues, requiring the model to infer their
+positions in the scaffold. Relative accessible surface area (RASA) labels mark each ligand atom
+as buried or exposed during 50% of training. An origin pseudo-atom gives an approximate center-
+of-mass target for the scaffold relative to the ligand. Stochastic centering prevents the model from
+recovering the motif–scaffold offset directly from partially noised inputs by adding a small Gaussian
+translation to the training structure. A single model handles these tasks, but each property has a
+dedicated input format and training procedure.
+RFdiffusion3 (Butcher et al., 2025).
+RFdiffusion3 uses a transformer-based U-Net for all-atom
+protein generation. A single model handles unconditional generation, protein, nucleic-acid, and
+small-molecule binder design, enzyme active-site scaffolding, and symmetric oligomer design
+through several conditioning mechanisms. Atom-level features label target or ligand atoms with
+property-specific annotations at varying rates during training. Donor and acceptor labels direct com-
+plementary hydrogen bonds, RASA labels divide ligand-atom solvent accessibility into four burial
+bins, and hotspots mark target atoms near the requested binder–target interface. Appended tokens
+represent catalytic residues for unindexed motif scaffolding, leaving the model to infer each catalytic
+residue’s sequence position. Inference-time operations symmetrize each diffusion step for oligomer
+design and position the generated protein relative to the target center of mass. For nucleic-acid and
+small-molecule targets, RFdiffusion3 can jointly diffuse the target conformation with the protein.
+The shared model still requires a distinct input format and annotation pipeline for each property.
+Proteina series (Geffner et al., 2025; 2026; Didi et al., 2026).
+Proteina (Geffner et al., 2025)
+is a non-equivariant flow-matching model for protein backbone generation. CATH fold condition-
+ing uses learnable embeddings for a hierarchy of 5 classes, 43 architectures, and 1,336 topologies,
+injected through adaptive layer normalization (AdaLN). Hierarchical dropout trains unconditional
+generation and each level of the hierarchy. The model drops all labels with probability 0.5, retains
+only class with probability 0.1, retains class and architecture with probability 0.15, and retains all
+three levels with probability 0.25. La-Proteina (Geffner et al., 2026) extends Proteina to all-atom
+generation through a partially latent representation and adds indexed and unindexed motif scaffold-
+ing, but omits fold conditioning. Complexa (Didi et al., 2026) extends La-Proteina to binder design
+with separate protein–protein, CATH-conditioned protein–protein, and ligand–protein checkpoints.
+Protein and small-molecule targets use different representation pipelines. Binder design takes target
+interface hotspots, and the CATH-conditioned checkpoint uses Proteina’s hierarchical embeddings
+and AdaLN but applies only the class level at inference.
+Chroma (Ingraham et al., 2023).
+Chroma composes a library of separate conditioners at sam-
+pling time. Each independently trained or hand-designed conditioner steers generation through its
+gradient with respect to the noised structure. Symmetry conditioning tessellates an asymmetric sub-
+unit into Cn, Dn, T, O, or I point groups, and shape conditioning minimizes an optimal-transport
+distance to a user-provided point cloud. Fold-class conditioning inverts a separately trained CATH
+classifier through its gradients. Substructure conditioning fixes motif coordinates during registered
+or unregistered scaffolding. Text conditioning trains a structure-to-caption predictor and uses the
+gradient of caption log-likelihood to steer generation toward the prompt. Guidance strength must
+be balanced against the prior: weak gradients have little effect, whereas strong gradients overwhelm
+the prior and degrade structural coherence. The authors report that guidance effects vary widely
+and that robust natural-language conditioning remains challenging. The ProCap captioner pairs a
+frozen structure encoder with GPT-Neo 125M and is trained on approximately 45,000 captions from
+PDB descriptions and UniProt functional comments. The authors report that this dataset size con-
+strained their architecture choices. Any subset of conditioners can be composed at inference, but
+each requires a trained classifier, analytical energy function, or separate gradient computation.
+HelixProtX (Chen et al., 2024).
+HelixProtX is a multimodal language model that maps among
+protein sequence, structure, and text. Generating structure from text emits backbone torsion angles,
+and control is reported at the level of the whole structure rather than individual residues or mo-
+tifs. Its released repository does not include the pretrained HelixProtX parameters, which prevents
+evaluation on our benchmark.1
+1HelixProtX repository.
+19
+
+
+Preprint
+Pinal (Dai et al., 2025).
+Pinal generates amino-acid sequences from prompts that describe a pro-
+tein’s function and specify its length. It first converts the prompt into Foldseek structure tokens,
+which encode the local backbone geometry around each residue. A structure-aware protein lan-
+guage model then predicts an amino acid at each position from these tokens and the prompt. Pinal
+returns a sequence, which we fold with ESMFold to obtain coordinates for structural evaluation.
+BioMatrix (Pei et al., 2026).
+BioMatrix represents natural language, amino-acid sequences, pro-
+tein backbones, and small molecules as token sequences processed by one decoder-only model. In-
+structions specify which representation the model receives and which representation it generates for
+a given task. For the text-guided protein design task evaluated here, BioMatrix receives a functional
+description and generates an amino-acid sequence. BioMatrix has no length input, so we constrain
+decoding to the sampled length and fold each sequence with ESMFold for structural evaluation.
+DISCO (Rector-Brooks et al., 2026).
+DISCO jointly generates protein sequences and structures
+with Euclidean coordinate diffusion and absorbing-state masked sequence diffusion. Biomolecular
+context enters as discrete tokens with three-dimensional coordinates for small molecules, metallo-
+cofactors, reactive intermediates, or nucleic acids, which are denoised with the protein. Property-
+specific control uses Feynman–Kac reward tilting, with a custom reward function, distance thresh-
+olds, and hyperparameters for properties such as disulfides or cation–π interactions. Target-specific
+binding guidance evaluates two aligned denoiser calls per timestep and requires a hyperparameter
+sweep for each target pair.
+PAR (Qu et al., 2026).
+PAR uses an autoregressive model and flow-matching decoder to gener-
+ate protein backbones by progressively upsampling a coarse representation. Its two conditioning
+mechanisms operate on this hierarchy without fine-tuning. Structural prompting replaces the coars-
+est generation step with user-provided three-dimensional points that define an approximate layout,
+which PAR then upsamples into a full backbone. Motif scaffolding restores the ground-truth co-
+ordinates of motif residues after every prediction scale, keeping the motif fixed as the surrounding
+scaffold is generated.
+BoltzGen (Stark et al., 2026).
+BoltzGen extends Boltz-2 into a single model for folding, un-
+conditional design, binder design, motif scaffolding, and non-protein interface design through seven
+training tasks. Four conditioning mechanisms use separate representations and training distributions.
+Binding-site conditioning assigns binding, non-binding, or unspecified labels to target residues.
+Structure groups use a distance matrix to preserve pairwise distances among residues in the same
+group. Secondary-structure conditioning labels each designed residue as helix, strand, coil, or un-
+specified. Covalent-bond conditioning supplies an atom-pair bond matrix for cyclic proteins, disul-
+fide staples, and helicons. Each property has its own representation, dropout scheme, and training-
+time sampling distribution.
+ESM3 (Hayes et al., 2025).
+ESM3 is a multimodal masked language model that generates protein
+sequence, structure, and function, with each modality or property represented by a dedicated token
+track. For conditioning structure generation, partial information can be provided on any combina-
+tion of property tracks: per-residue secondary structure labels, solvent-accessible surface area bins,
+function keywords derived from InterPro and Gene Ontology terms, residue-level functional anno-
+tations, partial structure (as discrete tokens or atomic coordinates), and partial sequence. Each track
+requires its own tokenization: structure uses a VQ-VAE with a 4096-entry codebook, function key-
+words require parsing free text into a 68,103-entry vocabulary, quantizing via 8 locality-sensitive
+hash functions, and a dedicated 3-layer transformer to invert the hashing. Each track also has its
+own noise schedule and dropout rate. Adding a new conditioning property requires designing a to-
+kenization scheme, selecting a noise schedule, and training any auxiliary encoders or decoders the
+representation needs. Chroma and RFdiffusion already represent ESM3’s per-residue secondary-
+structure input in the property-specific comparison, so we omit a redundant ESM3 run.
+Genie series (Lin & AlQuraishi, 2023; Lin et al., 2024; 2026).
+Genie (Lin & AlQuraishi, 2023)
+generates protein backbones by diffusing Cα coordinates and conditions only on protein length.
+Genie 2 (Lin et al., 2024) introduces motif scaffolding by training entirely on scaffolding tasks. It
+represents motif sequence as one-hot vectors in the single-residue features and motif structure as
+20
+
+
+Preprint
+SE(3)-invariant pairwise Cα distances. This representation leaves Genie 2 to infer the relative con-
+figuration of multiple motifs. Genie 3 (Lin et al., 2026) uses a branched-polymer representation for
+all-atom generation and adds binder design. Its training distribution allocates 90% of examples to
+motif scaffolding and 10% to binder design, with subtasks that vary the motif and binder informa-
+tion supplied. Binder design takes target interface hotspots and can expand them to nearby surface
+residues or iteratively add residues from successful prior designs.
+Text conditioning for diffusion models.
+Protein structure generation models increasingly use
+transformer backbones also found in text-conditioned image models (Geffner et al., 2025; Didi
+et al., 2026; Butcher et al., 2025; Rector-Brooks et al., 2026; Stark et al., 2026). That literature
+supplies the components Prompteina uses for natural-language conditioning. Frozen pretrained lan-
+guage models encode the text (Saharia et al., 2022), and later systems combine encoders to capture
+complementary information (Podell et al., 2023; Esser et al., 2024). Cross-attention carries token
+representations into the denoiser (Rombach et al., 2022), and adaptive layer normalization supplies
+a pooled representation (Peebles & Xie, 2023). PixArt-α combines these pathways and first trains
+the text projection while freezing the pretrained generation model (Chen et al., 2023). Classifier-free
+guidance trains conditional and unconditional predictions by dropping the conditioning on a fixed
+fraction of examples, then scales their difference at inference (Ho & Salimans, 2022). Prompteina
+adapts these components to protein structure generation.
+B
+PROMPTEINA-DATA CONSTRUCTION
+B.1
+DATA SOURCES AND SCALE
+We construct the paired text–structure dataset from three sources. Monomer training uses exper-
+imental protein chains from the Protein Data Bank (PDB) and predicted monomers from the Al-
+phaFold Database (AFDB). Binder training uses Teddymer dimers assembled from TED domain
+pairs (Didi et al., 2026). The three corpora provide 1.8M entries and 52.4M captions (Table 5).
+Table 5: Training data composition. Entries count independently captioned protein chains.
+Corpus
+Entries
+Captions
+Properties
+PDB chains
+611K
+19.5M
+59
+AFDB monomers
+288.7K
+7.5M
+26
+Teddymer chains
+903K
+25.4M
+32
+Total
+1.8M
+52.4M
+–
+PDB chains include all protein chains (monomer and multimer) with no length or resolution filter
+at the captioning stage. At training time, chains are filtered to remove nucleic acid leaks, Cα-only
+entries, entries with fewer than 33 resolved residues, and chains longer than 512 residues. AFDB
+monomers are filtered by pLDDT confidence (>70) and maximum length (<512 residues), matching
+the base model training data. Teddymer dimers are synthetic complexes constructed by pairing TED-
+domain structures (Didi et al., 2026). We caption each chain independently, producing two caption
+sets per dimer. During binder training, each binder crop is conditioned on the caption for the chain
+selected as the binder.
+B.2
+ANNOTATION EXTRACTION AND CATEGORIES
+Before captioning, we extract chain- or complex-level annotations from source databases and com-
+pute additional properties from atomic coordinates. The extraction produces 59 property types for
+PDB, 26 for AFDB, and 32 for Teddymer, organized into ten groups. Unless noted, a property
+appears in all three corpora. For AFDB, we use TED-derived CATH fold labels in place of ex-
+perimental CATH assignments and exclude properties requiring experimental ligands, biological
+assemblies, or ECOD domain annotations. Teddymer is captioned per chain and excludes ligand,
+sheet topology, and PDB-specific properties.
+• Fold and topology (11): CATH (Sillitoe et al., 2015) class, architecture, and topology; ECOD
+(Cheng et al., 2014) architecture, X-group, H-group, and T-group (PDB); contact order; internal
+21
+
+
+Preprint
+symmetry detected via CE-Symm (Myers-Turnbull et al., 2014) (PDB); sheet topology includ-
+ing β-sandwich detection via SVD sheet-normal comparison (PDB, AFDB); knot topology from
+KnotProt (Dabrowski-Tumanski et al., 2019) (PDB).
+• Secondary structure (3): helix count with an α, 310, and π breakdown, strand count, and sheet
+count (PDB, AFDB). We assign secondary structure with mkdssp (Hekkelman et al., 2025), merg-
+ing helix gaps with max gap= 2 to tolerate kinks (Wilman et al., 2014).
+• Tertiary structural motifs (7): disulfide bonds with sequential separation class (local: <30
+residues, medium-range: 30–80, long-range: >80) and disulfide topology (e.g., cystine knot,
+ladder, nested); metal coordination with geometry and ligand composition (e.g., tetrahedral zinc
+with 3 His, 1 Cys) (PDB); intra-chain salt bridges classified as buried or surface by relative solvent
+accessibility (PDB, AFDB); hydrogen-bond networks (PDB, AFDB); cis-peptides; β-turns.
+• Global shape and surface (9): compactness with shape classification from SVD on Cα coordi-
+nates (spherical: elongation <1.5, elongated: 1.5–3.0, rod-like: >3.0, where elongation is the
+ratio of the two largest singular values); surface planarity; spatial aggregation propensity; buried
+unsatisfied hydrogen bonds; flexibility; hinge residues; repeat detection with secondary-structure
+composition; mechanical clamp type; Ramachandran profile.
+• Quaternary structure (3):
+biological assembly symmetry (PDB), subunit structure (PDB),
+oligomeric context (PDB, Teddymer).
+• Protein–protein interfaces (9; PDB, Teddymer): interface residues, buried surface area, hydrogen
+bonds (backbone/sidechain split), salt bridges, hydrophobic contacts, interface geometry, shape
+complementarity, secondary-structure character, calcium-dependent interfaces.
+• Ligand binding (3): ligand identity with molecular properties computed from Chemical Compo-
+nent Dictionary SMILES via RDKit (heavy atom count, rotatable bonds, hydrogen-bond acceptors
+and donors, octanol-water partition coefficient, ligand type classification) (PDB), ligand contacts
+with pocket secondary-structure composition and pocket flexibility from B-factors (PDB), cat-
+alytic activities.
+• Domain architecture (5): multi-domain layout, linker regions, domain–domain interfaces, UniProt
+(The UniProt Consortium, 2025) domain regions remapped to PDB coordinates via SIFTS (Dana
+et al., 2019) (all PDB); chain layout.
+• PDB-specific annotations (4; PDB only): membrane topology from PDBTM (Kozma et al., 2013),
+tunnel geometry from ChannelsDB (Pravda et al., 2018), curated repeats from RepeatsDB (Paladin
+et al., 2021), antibody CDR regions from SAbDab (Dunbar et al., 2014).
+• Function and annotation (5): GO (The Gene Ontology Consortium, 2021) molecular function
+terms filtered to experimental evidence (PDB), subcellular locations from UniProt comments
+(PDB), post-translational modifications remapped via SIFTS (PDB), structure-specific statements
+mined from PDB-linked scientific literature (PDB), free-text function.
+For structure-specific literature statements in the function and annotation group, we retrieve PDB-
+linked PubMed abstracts and, when available, Results and Discussion sections from PubMed Cen-
+tral. Qwen3-235B-A22B extracts these statements from abstracts, while Qwen3-32B extracts and
+validates them from full papers (Yang et al., 2025). Rule-based filters remove cross-structure attri-
+butions, generic or methodological statements, residue-specific details, and semantic duplicates.
+B.3
+RESIDUE-SPECIFIC CAPTIONS
+Most captions describe properties without identifying the participating residues, as in three
+disulfide bonds. For 15 properties, captions can also include positions in 1-based SEQRES
+numbering, as in disulfide between Cys8 and Cys38. We sample independently for
+each property in each caption whether to include these positions. Properties whose individual po-
+sitions define the requested structure, including metal coordination, catalytic activity, and disul-
+fides, receive positions more often (p=0.35–0.40). Interaction properties such as interface hydrogen
+bonds, salt bridges, and hydrophobic contacts use lower probabilities (p=0.10–0.20). We omit po-
+sitions for emergent properties such as flexibility, hinge residues, and β-turns because individual
+residues are not independently designable in these cases.
+Residue identifiers use standard structural biology notation, such as Cys8 and Arg118.
+Cross-chain
+interactions
+add
+a
+target:
+prefix
+to
+partner-chain
+residues,
+as
+in
+Arg45-target:Asp112.
+Captions that include positions omit qualitative count terms
+such as several and many, and long position lists are truncated to a fixed number of entries. The
+training distribution therefore mixes exact positional prompts with position-free descriptions.
+22
+
+
+Preprint
+B.4
+CAPTION SAMPLING
+Including every available property in every caption would make the descriptions repetitive and
+dense. We instead generate multiple captions per structure and vary the number of properties in-
+cluded in each one. For a structure with n available properties, we sample a continuous proportion
+X ∼Beta(1, β) and set
+K = ⌊nX⌋+ 1,
+where K is the number of properties included in the caption. From the available set, we sample K
+properties uniformly without replacement. Setting β = 5.0 favors sparse captions while retaining
+occasional dense descriptions.
+The expected number of sampled properties is
+E[K] =
+n
+X
+i=1
+P(K ≥i) =
+n
+X
+i=1
+P
+ X ≥i−1
+n
+
+=
+n
+X
+i=1
+ 1 −i−1
+n
+β ,
+(3)
+where the last equality uses the survival function of Beta(1, β). We choose the number of captions
+per structure by bounding the probability that any property is never sampled. Let q = 1 −E[K]/n
+approximate the probability that one caption excludes a property, and let Ei denote the event that
+property i is absent from all N captions. The union bound gives
+P(E1 ∪· · · ∪En) ≤nqN.
+(4)
+Setting this bound to 1 −p gives N = ⌈(log(1 −p) −log n)/log q⌉, with p = 0.95. The number
+of populated properties varies among entries because, for example, many PDB chains lack ligands
+or metal-coordination sites. Applying the coverage criterion produces averages of approximately 32
+captions per PDB entry, 26 per AFDB entry, and 28 per Teddymer chain.
+B.5
+LLM CAPTION GENERATION
+We generate captions with Qwen3-235B-A22B (Yang et al., 2025) served through vLLM. The input
+is a structured list of sampled annotations, and the prompt instructs the model to produce a faithful
+caption without adding information beyond them (Box B.1). We sample with temperature 0.7,
+top-p 0.8, top-k 20, and presence penalty 1.5. Caption generation runs locally. The measured
+throughput of approximately 14,300 captions per H200 GPU-hour places the cost of generating all
+52.4M captions at approximately 3,700 H200 GPU-hours.
+Caption generation prompt and example output
+You are given a list of facts about a protein formatted as
+key-value pairs.
+Generate a factual protein caption from the
+following facts.
+Only state what is explicitly provided.
+Do not
+speculate, infer, or elaborate beyond the given information.
+Provide only the caption text.
+Facts:
+- Structural class:
+Alpha Beta
+- Helices:
+4
+- Strands:
+5
+- Oligomeric context:
+monomeric (C1)
+- Repeat structure:
+no internal repeats detected
+Caption:
+The protein adopts an alpha-beta structural class, featuring
+a total of four helices and five strands.
+It functions as a
+monomeric entity in its oligomeric context.
+Validation.
+We evaluate caption fidelity with Claude Opus 4.6 as an LLM judge on 80 captions.
+The sample covers different properties, data sources, caption lengths, and the presence or absence of
+residue-specific detail. For each caption, the judge compares every factual claim against the source
+annotations and evaluates three metrics:
+23
+
+
+Preprint
+• Recall: fraction of input properties whose content appears in the generated caption.
+• Precision: fraction of distinct factual claims in the caption that are traceable to a source annotation.
+Mild editorial language (e.g., “contributing to structural stability”) counts as traceable.
+• Accuracy: fraction of mentioned properties that are stated with the correct value.
+Table 6: Caption validation. The evaluation covers 80 captions.
+Property
+Claims
+%
+Recall
+584 / 597
+97.8
+Precision
+804 / 895
+89.8
+Accuracy
+774 / 809
+95.7
+Unsupported numerical specificity accounts for most of the caption judge’s precision loss. Quali-
+tative annotations such as high shape complementarity or extensive buried surface area some-
+times prompt the language model to add a plausible value such as score 0.89 or 3700 ˚A2. A
+less frequent failure divides a total into unsupported components, such as surface and buried con-
+tributions to a salt-bridge count. Despite these errors, the captions retain high recall, precision, and
+accuracy on the audited sample (Table 6).
+B.6
+TEXT–RESIDUE ALIGNMENT ANNOTATIONS
+After generating captions, we map text spans to residue positions to produce supervised align-
+ment masks. The selected source annotations identify which property text to locate in each cap-
+tion.
+We find that text with regular-expression anchors and TF–IDF-weighted token matching
+against the formatted annotation. Captions that include residue positions use direct matches to
+identifiers such as Cys8 (§B.3).
+For example, given the caption in Box B.1 and the annota-
+tion Structural class:
+Alpha Beta, the annotator computes TF-IDF weights for the
+tokens structural, class, alpha, and beta, scans the caption, and identifies alpha-beta
+structural class as the best-matching region. We then map this span to the helix and strand
+residues within the CATH domain boundary.
+The property type determines the residue set assigned to each matched text span.
+Secondary-
+structure phrases map to helix, strand, or sheet residues, and CATH fold labels map to secondary-
+structure residues within the annotated domain boundary. Disulfides, salt bridges, metal coordina-
+tion, and interface interactions map to both participating residues as pairs. Whole-chain properties
+such as contact order and compactness map to all modelled positions. Database-level properties,
+including ECOD labels, quaternary structure, Gene Ontology terms, subcellular locations, and free-
+text function, receive no residue mask. We omit an annotation from the mask when its text span
+cannot be located reliably.
+Validation.
+We manually label the character span corresponding to each selected property in 80
+captions, split evenly between held-in and hold-out examples, for 617 spans in total. The annotator
+finds spans for nearly every category in the 40 hold-out captions, with lower recall where connecting
+words fall between matched tokens (99% coverage, 89% character-level precision, and 73% recall
+over 267 spans). Examples of missed connecting text include corresponding to and with a
+mean distance of.
+C
+MODEL AND TRAINING DETAILS
+Prompteina adds text conditioning to Complexa while retaining its partially latent flow-matching
+representation. This appendix specifies the inherited notation, new conditioning components, train-
+ing, and sampling; Didi et al. (2026) describe the full base architecture.
+C.1
+INHERITED COMPLEXA MODEL
+We initialize Prompteina from a Complexa checkpoint trained first on AFDB monomers and then on
+PDB and Teddymer complexes. Complexa uses partially latent flow matching to generate backbone
+Cα coordinates xCα ∈RN×3 and per-residue side-chain latents z ∈RN×8. A frozen variational
+24
+
+
+Preprint
+autoencoder E maps an atomistic structure x to these latents. For a training structure (xCα
+1 , z1) ∼
+pdata with z1 = E(x), the model samples independent timesteps tx, tz ∈[0, 1]. It constructs linear
+interpolants xCα
+tx = txxCα
+1
++ (1 −tx)xCα
+0
+and ztz = tzz1 + (1 −tz)z0 from noise xCα
+0
+∼N(0, I)
+and z0 ∼N(0, I). The denoiser vϕ predicts the velocity field:
+LFM = Etx,tz
+hvx
+ϕ −(xCα
+1
+−xCα
+0 )
+2 +
+vz
+ϕ −(z1 −z0)
+2i
+.
+(5)
+Here vx
+ϕ and vz
+ϕ are evaluated at (xCα
+tx , ztz, c, tx, tz).
+The denoiser is a transformer with hidden width d over N residue states h ∈RN×d. Each layer
+applies adaptive layer normalization (AdaLN), pair-biased multi-head self-attention, and a feed-
+forward network:
+h ←h + AdaScale
+ MHSA
+ AdaLN(h, c)
+
+, c
+
+,
+h ←h + AdaScale
+ FFN
+ AdaLN(h, c)
+
+, c
+
+.
+(6)
+Let dc denote the width of the conditioning array c ∈RN×dc. In Complexa, c contains only
+embeddings of tx and tz. Prompteina also includes the pooled text representation in c.
+C.2
+TEXT ENCODERS
+Sentence encoder.
+We use Qwen3-Embedding-8B through the sentence transformers li-
+brary to produce L2-normalized, 4,096-dimensional embeddings. Each caption receives the follow-
+ing task instruction before encoding:
+Sentence encoder task instruction
+Given a description of a protein, embed it based on semantic
+meaning only.
+Ignore surface form variation such as casing,
+punctuation, paraphrasing or rewording.
+The instruction asks the frozen encoder to ignore stylistic variation in the generated captions. The
+two-layer MLP gs projects the embedding with Linear 4096→1024, GELU, LayerNorm, and Linear
+1024→256.
+Token encoder.
+We use Qwen3-8B with its default chat-template formatting. We extract the hid-
+den state from each of its 36 transformer layers, excluding the embedding layer, and average them
+for each token. The two-layer MLP gt projects each token with Linear 4096→1024, GELU, Layer-
+Norm, and Linear 1024→768.
+We freeze both encoders throughout all training stages.
+C.3
+TOKEN CROSS-ATTENTION
+For a prompt with T tokens, let L denote the number of language-model layers and dLM their hidden
+width. Let e(l)
+i
+∈RdLM denote the representation of token i at language-model layer l. We aggregate
+the L representations for each token with a function f:
+˜ct
+i = f
+ e(1)
+i , . . . , e(L)
+i
+
+∈RdLM,
+i = 1, . . . , T.
+The best-performing choice in the ablation is an average across layers (App. D). The learned pro-
+jector gives ct
+i = gt(˜ct
+i) ∈Rd.
+The function CrossAttn(h, ct, c) denotes cross-attention from the protein states h to the token
+embeddings ct, with c modulating the protein queries. Let αℓbe the learned scalar gate for denoiser
+layer ℓ. Each layer applies the following update before protein self-attention:
+h ←h + tanh(αℓ) CrossAttn(h, ct, c).
+(7)
+Let dh denote the attention-head width. Let LN denote layer normalization, and let WQ, WK, and
+WV denote the learned query, key, and value projections. The projected queries, keys, and values
+are Q, K, and V. Let Attn denote scaled dot-product attention. Protein states form the queries, and
+25
+
+
+Preprint
+text tokens form the keys and values:
+CrossAttn(h, ct, c) = Attn(Q, K, V),
+Q = AdaLN(h, c)WQ ∈RN×dh,
+K = LN(ct)WK ∈RT ×dh,
+V = LN(ct)WV ∈RT ×dh.
+(8)
+An output projection WO maps the attention output back to dimension d. We initialize αℓto zero.
+The conditioning array c enters through AdaLN on the queries, so the pooled text representation and
+denoising timestep modulate the token–protein interaction.
+C.4
+TEXT–RESIDUE ALIGNMENT HEAD
+Let ∆hℓ= tanh(αℓ)CrossAttn(h, ct, c) ∈RN×d denote the gated cross-attention update at de-
+noiser layer ℓ. Let Ld denote the number of denoiser layers. We normalize learned weight logits w
+as β = softmax(w) and aggregate the updates as ¯h:
+¯h = P
+ℓβℓ∆hℓ∈RN×d.
+A zero-initialized projection Wa ∈Rd×d maps ¯h into a shared space with the token embeddings.
+Their dot product gives the alignment logits:
+An,i = ⟨Wa¯hn, ct
+i⟩.
+We train these logits with Equation 1. Aligned residue–token pairs are sparse, so positive entries are
+upweighted. Let npos and nneg denote the number of positive and negative entries in one sample.
+Samples without valid alignment annotations receive zero alignment loss. Otherwise, the per-sample
+positive weight is w+ = nneg/npos.
+C.5
+INITIALIZATION AND GATING
+AdaLN and AdaScale.
+The base model’s AdaLN computes γ(c)⊙LayerNorm(h)+β(c), where
+γ = σ(Wγc+bγ) and β = Wβc, with default initialization. AdaScale computes σ(Wsc+bs)⊙h.
+Its weights start at zero and its bias at −2.0, so σ(−2.0) ≈0.12 and each layer’s initial output
+contribution is small.
+Cross-attention gating.
+We gate the cross-attention output with a per-layer scalar αℓinitialized
+to zero:
+∆hℓ= tanh(αℓ) · Attn(Q, K, V).
+The zero initialization removes the cross-attention contribution at the start of training and allows it
+to grow thereafter. The ablation compares this gate with AdaScale gating, AdaScale combined with
+the tanh gate, unbounded linear conditioning, per-dimension learned scalars, and no gating (App. D;
+Peebles & Xie, 2023).
+Alignment head projection.
+We zero-initialize Wa ∈Rd×d so that the alignment head produces
+zero logits at the start of training, allowing the generation objective to stabilize before alignment
+gradients take effect.
+C.6
+TRAINING
+Training first introduces the text pathways for monomer generation and then adapts the model to
+generate a binder against a fixed target structure. The monomer phase contains three stages.
+Monomer training.
+We follow the staged adaptation used by PixArt-α (Chen et al.,
+2023).
+The first stage warms up the text projectors gs and gt, cross-attention parameters
+{WQ, WK, WV , WO, αℓ}, and AdaLN conditioning layers on paired text–structure data while
+freezing the pretrained denoiser vϕ. The second stage unfreezes all parameters for text-conditioned
+continual pretraining on PDB and AFDB monomers with LFM. The third stage removes the flow-
+matching loss and fine-tunes the alignment pathway with Lalign. During this stage, we freeze the
+denoiser, AdaLN layers, cross-attention gates, and query and key projections. We train the value
+and output projections in the last five cross-attention layers together with the text projectors and
+alignment head Wa.
+26
+
+
+Preprint
+Restricting alignment fine-tuning to the late value and output projections preserves fold accuracy.
+Higher learning rates or unfrozen query and key projections degrade fold accuracy within one to two
+epochs, whereas training the last five cross-attention layers matches all fourteen layers with one third
+as many trainable parameters. During warmup and both continual-pretraining stages, we replace cs
+and ct with zero vectors with probability puncond = 0.2. This dropout trains the unconditional
+prediction used for classifier-free guidance.
+Binder training.
+We continue training on Teddymer dimers (Didi et al., 2026) and PDB multi-
+mers. Only the binder tokens are noised, leaving the target tokens clean and fixed for the denoiser to
+attend to at every step. An optional hotspot mask marks target residues that the binder should con-
+tact and enters through the pair and sequence features used for the target. We sample hotspots from
+true contact residues with dropout so that the training distribution also includes prompts without a
+specified epitope. Input text describes the binder, while the target structure enters separately.
+Training the final monomer and binder models required approximately 12,900 H100-equivalent
+GPU-hours, or about 67 days on one eight-H100 node. This estimate excludes ablations, dataset
+construction, and evaluation.
+Every training stage uses a 750-step linear warmup, an effective batch size of 128, and exponential-
+moving-average decay of 0.999 (Table 7). The learning rate is 1.8×10−4, except for alignment
+fine-tuning at 5.4×10−6.
+Table 7: Training stages. “Trainable” identifies components with gradients enabled; all other com-
+ponents are frozen. Steps are optimizer steps at the selected checkpoint.
+Stage
+Dataset
+Trainable
+Loss
+LR
+Steps
+Projector warmup
+PDB+AFDB
+monomers
+Text modules, AdaLN
+LFM
+1.8×10−4
+2.6K
+Continual pretraining
+(monomers)
+PDB+AFDB
+monomers
+All
+LFM
+1.8×10−4
+816K
+Alignment fine-tuning
+PDB+AFDB
+monomers
+Cross-attn WV /out (late
+layers), projectors, Wa
+Lalign 5.4×10−6 10.2K
+Continual pretraining
+(binders)
+Teddymer+PDB
+dimers
+All
+LFM
+1.8×10−4
+465K
+Training distribution rebalancing.
+A small number of architectures account for most PDB
+chains, so uniform chain sampling presents common folds many times per epoch and rare folds
+only a few times. We cluster structures by the structural features described in their captions and in-
+terpolate each cluster’s sampling weight between its empirical frequency and a uniform distribution
+over clusters. A parameter β ∈[0, 1] controls this interpolation. Setting β=0 recovers uniform sam-
+pling over chains, and larger values progressively upweight rare feature combinations, by roughly
+an order of magnitude for the rarest architectures. A cosine schedule alternates between the natural
+distribution and phases that emphasize rare folds. Rebalancing produces the largest measured gain
+in fold control, and cosine cycling performs comparably to a monotonic ramp (CATH class accuracy
+92.0% with cosine cycling, 87.3% with a linear ramp, and 51.3% without rebalancing; App. D).
+Timestep distribution.
+Complexa samples timesteps from ptx = 0.02 · Unif(0, 1) + 0.98 ·
+Beta(1.9, 1.0) and ptz = 0.02 · Unif(0, 1) + 0.98 · Beta(1.0, 1.5), concentrating training near clean
+data (t →1). We replace the backbone schedule with ptx = Unif(0, 1) and retain the side-chain
+schedule ptz. The uniform backbone schedule gives more weight to intermediate timesteps, where
+the model makes structural decisions and text conditioning is most informative.
+Alignment head representation.
+The alignment head uses cross-attention updates as its source
+representation. The representation ablation compares these updates with trunk hidden states and
+output-head activations (App. D).
+27
+
+
+Preprint
+C.7
+SAMPLING
+At inference, Prompteina generates backbone coordinates and side-chain latents by simulat-
+ing a stochastic differential equation (SDE). The frozen variational autoencoder (VAE) decoder
+D(xCα, z) reconstructs all-atom coordinates and amino acid sequence. Sampling follows Geffner
+et al. (2025); Didi et al. (2026) for 400 Euler–Maruyama steps.
+Classifier-free guidance (Ho & Salimans, 2022) combines conditional and unconditional velocities:
+vguided = w vcond + (1 −w) vuncond,
+(9)
+where w controls the strength of text conditioning. The evaluation protocol specifies the guidance
+weights and length distributions used for each experiment (App. E).
+D
+ABLATIONS
+We ablate the three choices that determine how text enters the model and which training examples
+and timesteps supply its learning signal: the conditioning architecture, the β data-sampling schedule,
+and the noise schedule. All ablations share the same parent checkpoint, dataset, and training duration
+of 20 epochs. Evaluation uses the same protocol as §3.1: 50 structures per prompt, 318 prompts,
+and CFG w=2.0.
+Variants.
+Complete model: pooled + cross-attention, cosine β cycling, uniform noise. Cross-attn
+only: removes the pooled/AdaLN text signal. Pooled only: removes cross-attention and the token-
+level encoder. No β: uniform cluster sampling (β=0), removing rare-class rebalancing. Linear β:
+monotonic β ramp 0→1 (vs. cosine cycling). Default noise: backbone Cα noise sampled from
+Beta(1.9, 1.0) instead of uniform.
+Ablation results.
+The complete model obtains 92.0% CATH class accuracy and 27.0% CATH
+architecture accuracy (Table 8). CATH class accuracy is 86.7% with cross-attention alone, 68.7%
+with the pooled pathway alone, and 92.0% with both. It is 51.3% without rare-class rebalancing,
+87.3% with a linear β schedule, and 92.0% with cosine β cycling. Uniform and inherited Beta
+backbone-noise schedules give 92.0% and 68.7% CATH class accuracy, respectively.
+Natural-language and CATH-label comparison.
+We compare natural language with a dedicated
+hierarchical CATH-label conditioner using the same structure generation model, training structures,
+training step, β schedule, requested labels and lengths, evaluator, and CFG. Pooled text and CATH
+labels perform similarly through AdaLN, whereas adding token cross-attention to the text path sub-
+stantially raises CATH class and architecture accuracy, and longer CATH-label training to 3.2 times
+the matched budget does not close this gap (Table 9).
+Alignment fine-tuning comparison.
+We assess alignment supervision separately from the shared-
+parent ablations in Table 8. This sequential comparison fine-tunes the text-conditioned monomer
+checkpoint after 816K optimizer steps for 10.2K additional steps with text–residue alignment super-
+vision. Both checkpoints are evaluated with the same length-matched protocol at CFG w=2.0 and
+50 samples per prompt. After alignment fine-tuning, disulfide-count correlation changes from 0.054
+to 0.294 and salt-bridge-count correlation from 0.566 to 0.663 (Table 10). CATH class accuracy
+changes from 94.0% to 96.0%, and architecture accuracy from 55.5% to 51.1%.
+28
+
+
+Preprint
+Table 8: Architecture ablations. All metrics use CFG w = 2.0. Categorical properties report
+accuracy, and count properties report Spearman ρ. Rows match Table 11 where applicable. Bold
+and underline denote the best and second-best values.
+Group Property
+Complete Linear β
+No β
+Cross-attn only Default noise Pooled only
+Fold & topology, accuracy (%) (↑)
+CATH class
+92.0
+87.3
+51.3
+86.7
+68.7
+68.7
+CATH architecture
+27.0
+25.9
+22.2
+25.0
+18.7
+7.5
+Contact order
+29.6
+36.4
+28.8
+28.4
+31.2
+33.2
+Internal symmetry
+16.0
+17.6
+16.9
+22.2
+14.9
+10.4
+Sheet topology
+48.0
+50.0
+70.0
+70.0
+66.0
+62.0
+Domain class comp.
+4.7
+4.6
+3.3
+2.1
+0.7
+1.6
+Domain arch. comp.
+13.3
+10.5
+11.3
+10.5
+6.3
+0.5
+Secondary structure, ρ (↑)
+Helix count
+0.87
+0.86
+0.87
+0.87
+0.88
+0.59
+Strand count
+0.75
+0.70
+0.76
+0.74
+0.72
+0.58
+Sheet count
+0.52
+0.60
+0.62
+0.59
+0.57
+0.44
+Tertiary structure, ρ (↑)
+Disulfide count
+0.16
+0.21
+0.04
+−0.11
+0.24
+0.08
+Salt bridge count
+0.14
+0.20
+0.29
+0.03
+0.01
+0.10
+Global shape & surface, accuracy (%) (↑)
+Compactness (size)
+45.3
+43.3
+36.7
+38.0
+39.3
+39.3
+Compactness (shape)
+56.0
+72.0
+60.7
+58.7
+36.7
+45.3
+Surface planarity
+63.0
+53.0
+61.0
+57.0
+44.0
+52.0
+SAP
+38.7
+36.0
+34.7
+34.0
+36.7
+35.3
+Additional metrics
+CATH topology (%)
+1.6
+1.1
+1.1
+1.5
+1.1
+0.4
+Buried unsatisfied (ρ)
+0.31
+0.40
+0.36
+0.25
+0.33
+0.29
+Flexibility (ρ)
+0.43
+0.45
+0.43
+0.46
+0.45
+0.46
+Table 9: Natural-language and CATH-label conditioning. The Complete, Pooled only, and 47k
+CATH-label columns use the same 47,275-step training budget; the final two columns extend only
+CATH-label training. Values are GearNet top-1 accuracy (%) at CFG w = 2.0 over three CATH
+classes and 35 CATH architectures, with 50 structures per requested label. Bold marks the best
+value in each row.
+Property
+Natural language
+Dedicated CATH label
+Complete
+Pooled only
+47k (matched)
+98k
+149k
+CATH class accuracy (%)
+92.0
+68.7
+66.7
+73.3
+67.3
+CATH architecture accuracy (%)
+27.0
+7.5
+8.5
+9.9
+9.7
+Table 10: Alignment fine-tuning comparison. The second checkpoint is trained directly from the
+first, so this sequential comparison is separate from the shared-parent ablations in Table 8. The
+after-alignment values are those reported for Prompteina in Tables 1 and 11. Both checkpoints use
+the same length-matched evaluation at CFG w = 2.0; disulfide correlation covers requested counts
+1–7.
+Metric
+Before alignment
+After alignment
+CATH class accuracy (%)
+94.0
+96.0
+CATH architecture accuracy (%)
+55.5
+51.1
+Disulfide count (ρ)
+0.054
+0.294
+Salt bridge count (ρ)
+0.566
+0.663
+29
+
+
+Preprint
+E
+MONOMER GENERATION EVALUATION
+We evaluate text-guided monomer generation across 18 tasks: 14 single-property and 4 composite
+tasks. Each prompt produces 50 structures with classifier-free guidance at w=2.0 and 400 SDE dif-
+fusion steps. A prompt requesting property x draws lengths from the empirical training distribution
+of structures annotated with x, using a piecewise-linear CDF constructed from 11 quantile break-
+points (P5 through P95). For CATH class and architecture, this protocol follows Proteina’s treatment
+of empirical compatibility between chain length and CATH label (Geffner et al., 2025) and avoids
+unrealistic label–length combinations.
+Fold and topology.
+CATH class (3 prompts) and architecture (35 prompts) are evaluated with
+GearNet (Zhang et al., 2023), a pre-trained graph neural network for fold classification. We report
+the fraction of generated structures whose GearNet-predicted CATH label matches the requested
+label. Contact order (5 prompts) is computed from Cα contacts and binned into 5 classes. We de-
+tect nine internal symmetries—cyclic groups C2–C8 and dihedral groups D2–D3—with CE-Symm
+(Myers-Turnbull et al., 2014).
+We evaluate multi-domain CATH class and architecture with separate sets of 16 prompts. Each
+prompt specifies the class or architecture of every domain in N-to-C order, such as an N-terminal
+3-Layer(αβα) Sandwich domain followed by a C-terminal Orthogonal Bundle domain. We segment
+each generated structure into domains with Chainsaw (Wells et al., 2024) and classify each domain
+with GearNet. A generated structure is correct only if Chainsaw finds the requested number of
+domains and GearNet predicts the complete sequence of requested CATH labels in order. All text-
+conditioned methods receive the same prompts. We restrict the class and architecture compositions
+to those with at least 500 training examples.
+Secondary structure.
+We compute helix count (20 prompts), strand count (20 prompts), and sheet
+count (14 prompts) from DSSP assignments (Kabsch & Sander, 1983). For each property, Spearman
+ρ measures the association between requested and realized counts across all generated structures.
+Matched-length control.
+Property-matched length sampling is necessary because some requests
+require sufficient chain length; for example, an 80-residue protein cannot reasonably contain 20
+helices. For count-valued properties, however, this protocol could also make length predictive of the
+requested value and thereby inflate requested–realized correlations. We test this potential confound
+on helix and strand count, for which Prompteina shows strong control in Table 1b. For each property,
+we select the widest contiguous five-count window whose shared P20–P80 training-length range lies
+below 200 residues, requiring at least two strands. This gives helix counts 1–5 at 134–193 residues
+and strand counts 2–6 at 112–169 residues.
+Within each property, we reuse the exact same list of 50 lengths at every requested count, making
+length uninformative about the requested value by construction. We also generate an empty-prompt
+control using the same lengths. The text-conditioned correlations remain strong, whereas both con-
+trol correlations are near zero (Table 12).
+Tertiary structure.
+We detect disulfide bonds from Sγ–Sγ distances below 2.5 ˚A in the generated
+coordinates and report Spearman ρ over seven requested counts from 1 to 7. For salt bridges, we use
+Asp/Glu–Lys/Arg atom-pair distances below 4.0 ˚A and report the correlation across 15 prompts.
+Global shape and surface.
+We evaluate compactness with three prompts each for size and shape.
+Size is the radius of gyration normalized by chain length, Rg/N 0.4, and shape is the ratio of the
+first two singular values of the Cα coordinate matrix. We compute solvent-accessible surface area
+propensity (SAP, 3 prompts) from the solvent-accessible surface geometry.
+Composite evaluations.
+Four evaluations pair CATH class with a helix, strand, sheet, or disulfide
+count. Both disulfide-count evaluations use counts 1–7. We report GearNet accuracy for CATH
+class and Spearman ρ for the count, using the same generated samples for the two reported metrics.
+Baselines.
+Each baseline model is evaluated only on properties its conditioning interface can ex-
+press. Chroma (Ingraham et al., 2023) text mode covers all categories via free-text caption guidance.
+30
+
+
+Preprint
+Chroma label mode uses discrete CATH, secondary structure, and radius of gyration conditioners
+(7 categories). Proteina (Geffner et al., 2025) uses CATH label conditioning with classifier-free
+guidance (3 categories). RFdiffusion (Watson et al., 2023) uses per-residue secondary structure ten-
+sors via scaffoldguided mode (3 categories). RFdiffusion3 (Butcher et al., 2025) does not expose
+helix-, strand-, or sheet-specific conditioning, and its cyclic or dihedral symmetry sampler generates
+multi-chain assemblies rather than the single-chain internal symmetry evaluated here.
+Pinal (Dai et al., 2025) and BioMatrix (Pei et al., 2026) are text-conditioned models evaluated on the
+same prompts as Prompteina, and both generate amino acid sequences that we fold with ESMFold.
+Pinal accepts a target length directly, whereas BioMatrix exposes no length control, so we constrain
+its decoder to emit exactly the sampled number of residues before terminating. All baselines use
+their paper-default settings and the same length distributions as Prompteina.
+Table 11: Structural-control benchmark. We report accuracy (%) for categorical properties and
+Spearman ρ for count properties. Prompteina uses classifier-free guidance weight w=2.0. Baselines
+are evaluated only on properties their input format can express (— = not expressible). Best and
+second-best values are bold and underlined, respectively.
+Ours
+Baselines
+Property
+Prompteina
+Chroma
+Chroma Proteina RFD
+Pinal
+BioMatrix
+(text)
+(label)
+Fold & topology, accuracy (%) (↑)
+CATH class
+96.0
+33.3
+64.7
+96.7
+—
+36.0
+30.7
+CATH architecture
+51.1
+3.7
+7.5
+27.5
+—
+5.5
+2.8
+Contact order
+56.0
+21.2
+—
+—
+—
+27.6
+21.6
+Internal symmetry
+32.4
+0.4
+—
+—
+—
+1.1
+0.4
+Multi-domain CATH class
+34.4
+5.3
+—
+—
+—
+5.4
+2.6
+Multi-domain CATH arch.
+42.0
+1.5
+—
+—
+—
+0.4
+1.0
+Secondary structure, ρ (↑)
+Helix count
+0.94
+0.74
+0.86
+—
+0.87
+0.72
+0.59
+Strand count
+0.88
+0.42
+0.58
+—
+0.92
+0.25
+0.18
+Sheet count
+0.64
+0.40
+0.59
+—
+0.82
+0.16
+0.18
+Tertiary structure, ρ (↑)
+Disulfide count
+0.29
+0.06
+—
+—
+—
+0.10
+0.07
+Salt bridge count
+0.66
+0.64
+—
+—
+—
+0.23
+0.28
+Global shape & surface, accuracy (%) (↑)
+Compactness (size)
+76.7
+34.0
+39.3
+—
+—
+36.7
+33.3
+Compactness (shape)
+71.3
+31.3
+—
+—
+—
+34.7
+30.9
+SAP
+38.7
+37.3
+—
+—
+—
+34.0
+34.0
+Composite evaluations, class acc. (%) / count ρ (↑)
+Class × helix
+84.1 / 0.86
+31.9 / 0.61
+—
+—
+—
+38.6 / 0.10 35.9 / 0.11
+Class × strand
+92.1 / 0.65
+32.4 / 0.38
+—
+—
+—
+35.5 / 0.21 30.7 / 0.35
+Class × sheet
+94.4 / 0.46
+36.7 / 0.34
+—
+—
+—
+33.9 / 0.06 28.1 / 0.07
+Class × disulf. count
+90.3 / 0.43 34.5 / −0.02
+—
+—
+—
+33.4 / 0.10 31.0 / 0.07
+Table 12: Matched-length secondary-structure control. Within each property, the same 50-length
+list is reused at every requested count and for the empty-prompt control (n = 250 per row). Control
+groups inherit the text-conditioned samples’ count labels only to compute the null correlation; no
+count is requested in their prompts. Slope is from a linear regression of realized count on the count
+label.
+Experiment
+Requested counts
+Lengths (aa)
+n
+Spearman ρ
+Slope
+Helix
+1–5
+134–193
+250
+0.878
+1.076
+Helix—control
+—
+134–193
+250
+−0.060
+−0.060
+Strand
+2–6
+112–169
+250
+0.718
+0.824
+Strand—control
+—
+112–169
+250
+−0.005
+−0.010
+31
+
+
+Preprint
+E.1
+PROMPT PARAPHRASE ROBUSTNESS
+We test whether control of three well-supported properties depends on the benchmark’s exact prompt
+template: CATH class, helix count, and their composition. For each semantic specification, we
+compare direct, short-form, paraphrased, and reordered wording (Box E.1). The paraphrases were
+written with Claude rather than the Qwen model used to generate training captions. All four formats
+use the same 20 chain lengths for each specification, so wording is the only manipulated variable.
+All samples are generated specifically for this matched experiment rather than reused from Table 11;
+there are therefore 20 rather than 50 samples per specification.
+Monomer paraphrase examples
+CATH class:
+Alpha Beta
+Direct:
+This protein has an Alpha Beta structural class.
+Short-form:
+CATH class:
+Alpha Beta.
+Paraphrased:
+The overall fold falls into the Alpha Beta category.
+Reordered:
+An Alpha Beta structural class describes this protein.
+Helix count:
+6
+Direct:
+This protein contains 6 helices.
+Short-form:
+6 helices.
+Paraphrased:
+The structure is built from six alpha helices.
+Reordered:
+Six helices make up this protein.
+Composite:
+Alpha Beta class and 4 helices
+Direct:
+This protein has an Alpha Beta structural class and
+contains 4 helices.
+Short-form:
+Alpha Beta class; 4 helices.
+Paraphrased:
+With four alpha helices, this protein adopts an Alpha
+Beta fold.
+Reordered:
+Build a protein with four helices whose overall
+structural class is Alpha Beta.
+Table 13: Prompt paraphrases. CATH class uses three specifications, helix count uses five, and
+the composite uses six; each specification has 20 matched-length generations per format. We report
+accuracy for CATH class, Spearman ρ for helix count, and accuracy / ρ for their composition.
+Evaluation
+Direct
+Short-form
+Paraphrased
+Reordered
+CATH class accuracy (%)
+100.0
+100.0
+95.0
+96.7
+Helix count ρ
+0.953
+0.942
+0.912
+0.934
+Class × helix (acc. % / ρ)
+92.5 / 0.734
+87.5 / 0.652
+90.8 / 0.729
+86.7 / 0.694
+All four formats retain strong control of the tested properties (CATH class accuracy at least 95.0%,
+helix-count ρ at least 0.912, and composite class accuracy and helix-count ρ at least 86.7% and
+0.652). Reversing the order of the two composite properties leaves both metrics similar, so control
+does not depend on which property appears first.
+E.2
+DESIGNABILITY
+Following the standard self-consistency evaluation for generated backbones (Yim et al., 2023; Wat-
+son et al., 2023), we sample eight sequences for each structure with ProteinMPNN (Dauparas et al.,
+2022), fold them with ESMFold, and take the minimum Cα self-consistency RMSD (scRMSD) to
+the generated structure. This best-of-eight inverse-folding test asks whether at least one designed
+sequence is predicted to realize the proposed backbone, rather than requiring the generation model’s
+own sequence to do so. Following prior backbone-generation evaluations (Yim et al., 2023; Watson
+et al., 2023), we classify a structure as designable when scRMSD is below 2 ˚A for every method.
+For every prompt and method, we evaluate an evenly spaced 10-of-50 subset (every fifth structure
+after sorting by sample index); this preserves coverage of all test cases while controlling the cost
+32
+
+
+Preprint
+of eight refolds per structure. Each baseline supports a different benchmark subset, so each row
+of Table 14 restricts Prompteina to the test cases evaluated by that baseline; rows should therefore
+be read across, not columns down. This avoids treating unsupported tasks as failures or comparing
+averages over different task mixtures. Additional prompt-matching examples and refolds appear in
+App. Fig. 7.
+Figure 7: Additional monomer samples. Generated structures are colored and superposed with
+their best of eight ProteinMPNN–ESMFold refolds (light gray) after Cα alignment. Labels give the
+requested property; values give scRMSD.
+33
+
+
+Preprint
+Table 14: Monomer designability. Each row compares Prompteina with one baseline on exactly
+the benchmark test cases both evaluated. Median scRMSD is in ˚A (lower is better); designable is
+the percentage with scRMSD < 2 ˚A (higher is better). “Structures per model” gives the sample
+size on each side of the comparison. Complexa and the text-guided models share all 18 tasks. The
+property-specific scopes are CATH architecture and class for Proteina, six tasks for Chroma label,
+and the three secondary-structure-count tasks for RFdiffusion. Bold marks the better result within
+each pair.
+Baseline
+Shared test
+Structures
+Median scRMSD (↓)
+Designable (%) (↑)
+cases
+per model
+Prompteina
+Baseline
+Prompteina
+Baseline
+Complexa
+251
+2,510
+0.83
+3.11
+79.7
+29.1
+Text-guided models
+Chroma (text)
+251
+2,510
+0.83
+14.07
+79.7
+2.4
+Pinal
+251
+2,510
+0.83
+11.10
+79.7
+16.5
+BioMatrix
+251
+2,510
+0.83
+15.83
+79.7
+7.0
+Property-specific models
+Proteina
+27
+270
+0.69
+1.17
+91.1
+64.8
+Chroma (label)
+84
+840
+0.78
+14.80
+81.9
+1.7
+RFdiffusion
+54
+540
+0.83
+1.19
+76.5
+68.1
+Conditional and empty-prompt samples use the same fine-tuned checkpoint, the same 251 prompts,
+and identical per-prompt length distributions; the empty-prompt condition zeros the text embeddings
+and uses guidance weight w = 1. Holding the checkpoint and lengths fixed makes this a control for
+whether the designability gain comes from fine-tuning or from text conditioning, while preventing
+the strong dependence of designability on length from confounding the comparison.
+Fine-tuned Prompteina is substantially more designable than pretrained Complexa with or without
+a prompt (79.7% conditional and 85.2% empty-prompt vs. 29.1%). Although the pooled empty-
+prompt rate is 5.5 percentage points higher, the median paired per-prompt difference is zero; this
+is not evidence that removing the prompt improves designability.
+The conditional Prompteina
+advantage replicates with ESMFold2 (80.7% vs. 26.7% designable; paired scRMSD correlation
+ρ = 0.953). This checks that the conclusion is not specific to one structure predictor; we treat it as
+a replication with a second folding model, not as a better ground truth.
+Prompteina is more designable than all three text-guided full-suite baselines (79.7% vs. 2.4–16.5%).
+The Proteina comparison uses a different sequence-design instrument because Proteina emits only a
+Cα trace. The specialist rows also cover narrower task sets.
+E.3
+STRUCTURAL NOVELTY
+We measure novelty only among designable structures, preventing structurally failed outputs from
+appearing novel merely because they match no protein fold. For each design, Foldseek (van Kem-
+pen et al., 2024) with TM-align searches the training structures used by that model, and novelty
+is one minus the maximum query-normalized TM-score (Zhang & Skolnick, 2004) to any training
+structure. Taking the maximum tests the nearest potential training-set match rather than average
+similarity. Query normalization asks how much of the generated design is explained by that match,
+so a short design contained within a longer training structure is conservatively treated as non-novel.
+We use model-specific training references because the relevant memorization opportunity is the cor-
+pus to which each model was exposed; consequently, cross-model values are descriptive rather than
+a controlled comparison against a common database.
+Prompteina’s conditional and empty-prompt samples share the same 780,195-structure PDB–AFDB
+training reference, so their matched comparison isolates the effect of supplying text. Both sets begin
+with 2,510 structures; 2,000 conditional and 2,138 empty-prompt structures pass the scRMSD < 2 ˚A
+designability criterion and enter the novelty analysis.
+For Complexa, 731 of 2,510 structures are designable. Complexa does not release its original chain-
+level monomer manifest, so we reconstruct the reported 110,976-chain PDB monomer set from the
+checkpoint filters and archived PDB metadata, retaining 110,969 after the checkpoint’s explicit ex-
+clusions. We combine these monomers with the released 45,856-entry PDB multimer manifest.
+34
+
+
+Preprint
+Expanding multimer entries into their constituent chains and structural models and combining them
+with the 289,222 AFDB targets gives 506,972 Foldseek targets. Including both PDB components
+prevents Complexa from appearing artificially novel because part of its training exposure is absent
+from the search database. Both model-specific references omit Teddymer structures; this can over-
+estimate absolute novelty, but the reconstructed Complexa reference corrects the previous additional
+omission of its PDB training structures.
+Table 15: Structural novelty. Each row is searched against the corresponding model-specific PDB–
+AFDB training reference; reference size counts Foldseek targets. Maximum TM is the best query-
+normalized structural match to that reference; lower maximum TM and higher novelty indicate
+greater distance from the model’s training set. The two Prompteina conditions use the same check-
+point, prompts, lengths, and reference set. Bold marks the better result in this matched conditional–
+empty-prompt comparison.
+Model / condition
+Reference size
+Max TM (↓)
+Mean novelty (↑)
+mean / median
+Complexa
+506,972
+0.783 / 0.782
+0.217
+Prompteina (conditional)
+780,195
+0.770 / 0.785
+0.230
+Prompteina (empty prompt)
+780,195
+0.835 / 0.847
+0.165
+Conditional Prompteina and Complexa have similar novelty under their model-specific PDB–AFDB
+references (mean novelty 0.230 vs. 0.217). Text conditioning also moves Prompteina farther from
+its training structures than the matched empty-prompt control (mean novelty 0.230 vs. 0.165). The
+matched Prompteina comparison isolates the prompt effect; the cross-model comparison remains
+descriptive because the reference sets differ and both omit Teddymer.
+E.4
+FULL PROMPTS FOR FIGURE 1A
+The two prompts abbreviated in Figure 1a are:
+• “Mechanobiology sensors need an element that reports tension by stretching reproducibly. It is
+built as a straight up-down bundle of six alpha helices packed side by side along one long axis,
+with two beta strands clasping one end. Two disulfide bonds staple the clasp and at least six salt
+bridges run along the bundle surface. The silhouette is elongated.”
+• “This enzyme is intended to hydrolyse organophosphate pesticides under EC 3.1.8.1. It adopts a
+Super Roll architecture of the Alpha Beta class, built from four alpha helices and six beta strands,
+with the sheet rolled around the helices and a metal centre at the open mouth of the roll. The chain
+forms zero disulfide bonds and a square silhouette.”
+F
+FUNCTIONAL SPECIFICATION EVALUATION
+We test whether a text prompt can specify a protein family and generate recognizable members. The
+structural properties in §3.1.1 have property-specific verifiers, but no corresponding classifier covers
+arbitrary protein families.
+Benchmark families.
+The benchmark comprises 122 sequence-coherent protein families. We de-
+fine each candidate family as an ECOD topology group (Cheng et al., 2014) whose PDB members
+exceed 30% median pairwise sequence identity, the threshold below which alignment stops imply-
+ing homology (Rost, 1999). This requirement removes topology groups that share a fold without a
+single family-level referent.
+Eligibility is computed from the median identity over all pairs of PDB sequences in a group before
+any structure is generated. No design, method, or evaluation score enters the benchmark definition.
+Prompt formats.
+The models were trained with different textual vocabularies, so a single prompt
+format would favor the model for which that wording is in-distribution. We evaluate every method on
+four formats and report its highest score for each metric. The ECOD annotation combines an ECOD
+35
+
+
+Preprint
+topology name with an EC number or cofactor annotation when available, matching Prompteina’s
+caption vocabulary. The functional description paraphrases a Swiss-Prot FUNCTION annotation
+with Claude, matching Pinal’s training and evaluation setting. The protein metadata combines the
+protein name with an EC number and subcellular location when available, matching BioMatrix’s
+keyword setting. The InterPro label contains only the InterPro entry name, which is a second format
+used by Pinal (Dai et al., 2025; Pei et al., 2026).
+The exact prompts for one benchmark family illustrate these four formats (Box F.1).
+Functional-evaluation prompt formats: globin example
+ECOD annotation
+This protein adopts a globin-like fold.
+It coordinates a heme
+cofactor.
+Functional description
+Carries oxygen from the lungs to peripheral tissues.
+Its derived
+peptide LVV-hemorphin-7 enhances bradykinin activity and thereby
+lowers blood pressure, and it also inhibits enkephalin-degrading
+enzymes such as DPP3 and selectively antagonizes the pain-signaling
+receptor P2RX3, implicating it in the control of pain and
+inflammation.
+Protein metadata
+hemoglobin subunit beta.
+InterPro label
+Globin
+Generation protocol.
+Every method generates 50 structures per family and format under the com-
+mon sampling protocol (App. E). Pinal and BioMatrix emit sequences, which we fold with ESMFold
+before computing structure similarity.
+ProTrek similarity.
+ProTrek is a contrastively trained trimodal encoder mapping protein se-
+quences, structures, and text into a shared embedding space (Su et al., 2025). Both scores are
+temperature-scaled cosine similarities between the prompt embedding and a generated sequence or
+structure embedding.
+Confidence-weighted similarity reduces the contribution of generated sequences that ESMFold pre-
+dicts with low confidence without filtering any design or family. For each design, it multiplies
+ProTrek similarity by mean per-residue pLDDT/100. We obtain pLDDT by applying ESMFold
+to the exact generated sequence, using Prompteina’s co-designed sequence or the sequence emitted
+by Pinal or BioMatrix. Scores are averaged first within each family and then across the 122 fam-
+ilies, keeping the family as the unit of analysis. We estimate 95% confidence intervals by cluster-
+bootstrapping the 122 families 10,000 times and taking the 2.5th and 97.5th percentiles.
+Baseline training and metric overlap.
+Pinal is designed for text-to-protein generation, whereas
+BioMatrix is a generalist model instruction-tuned for the same task. Both generate protein sequences
+from functional descriptions and include UniProt-derived training data. Prompteina is trained to
+generate all-atom structures from captions that combine structural and functional properties.
+We retain ProTrek because the original Pinal and BioMatrix evaluations report this metric. We note
+that the use of ProTrek for evaluation is not independent of Pinal’s training. Pinal’s TrEMBL50-
+ProTrek corpus was built by scoring TrEMBL cluster representatives against Swiss-Prot descriptions
+with ProTrek and retaining about 412M of the highest-scoring sequence–description pairs (Dai et al.,
+2025). Pinal’s structure tokens use ProTrek’s Foldseek tokenization, and Pinal selects candidates by
+ProTrek score. Prompteina uses neither these data nor these selection procedures.
+Method comparison.
+At each method’s best prompt format, Prompteina has the highest mean
+sequence and structure similarity (Table 16). Its unweighted advantage over Pinal is small and un-
+36
+
+
+Preprint
+Table 16: Functional control across prompt formats. Mean ProTrek similarity between a prompt
+and the sequence or folded structure generated from it, over 50 designs for each of 122 protein
+families. Formats marked † are in-distribution for that method. Bold marks each method’s best
+format. ± denotes the half-width of a 95% cluster-bootstrap interval obtained by resampling the 122
+families rather than designs within a family.
+ProTrek seq. sim. (↑)
+Method
+ECOD ann.
+Function
+Metadata
+InterPro
+Prompteina
+8.46† ± 0.98
+5.96 ± 0.91
+5.65 ± 0.89
+5.51 ± 0.94
+Pinal
+7.55 ± 0.79
+6.37† ± 0.82
+6.97 ± 0.85
+7.52† ± 0.72
+BioMatrix
+4.73 ± 0.64
+3.49 ± 0.56
+4.72† ± 0.62
+5.73 ± 0.68
+ProTrek struct. sim. (↑)
+Method
+ECOD ann.
+Function
+Metadata
+InterPro
+Prompteina
+7.36† ± 1.04
+4.33 ± 0.91
+4.12 ± 0.87
+4.55 ± 0.96
+Pinal
+6.84 ± 0.78
+5.27† ± 0.84
+6.23 ± 0.84
+7.09† ± 0.73
+BioMatrix
+3.57 ± 0.56
+2.09 ± 0.48
+3.33† ± 0.55
+4.64 ± 0.63
+resolved under a paired family bootstrap (sequence +0.91 [−0.14, +1.93]; structure +0.26 [−0.73,
++1.30]). The corresponding advantages over BioMatrix are larger and resolved (sequence +2.73
+[+1.75, +3.68]; structure +2.71 [+1.74, +3.71]).
+Confidence weighting increases the separation without changing the overall conclusion (Table 2).
+Prompteina’s advantage over Pinal resolves for sequence similarity but remains unresolved for
+structure similarity (sequence +1.14 [+0.26, +2.03]; structure +0.72 [−0.15, +1.60]).
+Both
+confidence-weighted advantages over BioMatrix resolve (sequence +3.42 [+2.58, +4.25]; struc-
+ture +3.01 [+2.18, +3.85]).
+G
+BINDER DESIGN PROTOCOLS AND EVALUATION
+G.1
+INTERFACE-RESIDUE STEERING
+Interface residue detection.
+Following Jones & Thornton (1996), we define interface residues as
+binder residues whose solvent-accessible surface area (SASA) decreases by more than 1.0 ˚A2 upon
+complex formation. SASA is computed with FreeSASA using default radii. The interface residue
+count reported throughout §3.2.1 is the number of binder-side residues meeting this criterion.
+Benchmark targets.
+We use all 20 targets in the Complexa benchmark (Didi et al., 2026), retain-
+ing its target structures, binder-length ranges, and hotspot residues where provided. The agentic
+binder protocol lists the complete panel below.
+Prompt template.
+We specify only the requested binder–target interface residue count: ‘‘The
+binding interface involves {n} residues.’’ Requested counts range from 8 to
+30; scaffold topology, contact chemistry, and other binder properties remain unspecified.
+Generation protocol.
+We sample 50 structures per requested count with classifier-free guidance
+at w = 2.0. The single-pass protocol omits search, reward models, inverse folding, and structure
+prediction so that these components cannot alter the requested-count response. Within a target,
+every requested count uses the same 50 binder lengths, sampled uniformly from the target-specific
+range with a fixed seed. The target structure and benchmark hotspots also remain fixed, leaving the
+requested contact-residue count as the only manipulated variable.
+Unconditional baseline.
+We sample pretrained Complexa with unchanged target inputs, disabled
+text, and the same binder lengths as the text-conditioned samples. Classifier-free guidance is unde-
+fined when both text and fold conditioning are absent.
+37
+
+
+Preprint
+Prompt paraphrases.
+We test interface-residue control under key–value, paraphrased, and re-
+ordered prompts on CD45, IL-17A, and PDL1 (Box G.1). For each target and format, we request
+8–37 interface residues and generate 20 structures at each of the 30 levels. Every format uses the
+same 20 binder lengths at a given target and level. Across the 30 requested levels, we report Spear-
+man ρ between requested and mean realized counts and the slope of mean realized on requested
+count (Table 17). Response magnitude differs by target, so we express each slope relative to that
+target’s key–value slope rather than pooling targets.
+Interface-residue paraphrase examples at a requested count of 22
+Key--value
+- Protein-protein interface:
+22 interface residues
+Paraphrased
+The binding interface involves 22 residues.
+Reordered
+22 residues make up the binding interface.
+Table 17: Interface-residue control across prompt formats. Each row contains 600 structures (30
+requested counts × 20 matched lengths). Relative slope divides by the key–value slope separately
+within each target.
+Target
+Format
+Slope
+Relative slope
+Spearman ρ
+CD45
+Key–value
+0.851
+1.00
+0.989
+Paraphrased
+0.910
+1.07
+0.997
+Reordered
+0.647
+0.76
+0.976
+IL-17A
+Key–value
+0.808
+1.00
+0.997
+Paraphrased
+0.933
+1.15
+0.996
+Reordered
+0.881
+1.09
+0.997
+PDL1
+Key–value
+0.346
+1.00
+0.985
+Paraphrased
+0.437
+1.26
+0.993
+Reordered
+0.366
+1.06
+0.989
+All tested phrasings preserve the requested-count ordering (ρ ≥0.976). Paraphrased prompts retain
+or increase the key–value response slope on every target, while reordered prompts retain 76–109%
+of the key–value response.
+G.2
+AGENTIC BINDER DESIGN PROTOCOL
+G.2.1
+TARGET PANEL
+The panel contains 20 protein targets drawn from the AlphaProteo (Zambaldi et al., 2024) and Bind-
+Craft (Pacesa et al., 2025) targets aggregated by Didi et al. (2026). We exclude influenza H1 and the
+SARS-CoV-2 receptor-binding domain because our prompt-expansion pipeline returned no usable
+specifications, and apply this exclusion to every method. IL-17A and TNF-α remain in the panel,
+although Complexa excludes them after no evaluated method succeeds within its runtime budget.
+Each target contributes a structure and binder-length range; curated hotspots are available for 18
+targets. In the agentic setting, each method receives the structure and length range and selects an
+epitope for each design. In the non-agentic setting, each method receives those curated hotspots.
+G.2.2
+GENERATION PROTOCOL
+Every method generates 200 designs per target in both the agentic and non-agentic settings. We
+divide the target’s binder-length range into 20 contiguous bands and draw 10 designs in each, pre-
+venting a method’s length prior from concentrating its samples in part of the range. Designs are
+sampled independently without inference-time search, a reward model, or candidate selection. The
+common budget and generation procedure isolate differences among conditioning channels.
+38
+
+
+Preprint
+Figure 8: Interface-residue steering across targets. Each panel shows the mean realized count
+across 50 binders for requested counts 8–30; colored bands span one standard deviation. Dashed di-
+agonals mark equality. Dotted horizontal lines mark the per-target unconditional mean. Annotations
+give the fitted slope and Spearman’s ρ; panels are ordered by slope.
+Prompteina uses 400 SDE denoising steps as in the monomer evaluation, with classifier-free guid-
+ance reduced to w = 1.0 (App. E). Baselines use their published inference defaults.
+G.2.3
+SEQUENCE CONDITIONS
+Each generated backbone is scored under three sequence conditions. The self-sequence condition
+uses the sequence produced by the structure generation model. The redesign condition samples eight
+ProteinMPNN sequences per backbone and retains the highest-scoring one (Dauparas et al., 2022).
+The fixed-interface redesign condition also uses ProteinMPNN but fixes the generated identities of
+39
+
+
+Preprint
+binder interface residues, changing only the scaffold sequence. A binder residue belongs to the
+interface when any of its heavy atoms lies within 6 ˚A of a target heavy atom.
+The gap between the two redesign conditions isolates how much of a method’s score is carried by
+ProteinMPNN rewriting the interface rather than by the interface the model generated. Didi et al.
+(2026) report the same condition for this reason.
+Reporting all three conditions permits comparison among methods that use inverse folding differ-
+ently. RFdiffusion3 co-designs sequence and structure, but its alanine-biased sequence head is fol-
+lowed by ProteinMPNN in every experiment reported by its authors. Scoring only its self-sequences
+would omit part of the published method; Complexa and Prompteina require no redesign.
+G.2.4
+AGENTIC SPECIFICATION GENERATION
+We use Claude Opus 4.6 as the agent in a two-stage pipeline. A research stage gives a language
+model tool access to web and scientific-literature search, PDB structure search and entry lookup,
+and UniProt lookup. The model uses these sources to prepare a structured dossier about target
+structure, binding biology, known binders, and biophysical properties (Box G.2). An expansion
+stage reads the dossier and emits the design specifications consumed by each structure generation
+model (Box G.3).
+Each method receives the same four classes of input, with only the method reference differing:
+• The research dossier, byte-identical across methods for a given target.
+• The task instruction, which states how many designs to produce, the length band, and the re-
+quirement that designs be diverse. It is byte-identical across methods and names none of them.
+• A method reference, the only input that differs. It describes what that method is, the channels
+it exposes, the closed set of values each channel accepts, and the exact emission format. Each is
+self-contained and refers to no other method.
+• Structural query tools over the target, listed in Table 18, together with the target configuration
+(target chain and residue range, binder length range, PDB identifier).
+Table 18: Structural query tools. The tools return target properties rather than raw coordinates,
+which are too large for the language-model context.
+Tool
+Returns
+target overview()
+Chains, residue ranges, sequence, length, PDB identifier
+secondary structure()
+DSSP assignment per chain
+surface residues(min sasa)
+Exposed residues with per-residue SASA
+neighbors(residue,
+radius)
+Residues within r ˚A, for assembling a contiguous site
+surface patches(kind)
+Contiguous hydrophobic, polar, or charged patches
+known interfaces()
+Contact residues from deposited complexes for this target
+The known interfaces() tool exposes information already present in the research dossiers and
+gives every method identical access to deposited complexes. Removing it only from the structural
+tools would leave the same information available in prose and would not create a stricter comparison.
+The agent selects a binding epitope for each design and writes it through the method’s available chan-
+nel: hotspot residues for Prompteina, select hotspots atom pairs for RFdiffusion3, and
+binding properties for BoltzGen. We validate every index against the target’s residue numbering.
+A specification that names an absent residue is rejected and recorded, since replacing it with a nearby
+residue would change the site selected by the agent.
+Apart from clamping proposed binder lengths into the target’s range, agent output is not modified
+before it reaches the structure generation model.
+40
+
+
+Preprint
+Research stage system prompt (abbreviated)
+You are a protein biology research assistant with access to search
+tools.
+Your goal is to help design a STRONG protein binder against the
+target.
+Build a factual research dossier that will inform binder
+design.
+PHASE 1 --- IDENTIFY THE TARGET
+Call pdb lookup and uniprot lookup to identify the target.
+PHASE 2 --- GATHER INFORMATION
+Search systematically:
+find co-crystal structures with binders,
+characterize the target surface (shape, epitopes, chemistry), find
+known binders (scaffold type, size, BSA, affinity, PDB ID).
+PHASE 3 --- SYNTHESIZE (only from tool results)
+Write a structured dossier:
+(1) Target structure, (2) Binding
+biology, (3) Successful binders, (4) Biophysics.
+Every PDB ID must be verified by a pdb lookup call.
+Specific
+numbers must come from tool results.
+Accuracy > completeness.
+Expansion stage task instruction (abbreviated; identical across methods)
+A generative model will design protein binders against the target
+described in the research dossier.
+Using the method reference
+provided, produce 10 design specifications.
+Every design must have a binder length inside the given band.
+Use
+the structure tools to choose a binding site on the target, and
+name that site explicitly in each design.
+The 10 designs must be diverse:
+vary the scaffold, the binder
+size within the band, and the epitope.
+Do not emit the same
+specification twice.
+Express every design only through channels the method reference
+defines, using only values from its closed sets.
+G.2.5
+CD45 SPECIFICATION EXAMPLES
+All three expansion runs received the same CD45 research dossier and target structure. Claude
+generated each method’s designs in batches and recorded a rationale for every design. The exam-
+ples below pair verbatim excerpts from these saved rationales with the corresponding input sent to
+each structure model. The three expansion runs proposed designs independently, so these examples
+illustrate the available conditioning channels rather than matched design strategies.
+Prompteina.
+For ra cd45 114, Claude’s batch-level analysis identifies the “N-terminal face /
+BC8 epitope” as a mixed charged and polar site and proposes “VHH-inspired loop-mediated contacts
+to [the] N-terminal face.” The natural-language specification sent to Prompteina retains the proposed
+fold, interface size, buried area, chemistry, and geometry:
+Structural class:
+Mainly Beta
+Architecture:
+Sandwich
+Topology:
+Immunoglobulin-like
+Strands:
+9
+Secondary structure:
+45% strand, 55% coil
+Protein-protein interface:
+26 interface residues
+Buried surface area:
+1800 Aˆ2
+Interface H-bonds:
+10 total
+41
+
+
+Preprint
+Figure 9: Prompteina realizes diverse agent specifications for CD45. The agent combines lit-
+erature and structure analysis in a target report, specifies binders with distinct folds and interface
+properties in natural language, and Prompteina realizes them as structures targeting CD45 sites.
+Interface hydrophobic contacts:
+12 total
+Interface geometry:
+concave, heterologous, mixed
+RFdiffusion3.
+For one design, Claude records the following rationale:
+“Engages the large polar surface patch on Face A (Q36, N37, T39, N75) with directed
+hydrogen bonds. This is the most polar-dense contiguous surface on d1, and a helical
+binder presenting complementary polar side chains should achieve specificity through a
+network of H-bonds. The acceptor on Q36 and donor on N75 anchor the interface polar
+core.”
+The emitted JSON retains a non-loop flag, the selected target atoms, and two atom-level hydrogen-
+bond labels:
+is non loopy:
+true
+select hotspots:
+A36, A37, A39, A75
+select hbond acceptor:
+A36.OE1
+select hbond donor:
+A75.ND2
+Across the 200 CD45 specifications, 193 set the non-loop flag, 38 specify a hydrogen-bond acceptor,
+17 specify a hydrogen-bond donor, and 7 contain an atom-level burial or exposure label.
+BoltzGen.
+For another design, Claude records the following rationale:
+“Targets the MFI hydrophobic patch (M47, I48, F49) in loop 3, a compact surface sur-
+rounded by polar/charged residues (R41, Q43, N46, D50, N51, K52). A mixed α/β topol-
+ogy uses a β-hairpin to extend along the loop 3 edge for shape complementarity, while two
+helices provide hydrophobic packing against M47/I48/F49 and additional polar contacts.”
+The emitted YAML retains residue-level secondary-structure ranges and target binding residues:
+helix:
+27..48, 55..76
+sheet:
+1..8, 13..20
+loop:
+9..12, 21..26, 49..54, 77..82
+binding:
+41, 43, 46, 47, 48, 49, 50, 51, 52
+All 200 BoltzGen CD45 specifications contain residue-level secondary-structure ranges. These ex-
+amples show that Claude considered site chemistry and geometry for all three methods, while each
+model’s input interface determined which parts of that reasoning reached generation.
+G.3
+BASELINE AGENT SPECIFICATIONS
+The released Complexa checkpoint takes the target structure, binder length, and target hotspots. Its
+authors also report a CATH-conditioned binder checkpoint, but have not released it. RFdiffusion3
+specifications can set binder length and chain layout, atom-level target hotspots, hydrogen-bond
+partners, burial state, and non-loop secondary structure. BoltzGen specifications can set binding and
+avoidance sites, per-residue secondary-structure ranges, and permitted amino acids.
+42
+
+
+Preprint
+Two protocol differences determine how the agentic and non-agentic runs should be compared. First,
+the binding site comes from a different source. Non-agentic runs receive expert-curated hotspots
+from the AlphaProteo (Zambaldi et al., 2024) and BindCraft (Pacesa et al., 2025) campaigns on
+the 18 targets that provide them. Agentic runs instead select an epitope for every design, including
+Prompteina’s designs.
+Second, the agent populates the baselines’ conditioning channels instead of leaving them at their
+defaults. A complete parse of all 4,000 specifications per method across the same 20 targets quanti-
+fies this use (Table 19). The six RFdiffusion3 specifications without an epitope use center-of-mass
+strategies, for which the agent specifies an inferred orientation instead of a hotspot.
+Table 19: Baseline conditioning-channel use. Coverage is the fraction of that method’s 4,000
+specification files across the 20 benchmark targets that populate each channel.
+Method
+Channel
+Coverage
+RFdiffusion3
+Target hotspots (select hotspots)
+99.9%
+Non-loop secondary structure (is non loopy)
+95.3%
+Hydrogen-bond acceptors
+17.9%
+Hydrogen-bond donors
+7.9%
+Burial, buried (select buried)
+2.2%
+Burial, partial (select partially buried)
+1.9%
+Burial, exposed (select exposed)
+0.9%
+BoltzGen
+Secondary structure, per residue
+100.0%
+Loop assignments
+99.2%
+Negative design (not binding)
+81.2%
+Sheet assignments
+14.2%
+Amino-acid constraints
+0.3%
+G.4
+BINDER SCORE CALIBRATION
+AlphaProteo AF2 filters used by Complexa.
+AlphaProteo fit three AlphaFold2 thresholds to
+the binding data of Cao et al. (2022): interaction PAE below 7 ˚A, complex pLDDT above 0.90,
+and binder-aligned RMSD below 1.5 ˚A (Zambaldi et al., 2024). The thresholds were selected by
+ranking experimental success rates within each target, subject to at least ten designs passing the
+filters. Complexa subsequently adopted these AF2 filters as its in-silico success criterion (Didi
+et al., 2026). AlphaProteo instead used its AF3 filters for its final benchmark because they performed
+better across its targets. These differences motivate recalibrating the evaluation criterion for method
+comparison.
+Calibration data.
+We assemble 5,227 designed binders with experimental bind/no-bind labels
+from four public releases: 3,532 designs over 13 targets from Overath et al. (2025), 1,189 over 15
+targets from Shanehsazzadeh (2026), 361 over 13 targets from the BoltzGen deposit (Stark et al.,
+2026), and 145 over 13 targets from the BindCraft deposit (Pacesa et al., 2025). We define a group
+as all designs for one target within one release because releases with the same target name may use
+different target constructs and different sets of designed binders. Of 54 such groups, 46 contain both
+binders and non-binders and can be used to fit and evaluate a threshold; these groups contain 5,045
+designs. We therefore average results equally across these 46 groups rather than pooling all designs.
+Prediction and calibration protocol.
+We refold every design once with ESMFold2-Fast and
+ESMFold2 (Candido et al., 2026), AlphaFold2 (Jumper et al., 2021), and AlphaFold3 (Abramson
+et al., 2024). AlphaFold2 uses initial guess, the standard binder-scoring configuration that initializes
+the structure module from the designed coordinates. We recompute the published AlphaProteo AF2
+filter terms from the saved structures and predicted aligned error matrices under all four models.
+For 394 designs in the Shanehsazzadeh (2026) release, the released sequence and deposited design
+structure contain different sets of target residues, so binder-aligned RMSD cannot be computed for
+ESMFold2-Fast, ESMFold2, or AlphaFold3. AlphaFold2 starts from the deposited design structure
+and therefore retains the residue correspondence needed for RMSD. We count the 394 designs as not
+passing filters that require RMSD rather than removing them. For thresholded criteria, we repeat-
+edly fit the threshold on 45 groups and evaluate it on the remaining group. The median fitted iPAE
+43
+
+
+Preprint
+thresholds are 10.31, 18.90, 15.19, and 11.15 ˚A for ESMFold2-Fast, ESMFold2, AlphaFold2, and
+AlphaFold3, respectively. The corresponding median ipSAEmin thresholds are 0.341, 0.328, 0.301,
+and 0.504. Average precision is computed directly from the ranking and requires no threshold.
+Table 20: Binder-score calibration. Each group is one target in one public release, and the 46
+groups receive equal weight. Rows with published thresholds use them unchanged; for rows with
+fitted thresholds, each group is tested using a threshold fitted on the other 45. For average precision,
+a random ranking scores the binder fraction in each group; averaging these 46 fractions gives 0.299.
+Runtimes are median seconds per design for the same 3,532 Overath designs under each predictor.
+ESMFold2-Fast
+ESMFold2
+AF2
+AF3
+Mean F1 across the 46 groups
+AlphaProteo AF2 filters
+0.232
+0.222
+0.398
+0.375
+iPAE < 7 ˚A
+0.350
+0.304
+0.404
+0.394
+complex pLDDT > 0.90
+0.235
+0.223
+0.419
+0.385
+binder-aligned RMSD < 1.5 ˚A
+0.398
+0.397
+0.416
+0.388
+iPAE, fitted threshold
+0.463
+0.387
+0.437
+0.442
+ipSAEmin, fitted threshold
+0.519
+0.468
+0.441
+0.458
+ipSAEmin + binder-aligned RMSD
+0.469
+0.454
+0.448
+0.420
+Mean average precision across the 46 groups
+iPAE
+0.577
+0.564
+0.502
+0.547
+ipSAEmin
+0.587
+0.577
+0.517
+0.566
+Seconds per design
+1.61
+2.37
+2.62
+9.07
+Groups with ≥1 correctly identified binder
+45/46
+44/46
+44/46
+43/46
+AlphaProteo AF2 filter evaluation.
+Under every prediction model, the AlphaProteo AF2 filter
+set discriminates binders less accurately than any one of its component thresholds (Table 20). These
+comparisons use the published thresholds and do not retune them for the present evaluation.
+ipSAEmin evaluation.
+ipSAEmin restricts a TM-score-like transform of predicted aligned error to
+residue pairs across the interface and scales its distance parameter by interface size (Shanehsazzadeh,
+2026). The min variant takes the smaller of the asymmetric binder→target and target→binder scores.
+Its macro average precision exceeds that of iPAE under every prediction model (Table 20). Adding
+binder-aligned RMSD lowers macro-F1 under three predictors (0.519 to 0.469 for ESMFold2-Fast)
+and raises it slightly only for AlphaFold2 (0.441 to 0.448), and thus provides no consistent benefit.
+ESMFold2-Fast and AlphaFold3 give macro average precision values of 0.587 and 0.566, with me-
+dian runtimes of 1.61 and 9.07 seconds per design, respectively, when both process the same 3,532
+Overath designs; the benchmark therefore uses ESMFold2-Fast. We report continuous ipSAEmin
+directly because the best cutoff depends on the data used to fit it. Within each target, we average
+the k highest-scoring designs to measure the part of the distribution that a design campaign would
+order. We then average the 20 target-level values so that each target receives equal weight. Every
+method contributes 200 designs on each of the same 20 benchmark targets in every comparison.
+Let M(k) be the mean ipSAEmin of a target’s k best designs among the N generated designs. The
+expected top-k statistic averages M(k) under a log-uniform distribution on k, as follows:
+E
+
+M(K)
+
+=
+PN
+k=1
+1
+k
+−1 PN
+k=1 M(k)/k.
+(10)
+This weighting gives equal mass to each order of magnitude of the design budget.
+Limitations.
+The calibration is not fully independent of the criteria it evaluates. Of the 3,532 de-
+signs in the Overath release (Overath et al., 2025), 2,585 originate from Cao et al. (2022), whose data
+AlphaProteo used to set its AF2 filters. The designs tested by Shanehsazzadeh (2026) were them-
+selves selected using ipSAEmin, so that release cannot independently establish a general cutoff for
+the same score. For method comparisons, we therefore use continuous ipSAEmin and the threshold-
+free expected top-k statistic rather than classifying designs with a fitted cutoff. The calibration also
+covers only single-chain targets, whereas three benchmark targets contain multiple chains. We use
+the same rule to merge target chains throughout, but have not measured how this choice affects
+multichain targets. Finally, the negative examples are campaign designs selected for experimental
+44
+
+
+Preprint
+testing rather than random sequences. They provide a relevant comparison among plausible designs
+but cannot estimate the absolute hit rate of a new prospective campaign.
+G.5
+PREDICTION-MODEL REPLICATION
+Table 21: AlphaFold3 replication. Expected top-k ipSAEmin is computed from the same 200
+designs per method–setting combination on each of the 20 targets. Only the self condition was
+refolded; MPNN and MPNN-FI were not evaluated with AlphaFold3. AlphaFold3 uses one seed and
+num recycles=10, versus three recycles in Table 20.
+Method
+Agent
+ESMFold2-Fast
+AlphaFold3
+Prompteina
+✓
+0.455
+0.518
+Complexa
+✗
+0.400
+0.434
+BoltzGen
+✓
+0.359
+0.420
+BoltzGen
+✗
+0.376
+0.404
+RFdiffusion3
+✓
+0.237
+0.276
+RFdiffusion3
+✗
+0.251
+0.293
+Prompteina remains first under AlphaFold3, with a larger margin over Complexa than under
+ESMFold2-Fast (0.084 vs. 0.055). The ordering of agent-guided and non-agentic BoltzGen reverses
+between folding models, so we do not interpret the direction of that comparison.
+G.6
+INTERFACE CONFIDENCE ACROSS DESIGN BUDGETS
+We compare interface confidence across the full range of retained design budgets in Table 22. Under
+self and MPNN-FI Prompteina leads at every budget. Under MPNN, Prompteina leads only in the
+middle of the range; RFdiffusion3 leads for k ≤2 and BoltzGen leads for k ≥64. No method
+therefore leads at every budget in this sequence condition. The k=1 column rests on one design per
+target and separates the method–setting combinations least reliably in this cross-method comparison.
+Table 22: Interface confidence across design budgets. Each cell is the within-target mean of the
+target’s k best ipSAEmin values, averaged over 20 targets; the last column is the expected top-k from
+Eq. 10. Every method–setting combination contributes 200 designs per target, so k=200 is the mean
+over all designs. Scores use ESMFold2-Fast at one seed. Bold marks displayed column maxima. At
+MPNN k=4, RFdiffusion3 exceeds Prompteina by 0.0003, but both round to 0.689 in the table.
+Method
+Agent
+k=1
+2
+4
+8
+16
+32
+64
+128
+200
+E[M(K)]
+self
+Prompteina
+✓
+0.647 0.620 0.580 0.534 0.470 0.376 0.253 0.149 0.101
+0.455
+Complexa
+✗
+0.571 0.543 0.501 0.455 0.402 0.333 0.240 0.144 0.096
+0.400
+BoltzGen
+✓
+0.573 0.537 0.478 0.405 0.326 0.249 0.169 0.107 0.074
+0.359
+BoltzGen
+✗
+0.569 0.530 0.486 0.430 0.364 0.284 0.199 0.128 0.088
+0.376
+RFdiffusion3 ✓
+0.475 0.425 0.355 0.258 0.161 0.093 0.051 0.026 0.017
+0.237
+RFdiffusion3 ✗
+0.461 0.426 0.362 0.286 0.200 0.125 0.071 0.036 0.023
+0.251
+MPNN redesign
+Prompteina
+✓
+0.720 0.709 0.689 0.660 0.613 0.545 0.445 0.308 0.212
+0.584
+Complexa
+✗
+0.680 0.661 0.634 0.600 0.553 0.489 0.405 0.290 0.200
+0.538
+BoltzGen
+✓
+0.729 0.714 0.684 0.646 0.592 0.522 0.421 0.296 0.204
+0.575
+BoltzGen
+✗
+0.711 0.695 0.668 0.636 0.594 0.535 0.454 0.335 0.234
+0.577
+RFdiffusion3 ✓
+0.759 0.726 0.689 0.641 0.578 0.489 0.363 0.220 0.143
+0.559
+RFdiffusion3 ✗
+0.698 0.680 0.658 0.624 0.581 0.521 0.434 0.320 0.218
+0.563
+MPNN-FI redesign
+Prompteina
+✓
+0.696 0.679 0.659 0.629 0.582 0.503 0.394 0.256 0.174
+0.549
+Complexa
+✗
+0.658 0.638 0.612 0.576 0.528 0.462 0.367 0.239 0.163
+0.510
+BoltzGen
+✓
+0.674 0.652 0.620 0.569 0.498 0.406 0.299 0.194 0.133
+0.490
+BoltzGen
+✗
+0.659 0.631 0.597 0.561 0.508 0.434 0.332 0.220 0.152
+0.493
+RFdiffusion3 ✓
+0.675 0.642 0.599 0.537 0.459 0.349 0.229 0.127 0.082
+0.454
+RFdiffusion3 ✗
+0.664 0.635 0.602 0.548 0.475 0.383 0.272 0.164 0.106
+0.469
+45
+
+
+Preprint
+G.7
+GENERATED BINDER–TARGET INTERFACE PROPERTIES
+We analyze generated-backbone properties to isolate the design model’s contribution, then measure
+the same properties after refolding to test whether they persist under sequence redesign. The self
+condition refolds the unchanged generated sequence with ESMFold2-Fast; differences from the gen-
+erated backbone therefore reflect changes in structure rather than sequence. The other two refolds
+use the best full ProteinMPNN redesign or the best fixed-interface redesign. Among the baselines,
+full ProteinMPNN redesign increases the median interface hydrogen-bond count by one to three,
+while refolding the generated sequence or preserving interface residues changes the median by at
+most one (Table 23). Prompteina’s median buried-surface-area lead over the best baseline narrows
+from 149 ˚A2 on generated backbones to 99 ˚A2 after MPNN-FI and 55 ˚A2 after MPNN.
+Table 23: Interface hydrogen bonds after sequence redesign.
+Values are median interface
+hydrogen-bond counts per design, measured on the generated backbone and on the structure folded
+under each sequence condition. Agentic and non-agentic runs are separate.
+Method
+Agent
+Generated
+self
+MPNN
+MPNN-FI
+Prompteina
+✓
+10
+8
+9
+9
+Complexa
+✗
+7
+7
+8
+8
+BoltzGen
+✓
+6
+6
+7
+6
+BoltzGen
+✗
+7
+7
+8
+7
+RFdiffusion3
+✓
+5
+6
+8
+6
+RFdiffusion3
+✗
+6
+5
+9
+6
+Holding the agent fixed, Prompteina generates larger binder–target interfaces than the structured-
+conditioning baselines (median buried surface area 1,020 ˚A2 vs. 710–871 ˚A2; Table 24).
+Its
+ipSAEmin rises across within-target buried-surface-area quartiles at every budget (Q1 to Q4: 0.280
+to 0.676 at k=1, 0.016 to 0.421 at k=32, and 0.070 to 0.207 over all 200 designs). Among generated-
+backbone properties, buried surface area has the strongest mean within-target correlation with the
+MPNN-FI score (0.18 across the six method–setting combinations, compared with 0.14 for interface
+residue count and 0.09 for interface hydrogen bonds). The association holds for every method
+except RFdiffusion3 when the generated interface is preserved (Spearman ρ 0.26 for Complexa,
+0.22–0.23 for BoltzGen, 0.18 for Prompteina, and 0.07–0.09 for RFdiffusion3). Under free MPNN
+redesign, RFdiffusion3’s correlation rises to 0.24–0.27 as ProteinMPNN rebuilds interface contacts.
+Matching designs on generated buried surface area changes Prompteina’s lead only slightly (13 to 12
+of 20 targets over BoltzGen and 17 to 18 of 20 over RFdiffusion3). Matching on generated interface
+hydrogen bonds also retains the RFdiffusion3 gap (16 of 20 targets), as do the best-design score and
+the number of designs above 0.5 (mean best score 0.696 vs. 0.675; median yield 22 vs. 8 per target).
+Buried surface area therefore explains only part of the difference; on unseen targets, no combination
+of measured per-design properties predicts ipSAEmin beyond r ≈0.4.
+Table 24: Generated interface properties and interface confidence. All methods use the same
+agent, and properties are measured on generated backbones. Buried-surface-area quartiles are de-
+fined within target across methods. The final rows report MPNN-FI scores for Q1 and Q4.
+Prompteina
+BoltzGen
+RFdiffusion3
+Realized properties
+Buried surface area, p10 ( ˚A2)
+691
+468
+400
+Buried surface area, median ( ˚A2)
+1020
+728
+710
+Buried surface area, p90 ( ˚A2)
+1422
+1073
+1205
+Designs in the top quartile of area
+47%
+11%
+17%
+ipSAEmin across quartiles of buried surface area
+Q1 (508 ˚A2)
+0.116
+0.279
+0.361
+Q4 (1175 ˚A2)
+0.596
+0.442
+0.313
+G.8
+BINDER SPECIFICATION ABLATION
+We re-run the agentic pipeline of §3.2.2 with a reduced specification interface to measure the con-
+tribution of agent-specified properties. At each level the agent plans from scratch: it reads the same
+46
+
+
+Preprint
+research dossier, but the design properties it may write are restricted, and it chooses its own epi-
+tope and binder length under that restriction. Fold-only exposes structural class, architecture and
+topology. Fold + shape adds secondary structure, helix and strand counts, compactness, surface
+geometry, contact order, charge character and surface hydrophobicity. The default interface adds
+interface residue count, buried surface area, interface geometry, hydrogen bonds, hydrophobic con-
+tacts and salt bridges.
+Each level generates 200 designs per target on the same 20 targets, and we score the generated
+sequence, since the ablation targets what conditioning produces rather than what ProteinMPNN
+recovers. The default level is the Prompteina row of Table 3 and is not regenerated.
+The full specification exceeds fold + shape by 0.091 expected top-k (95% CI [0.041, 0.145], paired
+bootstrap over the 20 targets) and has the highest score at every selection budget (Table 4). Fold
++ shape, in contrast, exceeds fold only by 0.002 ([−0.036, 0.037]). Thus, the improvement comes
+from specifying interface properties rather than from adding more properties in general. Nine of the
+20 targets follow the aggregate ordering of full specification, fold + shape, and fold only, compared
+with 3.3 expected under a random ordering of the three settings (Binomial(20, 1/6), p = 0.003). For
+each of these nine targets, the confidence interval for the difference between the full and fold-only
+settings excludes zero. CrSAS6 and Insulin favor the reverse ordering with confidence intervals that
+exclude zero, while five targets show no clear difference among the settings.
+G.9
+STRUCTURAL DIVERSITY
+Diversity is measured on the same design pools as interface confidence, allowing the two quantities
+to be compared at a common selection budget. For each method and target, we rank 200 designs by
+ipSAEmin, retain the best k, remove the target chain, and align every binder pair with exact TMalign.
+Pair similarity is TM = min(qTM, tTM), where lower similarity indicates greater structural diver-
+sity. TM-score depends on length, so we compare binders only within the same 25-residue length
+bin and average first within bins, then across bins, and finally with equal weight across targets.
+Designs with ipSAEmin = 0 have an interface but no confident inter-chain geometry, and deep top-k
+pools can otherwise be dominated by ties at zero. We report a target at a given k only when every
+method has at least k positive-scoring designs. At k = 32, full and fixed-interface redesign retain
+19 and 18 of 20 targets, respectively. We emphasize k = 32 because k = 64 retains only 17 and 13
+targets, respectively, and preferentially drops difficult ones, changing panel difficulty as well as size.
+Table 25: Structural diversity among high-scoring designs. Values are mean pairwise TM-scores
+among each method’s k best designs under MPNN and MPNN-FI redesign, where lower is more
+diverse. The four columns retain 20, 19, 19, and 17 targets under MPNN redesign and 19, 19, 18, and
+13 under MPNN-FI redesign.
+Method
+Agent
+k=8
+16
+32
+64
+MPNN redesign
+Prompteina
+✓
+0.433
+0.441
+0.424
+0.423
+Complexa
+✗
+0.492
+0.492
+0.467
+0.478
+BoltzGen
+✓
+0.480
+0.486
+0.496
+0.496
+BoltzGen
+✗
+0.635
+0.653
+0.619
+0.612
+RFdiffusion3
+✓
+0.418
+0.412
+0.414
+0.414
+RFdiffusion3
+✗
+0.482
+0.470
+0.461
+0.466
+MPNN-FI redesign
+Prompteina
+✓
+0.455
+0.438
+0.416
+0.410
+Complexa
+✗
+0.536
+0.504
+0.480
+0.468
+BoltzGen
+✓
+0.463
+0.476
+0.484
+0.494
+BoltzGen
+✗
+0.640
+0.616
+0.601
+0.630
+RFdiffusion3
+✓
+0.434
+0.413
+0.413
+0.412
+RFdiffusion3
+✗
+0.459
+0.454
+0.459
+0.451
+The pooled mean and per-target comparison differ for agent-guided RFdiffusion3, which has the
+lowest pooled similarity but splits the targets almost evenly with Prompteina. We therefore report
+both summaries. At k = 32, Prompteina is more diverse under full and fixed-interface redesign
+on 13 of 19 and 15 of 18 targets against Complexa, 16 of 19 and 15 of 18 against agent-guided
+47
+
+
+Preprint
+BoltzGen, 19 of 19 and 18 of 18 against non-agentic BoltzGen, and 13 of 19 and 14 of 18 against
+non-agentic RFdiffusion3, respectively. It splits the targets with agent-guided RFdiffusion3 under
+both conditions (8 of 19 and 9 of 18). Prompteina’s binding-quality advantage therefore does not
+correspond to lower structural diversity in these top-ranked pools.
+Table 26: Secondary-structure composition among high-scoring designs. Statistics use the same
+top-32 MPNN-FI pools, computed within each target and averaged over the 18 retained targets. No
+column has a preferred direction. Responsiveness is the standard deviation of a method’s per-target
+mean helix fraction, so a low value indicates little change among targets.
+Helix fraction
+Method
+Agent
+p10
+p50
+p90
+Mainly
+Strand
+Respon-
+helical
+segments
+siveness
+Prompteina
+✓
+0.312
+0.729
+0.874
+45%
+0.7
+0.127
+Complexa
+✗
+0.278
+0.565
+0.777
+27%
+2.3
+0.201
+BoltzGen
+✓
+0.664
+0.823
+0.880
+68%
+0.0
+0.035
+BoltzGen
+✗
+0.163
+0.406
+0.764
+29%
+5.0
+0.227
+RFdiffusion3
+✓
+0.320
+0.753
+0.866
+50%
+0.5
+0.120
+RFdiffusion3
+✗
+0.529
+0.796
+0.872
+63%
+0.2
+0.102
+Agent-guided BoltzGen varies least among targets in secondary-structure composition (responsive-
+ness 0.035 vs. 0.201 and 0.227 for the two non-agentic methods; Table 26). It produces no designs
+below 0.20 helix fraction and has a median of zero strand segments. It is also the only method whose
+pairwise similarity increases with k (0.463 at k = 8 to 0.494 at k = 64), indicating that its additional
+designs repeat similar folds.
+Secondary-structure composition and structural diversity measure different variation. Non-agentic
+BoltzGen has the widest helix spread, the most strand segments, and the most β-containing designs,
+yet also the highest mean pairwise TM-score. A method can therefore vary secondary-structure
+content while emitting similar overall folds.
+H
+ITERATIVE BINDER DESIGN
+H.1
+ITERATIVE DESIGN PROTOCOL AND ANALYSIS
+Each iterative loop uses the same 200-design budget as the one-shot benchmark, divided into four
+rounds of 50 (§3.2.2). The first round follows the one-shot agentic protocol, so iterative and inde-
+pendent generation differ only after the first 50 designs are scored (App. G.2). Generation, redesign,
+and scoring otherwise remain identical.
+Each 50-design round divides the target’s binder-length range into 10 bands and draws five designs
+per band. We recompute these bands from the full range instead of merging the 20-band grid used
+for 200 designs, reproducing the length distribution of an independent 50-design run.
+Feedback.
+After each round the agent receives every design produced so far, ranked by the objec-
+tive
+y = max
+ ipSAEmin(self), max
+j
+ipSAEmin(MPNN, j), max
+j
+ipSAEmin(MPNN-FI, j)
+
+,
+maximized over the eight redesigned sequences j for each design. Each feedback entry contains the
+binder length, epitope, generating specification, per-condition scores, and the maximum and median
+across redesigned sequences. Reporting both distinguishes a design with one favorable sequence,
+such as maximum 0.53 and median 0.05, from a backbone that tolerates redesign, such as maximum
+0.40 and median 0.33.
+The feedback contains no summary statistics, and the agent is asked to draw its own conclusions.
+Roll-ups by design property are omitted because they are confounded by length: ranking architec-
+tures by mean score promotes those that happen to occur in long binders, and architecture does not
+predict the score once length is accounted for.
+48
+
+
+Preprint
+Rounds.
+A single agent call plans all 50 designs in each round. Parallel calls would receive the
+same prompt without seeing one another’s choices and can therefore produce overlapping designs.
+Planning the round jointly also lets the agent distribute designs across binding sites and scaffolds.
+Claudin-1 trajectory.
+The seed, round-1, and round-2 designs compared in Fig. 5 use the same
+six-residue epitope, up-down bundle architecture, convex mixed interface, and two requested intra-
+chain disulfides. The complete reasoning and planning passages excerpted in the figure are repro-
+duced below.
+Seed to round 1—reasoning. “Pulling together the key patterns across all designs: Up-down
+Bundle is clearly the dominant successful architecture, the helical face epitope scored best
+overall at 0.667, small ECL1 binders work well for site B, larger Up-down Bundles suit the
+strand-helix junction, disulfide bonds seem to boost binding, and convex/mixed interface
+geometries outperform flatter or more hydrophobic ones, with moderate interface sizes
+around 20–22 residues looking optimal.”
+Seed to round 1—planning. “I’m sketching 15 designs for this group, staying close to
+the winning design while probing topology and parameter variations: several PLA2-based
+scaffolds at different sizes (125–140 residues) with convex or flat mixed/hydrophobic sur-
+faces and 2 disulfides, plus alternative topologies using colicin Ia, a smaller 4-helix bundle,
+acyl-CoA binding protein, growth hormone, and bacteriocin As-48 scaffolds, each tested
+with similar disulfide and interface parameters.”
+Round 1 to round 2—reasoning. “Comparing #2 vs #4, the convex geometry with more
+interface residues, BSA, and H-bonds outperforms the flat version. And comparing #1 vs
+#2, growth hormone’s 4-helix topology edges out PLA2’s 5-helix design despite fewer in-
+terface residues and less BSA, suggesting topology choice matters as much as raw interface
+size.”
+Round 1 to round 2—planning. “I should focus most designs on refining around the two
+best epitopes: A89,A92,A93,A96,A118,A121 paired with the Growth Hormone topol-
+ogy (which produced the best result) and also tested with PLA2 at optimal size, plus the
+A86,A89,A92,A93,A96,A121 variant with both topologies. I’ll also try small perturbations
+like swapping A85 or A86 in, and tune interface parameters toward convex geometry with
+20–24 interface residues around 1500–1700.”
+The selected round-1 design changes the requested topology from phospholipase A2 to growth hor-
+mone. The selected round-2 design keeps that topology and increases the requested interface from
+20 to 24 residues and from 1500 to 1700 ˚A2 buried surface area (Table 27).
+Table 27: Claudin-1 trajectory under iterative prompting. Generated properties are measured
+directly on model outputs; ipSAEmin is computed on their ESMFold2-Fast refolds.
+Property
+Initial
+Round 1
+Round 2
+Requested specification
+Topology
+Phospholipase A2
+Growth hormone
+Growth hormone
+Helices
+5
+4
+5
+Interface residues
+22
+20
+24
+Buried surface area ( ˚A2)
+1600
+1500
+1700
+Generated structure
+Binder length
+135
+136
+141
+Helices (DSSP)
+7
+4
+4
+Interface residues
+32
+21
+33
+Buried surface area ( ˚A2)
+1298
+898
+1327
+ipSAEmin
+0.667
+0.737
+0.802
+Claudin-1 comparison.
+Figure 5a shows the top-1 gain; the same comparison at top-8 gives the
+same method ordering (Table 28).
+Baseline reasoning traces.
+When paired with BoltzGen or RFdiffusion3, the agent also extracts
+coherent patterns from feedback; both iterative runs improve over matched-budget i.i.d. generation
+on Claudin-1, although by less than Prompteina. Before round 2, the BoltzGen agent concludes that
+“Helix-βhairpin-helix-helix (H-SS-H-H) dominates” and assigns 70% of the next batch to variants
+49
+
+
+Preprint
+Table 28: Iterative improvement on Claudin-1. Each value is the gain in cumulative top-k mean
+ipSAEmin over the exact expectation from a matched-budget i.i.d. extension of the shared 50-design
+seed.
+Designs evaluated
+Method
+k
+50
+100
+150
+200
+Prompteina
+1
+0.000
++0.060
++0.114
++0.119
+8
+0.000
++0.121
++0.167
++0.181
+BoltzGen
+1
+0.000
+−0.002
++0.019
++0.029
+8
+0.000
++0.013
++0.051
++0.056
+RFdiffusion3
+1
+0.000
++0.002
+−0.012
++0.013
+8
+0.000
++0.048
++0.035
++0.041
+of that topology at the identified length range. Before round 3, the RFdiffusion3 agent finds that
+“The A47+A67 core (ECL1 β-sheet hydrophobic crown) dominates all top scores” and assigns
+about 70% of the next batch to systematic hotspot and length sweeps around that site. Thus, the
+smaller baseline gains do not reflect a failure to use the feedback. These single-target traces suggest
+that Prompteina gives the agent more ways to act on feedback: it can revise topology, architecture,
+interface geometry and size, and disulfides, whereas through BoltzGen and RFdiffusion3 it mainly
+revises secondary-structure ranges, atom-level target constraints, and binder length.
+H.2
+FULL-PANEL EVALUATION
+We run the same iterative loop on all 20 targets to test whether these gains extend across the full
+benchmark. Each method receives 200 designs per target.
+We define target difficulty as the mean expected top-k ipSAEmin of the three i.i.d. runs on that target,
+averaged over the three sequence-redesign conditions. A lower value indicates that every method
+performs worse on the target. Difficulty is a property of the i.i.d. runs alone, so the loop cannot move
+it. IL-17A and TNF-α rank second and third hardest of the 20. We split the panel into difficulty
+thirds and report each method’s gain over its own i.i.d. pool under the same top-k metric (Table 29).
+Independent difficulty check.
+An independent check separates the difficulty definition from the
+gain estimate. We define difficulty using a deterministic, length-stratified subset of 50 i.i.d. designs
+per method and target, then evaluate gains using the disjoint remaining 150 i.i.d. designs and 150
+agent-generated designs from rounds 1–3. This independent definition produces exactly the same
+hardest, middle, and easiest target sets. We use this check only to verify the target grouping rather
+than to compare gain magnitudes because it changes the evaluation budget and removes the shared
+seed used in the primary analysis.
+Prompteina gains most on the hardest third at both k=1 and k=8, and its gains there exceed those of
+the other methods. BoltzGen follows the same pattern at k=1 but gains most on the middle third at
+k=8. RFdiffusion3 loses ground on the hardest targets at k=1 and is at chance across the panel; its
+gain comes from the easier two thirds and from k=8 rather than its best design.
+Table 29: Full-panel iterative prompting by target difficulty. Every method receives 200 designs
+per target across the 20-target panel. Each cell is the mean gain in top-k ipSAEmin over the same
+method’s 200 i.i.d. designs, averaged over the targets in that difficulty third. Targets improved counts
+those for which the loop beats i.i.d. generation. Bold marks the best method within a column.
+Gain over i.i.d. (↑)
+Targets
+Method
+k
+Hardest 7
+Middle 6
+Easiest 7
+improved
+Prompteina
+1
++0.098
++0.046
++0.014
+17/20
+BoltzGen
+1
++0.051
++0.042
++0.012
+16/20
+RFdiffusion3
+1
+−0.021
++0.004
++0.003
+11/20
+Prompteina
+8
++0.105
++0.073
++0.023
+20/20
+BoltzGen
+8
++0.067
++0.087
++0.022
+20/20
+RFdiffusion3
+8
++0.028
++0.055
++0.030
+16/20
+50
+
+
+Preprint
+The hardest third contains CbAgo, IL-17A, TNF-α, BBF14, CD45, HER2, and SpCas9. The middle
+third contains Claudin1, DerF7, CrSAS6, VEGFA, DerF21, and BetV1. The easiest third contains
+TrkA, IL7RA, IFNAR2, PD1, Insulin, PD-L1, and BHRF1. Ranking the targets by top-1 or top-8
+rather than expected top-k leaves the six hardest unchanged. At most six targets cross a boundary,
+all at the middle-to-easiest edge where the difficulty values are closely spaced.
+I
+GM2A EXPERIMENTAL VALIDATION
+I.1
+CANDIDATE SELECTION
+We generated 1,000 backbone designs in five parallel iterative-optimization threads, each contribut-
+ing 200 designs over four rounds (§3.2.3). Four threads targeted distinct GM2A epitopes; the fifth
+also required β-rich binder topologies. Each backbone yielded 33 sequence variants: the generated
+sequence and eight samples from each of ProteinMPNN, ProteinMPNN-FI, SolubleMPNN, and
+SolubleMPNN-FI. We screened every variant with one seed of ESMFold2-Fast and retained the top
+50 backbones from each thread, yielding 250 backbones for deeper evaluation. For deeper evalua-
+tion, we folded each of their 8,250 sequences with two ESMFold2-Fast seeds and two AlphaFold3
+seeds.
+Sequence and interface filters.
+We rejected sequences containing a homopolymer run of at least
+four residues, a hydrophobic run of at least 12 residues, four consecutive Lys/Arg residues, or a
+PP pair within the first 20 residues. Additional vetoes covered the PURE-expression stall motifs
+PPP, DPP, PPN, PPG, APP, GPP, PPD, PPE, and PPW (Peil et al., 2013). A backbone remained
+eligible when at least one of its sequence variants passed these filters. Beyond sequence-level quality,
+the calibration data revealed a second failure mode: very small predicted interfaces. Designs in
+the lowest decile of interface buried surface area performed worse in the calibration data, whereas
+interface size did not distinguish designs above this cutoff. We therefore removed sequences below
+the within-target 10th percentile of ESMFold2-Fast interface buried surface area, which was 574 ˚A2
+for GM2A. The sequence and interface filters retained 6,031 sequences from 249 backbones.
+Metric development for experimental selection.
+Metrics based on absolute model confidence
+can rank complexes highly even when none of the designs bind. We therefore required the ranking
+metric to enrich binders within targets that yield binders and to avoid assigning high scores to de-
+signs from targets where every tested design failed. The development panel combined data from the
+threshold-calibration panel in Appendix G.4 with 2,221 additional designs from Adaptyv Protein-
+Base. We define a group as all designs for one target within one release because releases may use
+different target constructs and design sets. The development panel contained 6,402 designs in 64
+groups, including 1,057 binders and seven groups with no binders.
+We evaluated established metrics and developed 16 new candidates on this panel. To limit selection
+bias during this search, we stated a physical hypothesis and a negative control before evaluating each
+candidate, then tested candidates individually without fitting combinations of existing features.
+Our GM2A campaign selects 90 of 1,000 generated backbones for experimental testing, which sets
+the relevant selection fraction to q = 0.09. A hard cutoff requires rounding for groups of different
+sizes, so we instead give each design a continuous rank weight. Let sgi be the score of design i in
+group g, oriented so that higher values rank better, and let rgi be its percentile rank within the group,
+with tied designs assigned their average rank. We assign each design the weight
+wgi = r1/q−1
+gi
+.
+(11)
+This weight has mean q under random ranking and approaches one near the top of the ranking.
+We score each metric using two quantities: binder selection and non-binder rejection. Binder selec-
+tion measures whether confirmed binders receive more weight than expected under random ranking.
+Let Bg denote the confirmed binders in group g. We first average their weights within each group
+and then average across groups with at least one binder:
+Binder selection =
+mean
+g:Bg̸=∅
+
+mean
+i∈Bg wgi
+
+−q
+1 −q
+.
+(12)
+51
+
+
+Preprint
+The subtraction and rescaling set random ranking to zero and perfect binder selection to one.
+The binder-selection term excludes groups with no binders, even though these groups expose the
+failure mode that motivated the search. The second term therefore asks whether the non-binders
+ranked highly within one group also score highly relative to non-binders from other groups. Let
+Ng denote the confirmed non-binders in group g. For each non-binder, we calculate its percentile
+among the non-binders in every other group and average those percentiles to obtain rcross
+gi
+. We then
+use the within-group weights to summarize the cross-group ranks of the non-binders placed near the
+top of group g:
+Nonbinder rankg =
+P
+i∈Ng wgircross
+gi
+P
+i∈Ng wgi
+.
+(13)
+High Nonbinder rankg means that the metric gives unusually high scores to the non-binders it
+places near the top of group g. Before the search, we gave groups with no binders twice the weight
+of groups with binders to match the planned campaign’s mix of all-failure and successful targets.
+We invert their weighted mean so that better rejection gives a larger value:
+Nonbinder rejection = 1 −
+2
+3 mean
+g:Bg=∅Nonbinder rankg + 1
+3 mean
+g:Bg̸=∅Nonbinder rankg
+
+,
+Score = Binder selection × Nonbinder rejection.
+(14)
+The product is high only when a metric performs well on both parts of the ranking problem.
+Computation of iPAEtarget-norm.
+Target-normalized interface PAE (iPAEtarget-norm) was identified
+as the best-performing criterion for experimental selection (Table 30). Its main advantage over
+ipSAEmin was stronger rejection of non-binders from all-failure groups.
+Table 30: iPAEtarget-norm better rejects non-binders from all-failure groups. The final score
+multiplies the binder-selection and non-binder-rejection terms. Intervals for the final score are 95%
+confidence intervals from resampling the 64 groups.
+Metric
+Binder selection
+Non-binder rejection
+Final score (↑)
+iPAEtarget-norm
+0.1030
+0.3527
+0.0363 [0.0197, 0.0559]
+ipSAEmin
+0.0956
+0.2703
+0.0258 [0.0118, 0.0428]
+iPAEtarget-norm is computed by comparing predicted error across the binder–target interface with
+predicted error within the target’s own fold. For each target residue that contacts the binder, we
+use its mean within-target PAE to target residues 8–20 ˚A away as a target-specific reference. We
+divide the larger directional interchain PAE for every binder residue within 8 ˚A by this reference
+value and transform the ratio x as 1/(1 + x2). The mean transformed ratio over contacting binder
+residues gives the interface score for that target residue. The final score is the 25th percentile of
+these per-target-residue averages.
+Let T and B denote the sets of target and binder residues, respectively. Let PAEij denote the
+predicted aligned error from residue i to residue j, and let dij denote the distance between their
+representative atoms, using Cβ when present and Cα otherwise. Let Q0.25 denote the 25th percentile.
+For i ∈T, define Ai = {k ∈T | 8 ≤dik ≤20} and Ii = {j ∈B | dij < 8}.
+PAE
+own
+i
+=
+1
+|Ai|
+X
+k∈Ai
+PAEik,
+si =
+1
+|Ii|
+X
+j∈Ii
+"
+1 +
+max(PAEij, PAEji)
+PAE
+own
+i
+2#−1
+,
+iPAEtarget-norm = Q0.25({si : i ∈T, |Ii| > 0}) .
+(15)
+A high value indicates that the predicted interface is confident relative to the target’s own fold. Using
+the 25th percentile prevents a few confident contacts from dominating the score.
+Ranking and final selection.
+To preserve candidates from every design thread during the initial
+screen, we allocated deeper evaluation evenly across the five threads. We represented each backbone
+52
+
+
+Preprint
+by the highest iPAEtarget-norm among its 33 sequence variants and selected the top 50 backbones
+within each thread, reducing 1,000 backbones to 250.
+The final ranking aggregates predictions across random seeds and folding models so that no single
+prediction determines selection. For each metric and folding model, we took the median across two
+seeds and standardized these medians over all 8,250 sequences. We then averaged each standard-
+ized metric across ESMFold2-Fast and AlphaFold3. The final score combines iPAEtarget-norm with
+measures of binder–target interface confidence, complex fold confidence, and agreement between
+the designed and refolded complexes:
+S = z(iPAEtarget-norm) + 0.50 z(ipSAEmin)
++ 0.50 z(pLDDTcomplex) −0.25 z(RMSDcomplex).
+(16)
+Here z denotes the standardized value. ipSAEmin measures binder–target interface confidence, com-
+plex pLDDT measures overall fold confidence, and complex RMSD measures disagreement between
+the designed and refolded complexes. Prior work and the calibration data supported the direction of
+each term. Nearby weightings performed similarly, so we do not interpret these coefficients as fitted
+optima. We retained only the highest-ranked sequence for each backbone to avoid testing several
+sequence variants of the same structure, then sent the top 90 distinct backbones to Adaptyv Bio.
+I.2
+BINDING ASSAY RESULTS
+SPR identified nine binders among the 89 loaded designs: six medium and three weak binders.
+Eight yielded fitted overall apparent KD values, whereas the remaining weak binder had no fit.
+The strongest binder reached an overall apparent KD of 107.4 nM (95% CI: 80.9–142.5 nM), with
+replicate-level fits of 68.8, 129.1, and 137.6 nM. We use the overall fit of 107 nM when summa-
+rizing this design and show the three sensorgrams with their replicate-level values (Fig. 6c). The
+ESMFold2-Fast predictions for the six medium binders are computational models rather than exper-
+imentally determined complexes (Fig. 6a).
+Table 31 reports the experimental results alongside the in silico quantities used during selection.
+Design rank is the candidate’s position among the 90 designs selected for testing. MPNN and
+SolMPNN denote ProteinMPNN and SolubleMPNN, respectively; FI denotes fixed-interface re-
+design, which retains the generated interface residues while redesigning the remaining sequence.
+Round 0 denotes the initial generation, and Rounds 1–3 denote successive iterative-optimization
+rounds. The five metrics are raw rather than standardized values. iPAE is the mean predicted
+aligned error across binder–target residue pairs, while pLDDT and RMSD are calculated over the
+full binder–target complex. For each metric, we took the median over two seeds within each folding
+model and then averaged the ESMFold2-Fast and AlphaFold3 values.
+Table 31: Nine GM2A designs produced measurable binding. Apparent KD values are overall
+fits across the available replicates. Rows are ordered by fitted apparent KD.
+Rank Kapp
+D
+(nM) Seq. redesign Round iPAE ( ˚A) iPAEtarget-norm ipSAEmin pLDDT RMSD ( ˚A)
+16
+107 MPNN
+2
+5.92
+0.589
+0.713
+0.916
+2.60
+78
+144 MPNN
+3
+5.95
+0.425
+0.665
+0.910
+2.82
+17
+238 MPNN-FI
+0
+6.99
+0.658
+0.666
+0.896
+7.61
+68
+281 SolMPNN
+3
+7.83
+0.504
+0.679
+0.885
+4.80
+39
+335 SolMPNN
+0
+7.09
+0.621
+0.586
+0.884
+2.75
+13
+868 SolMPNN-FI
+3
+5.82
+0.630
+0.689
+0.913
+3.02
+37
+3,589 SolMPNN
+0
+6.22
+0.558
+0.663
+0.904
+2.85
+21
+10,000 MPNN
+1
+4.88
+0.560
+0.696
+0.926
+1.72
+61
+No fit SolMPNN
+3
+5.86
+0.469
+0.695
+0.914
+3.52
+53

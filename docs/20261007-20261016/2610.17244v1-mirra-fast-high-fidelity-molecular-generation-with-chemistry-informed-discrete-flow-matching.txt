@@ -1,0 +1,865 @@
+Title: MIRRA: Fast, High-Fidelity Molecular Generation with Chemistry-Informed Discrete Flow Matching
+
+URL Source: https://arxiv.org/pdf/2610.17244v1
+
+Published Time: Wed, 14 Oct 2026 03:32:08 GMT
+
+Number of Pages: 30
+
+Markdown Content:
+# MIRRA: F AST , H IGH -F IDELITY MOLECULAR GENERATION WITH CHEMISTRY -I NFORMED DISCRETE FLOW MATCHING 
+
+Ge Sun 1,2 Juan J. de Pablo 1,2,3 
+
+> 1Courant Institute of Mathematical Sciences, New York University, New York, NY 10012
+> 2Tandon School of Engineering, New York University, Brooklyn, NY 11201
+> 3Department of Physics, New York University, New York, NY 10003
+
+# ABSTRACT 
+
+Fast, high-fidelity molecular generation requires accurate chemical choices and efficient sampling. Chemical building blocks reduce graph size, but make each node a choice among tens of thousands of related identities. We introduce MIRRA (Molecular Identity Representation, Refresh and Assembly), a discrete flow-matching generator that learns from chemical knowledge and evaluates identity probabilities only when needed, while keeping every identity in its vocabulary available. Chemical features share information across related blocks, and learned identity corrections distinguish them in molecular context. By deciding which positions will refresh before computing their probabilities, the sampler avoids unused predictions while preserving each sampling transition. Against the strongest baselines in each task, MIRRA reduces chemical and graph distribution errors on ZINC250k by 29–31% and 53–60%, respectively, with generation up to 8.6 times faster. Property targeting yields an estimated 7.8–20.8 times more distinct novel hits per second. On a held-out polymer test set, MIRRA achieves 100% periodic validity with known chain topology, versus 57.0% for a polymer variational autoencoder. These results demonstrate fast, high-fidelity generation with the full chemical vocabulary available throughout sampling. 
+
+# 1 Introduction 
+
+Molecules reuse chemistry. Rings and functional groups recur across compounds, so selecting one building block can specify several atoms and bonds at once. This makes substructure-based generation attractive: it reduces the number of graph variables while preserving chemically meaningful units (Degen et al., 2008; Jin et al., 2018; Han et al., 2025; Lee et al., 2026). Compression of the graph, however, relocates the difficulty to the individual nodes. Instead of choosing among a few atom types, a model must predict an identity from tens of thousands of building blocks, each in the context of a different partially formed molecule. Two requirements follow. First, the predicted probabilities must reflect both chemical similarity and individual difference. Two aromatic blocks may share useful structural information while differing in ring size, heteroatoms or attachment pattern, and these differences can determine which surrounding structures they fit. Second, evaluating those probabilities must remain affordable, since the vocabulary is scored at every position of every sampling step; a large vocabulary can otherwise erase the computational benefit of the smaller graph. We ask: can a generator retain detailed chemical choices and still be fast? MIRRA (Molecular Identity Representation, Refresh and Assembly) answers by combining chemistry-informed prediction with refresh scheduling (Figure 1). Every identity in its vocabulary remains available throughout generation. The representation assigns each block a probability from two terms: fixed chemical features shared across related entries, and learned per-entry corrections that depend on molecular context. The refresh schedule fixes which positions will be resampled before any scoring occurs, so only those positions evaluate the full vocabulary while the complete graph still supplies context. Assembly converts the sampled building blocks into a molecule by selecting a tree of connections and resolving compatible attachment sites from the terminal probabilities. arXiv:2610.17244v1 [cs.LG] 12 Oct 2026 MIRRA: Fast, High-Fidelity Molecular Generation a Discrete flow matching on building-block graphs      
+
+> Representation 12345
+> 1234526 heavy atoms
+
+→ 5 block nodes 
+
+> MIRRA generation
+
+G0 Gt G1
+
+pθ
+
+> Predictor
+
+t  
+
+> b,c
+> Constrained assembly
+> Sample / update Final probabilities
+> Prior Flow sampling Molecule
+
+b Select positions before scoring 
+
+## t     
+
+> Sample positions
+> Bernoulli refresh
+> 12345Keep Full graph 250 sampling steps
+> ~6.1 expected scoring evaluations per position
+
+c Score chemical choices 
+
+> Vocabulary examples
+
+Graph Transformer 
+
+Gt , tZ
+
+> 12345Selected positions
+
+zi  
+
+> Each selected position
+> e.g., i= 2
+> Chemical-feature score
+
+S
+
+> Fixed chemistry
+> Context-dependent correction
+
+U
+
+> Learned identities
+
+# +b
+
+> Softmax
+
+## pi
+
+…
+
+> Full vocabulary
+> All 37,821 entries
+> Illustrative
+> Edge head
+> Connection probabilities
+
+Figure 1: MIRRA combines chemistry-informed prediction, refresh scheduling and constrained assembly. (a) A 26-heavy-atom molecule becomes five building-block nodes. The predictor pθ supplies node and connection probabilities for discrete flow matching, using refresh scheduling (b) and chemistry-informed identity scores (c). Constrained assembly D uses final identities and these probabilities to construct a tree over the blocks and pair compatible attachment sites, with limited identity changes when needed. (b) Independent Bernoulli refresh decisions select positions for vocabulary scoring using the full graph as context. A selected identity can remain unchanged. At 250 steps, expected scoring evaluations per position fall from 250 to 6.1. (c) Chemical-feature and identity-correction scores, plus a frequency offset, define probabilities over all 37,821 entries. The four chemical examples are vocabulary members, not a shortlist; intermediate states, matrices and probability bars are schematic. 
+
+Our contributions are: • Higher fidelity at lower cost. MIRRA achieves the best chemical and graph fidelity in our ZINC250k evaluation. Compared with the strongest baseline, FragFM at 500 steps, MIRRA at 25 steps lowers Fréchet ChemNet Distance (FCD) by 28.7% and generates 8.6 times faster. Both models use the same training data, and matched timings include assembly. • Chemical sharing and identity corrections improve fidelity. Chemical features share learning across related identities, while contextual corrections preserve their differences. Matched training controls and generation/assembly interventions establish how both components improve fidelity. • Faster sampling through prediction-independent scheduling. Prediction-independent refresh scheduling computes identity probabilities only for positions selected to refresh, scoring every vocabulary entry at each refresh. It preserves the finite-step kernel and gives a 3.0-fold speedup at fixed weights. • Beyond the benchmark. Conditional design increases estimated distinct novel target hits per second. On a reserved polymer test, MIRRA achieves 100% periodic validity under known chain topology. The fixed design also transfers to MOSES. 2MIRRA: Fast, High-Fidelity Molecular Generation 
+
+# 2 Related work 
+
+2.1 Molecular generation 
+
+GDSS, DiGress, GruM and SID generate graphs through diffusion and iterative denoising (Jo et al., 2022; Vignac et al., 2023; Jo et al., 2024; Boget, 2025). SyCo maps molecular graphs to synthetic Euclidean coordinates and generates in that latent space (Ketata et al., 2025). GraphBFN evolves continuous beliefs over graph categories (Song et al., 2025), while HDFM and HOG-Diff organize generation coarse-to-fine (Boget et al., 2026; Huang and Birdal, 2026). For property control, STGG+ combines conditional spanning-tree generation with self-criticism (Jolicoeur-Martineau et al., 2025), while TreeDiff guides diffusion through inference-time tree search (Zhao et al., 2026). MIRRA builds on discrete flow matching (Gat et al., 2024), with chemically structured output sharing and refresh scheduling that preserves the specified finite-step transition. For conditional generation, it measures useful molecular yield as distinct novel target hits per unit time. Fragment-based generators pair compact molecular graphs with assembly. The junction-tree VAE generates substructure scaffolds and assembles molecules, while HierVAE predicts larger motifs and their attachments (Jin et al., 2018; 2020). Functional-group coarse-graining provides chemically meaningful graph nodes (Han et al., 2025), and NSGGM combines neural scaffold proposals with symbolic constraint solving for final assembly (Geng et al., 2026). FragFM learns fragment embeddings, predicts identities through contrastive fragment bags, and resolves attachments by constrained matching (Lee et al., 2026). SynFormer generates synthetic pathways and selects building blocks by generating molecular fingerprints and retrieving nearby entries from a database (Gao et al., 2025). MIRRA assigns an explicit probability to every fragment identity at each refresh and uses terminal probabilities to select a connection tree and compatible attachment pairs. Section 4.2 compares full-vocabulary execution with a prior-sampled candidate subset, isolating how restricting the available identities affects fidelity and cost. Sharing information across output identities provides a complementary approach. Label Embedding Network learns relationships between labels (Sun et al., 2017); deep residual output layers share learned label mappings in language generation (Pappas and Henderson, 2019); and LGSA aligns hierarchical label geometry for text classification (Zhang et al., 2026). MIRRA combines fixed chemical output features with context-dependent identity corrections and trains probabilities over the full vocabulary. Chemical structure shares learning across molecular identities, while learned corrections express their differences in context. Matched training controls test chemical alignment, and generation/assembly interventions identify how the corrections improve fidelity. 
+
+2.2 Efficient discrete sampling 
+
+Structured discrete diffusion supports categorical and absorbing-state corruption (Austin et al., 2021). MELD learns element-specific corruption schedules to reduce collisions between molecular diffusion trajectories (Seo et al., 2026), while Categorical Flow Maps distill flows for generation in fewer steps (Roos et al., 2026). MDLM and RADD accelerate absorbing diffusion by caching time-independent network outputs while the partially revealed sequence remains unchanged (Sahoo et al., 2024; Ou et al., 2025). First-hitting samplers directly sample unmasking times (Zheng et al., 2025); EDGE and DeFoG study sparse active-node and adaptive graph sampling (Chen et al., 2023; Qin et al., 2025). DDPD separates a learned planner that selects positions from a denoiser that predicts their values (Liu et al., 2025). MIRRA selects refresh positions from prediction-independent Bernoulli gates, allowing this decision to precede identity scoring while preserving the finite-step kernel. Identities can refresh repeatedly, and full-vocabulary probabilities are computed only at selected positions. The time-conditioned backbone still processes each active graph, so the main saving comes from avoiding unused vocabulary projections. The harmonic count HT measures per-node refresh evaluations; absorbing-diffusion caching counts whole-network evaluations between changes to the sequence. 
+
+2.3 Polymer generation 
+
+BigSMILES describes stochastic macromolecular structures (Lin et al., 2019), and G 2RINS provides a generative string-and-graph representation of hierarchical polymers (Zaldivar et al., 2026). HiPoly builds on G 2RINS for polymer property prediction and generative design (Sun et al., 2026). The Open Macromolecular Genome links repeat-unit generation to polymerization chemistry (Kim et al., 2023), while Graph DiT studies multi-property-conditioned polymer generation (Liu et al., 2024). MIRRA extends chemically structured prediction to periodic repeat units and evaluates structural fidelity and periodic validity on a reserved polymer split with known chain topology. 3MIRRA: Fast, High-Fidelity Molecular Generation 
+
+# 3 MIRRA: representation, refresh and assembly 
+
+3.1 Representation: chemically structured identities 
+
+A molecule is represented by building-block (molecular fragment) identities X = ( x1, . . . , x n) and a symmetric binary adjacency matrix E. Blocks expose typed attachment sites obtained from BRICS-derived decompositions (Degen et al., 2008), while their identities specify internal atoms and bonds. The generator therefore predicts only the block graph. Distinct substitution and attachment patterns remain distinct choices. The benchmark vocabulary contains 37,821 entries; its finite size also bounds the chemical space this representation expresses. Each entry v has a fixed vector sv describing chemical structure and attachments. A graph transformer reads these features, the noisy edges and the time to produce a contextual state zi for each node, and the model scores every entry as 
+
+ℓi(v) = a s ⊤ 
+
+> v
+
+g(zi) + u⊤ 
+
+> v
+
+Dz i + bv , pi(v) = softmax v ℓi(v). (1) The first term projects the contextual state into feature space through g with learned scale a, allowing related blocks to inform one another’s learning. The second is the identity correction, a learned vector uv for each entry read through a shared low-rank projection D. The fixed offset bv encodes training frequency. The model is trained with cross-entropy over probabilities normalized across the full vocabulary. The two terms serve complementary purposes. For two entries with identical chemical features, the relative odds are fixed across all molecules without the correction; with it, their log-odds differ by (uv − uw)⊤Dz i and depend on context, so ring similarity does not force two attachment patterns to be interchangeable. This is a statistical use of chemical structure rather than an energy or reaction model: it expands output expressivity without recovering distinctions absent from the input features (Appendix B.3). Training uses the linear independent-coupling path of discrete flow matching (Gat et al., 2024): given clean identity x1
+
+and source prior p0,
+
+qt(xt | x1) = t δ x1 (xt) + (1 − t)p0(xt), (2) with an analogous symmetric binary corruption on edges. Individual identities remain explicit in the state throughout; chemical sharing changes their predictor, not the state. Appendix B specifies the features, dimensions and training recipe. 
+
+3.2 Refresh: scoring only at scheduled positions 
+
+For T sampling steps, we use the grid tk = k/T , k = 0 , . . . , T − 1. The finite-step node transition is 
+
+Ki,k (v | X, E ) = (1 − αk)1[v = xi] + αk pθ,i (v | X, E, t k), αk = 1
+
+T − k . (3) The transition is a mixture of retaining the current identity and drawing a new one from the model, and a conventional implementation evaluates pθ,i before sampling from it. The mixture weight αk, however, is fixed by the schedule and independent of the prediction, so the two operations may be reordered and the Bernoulli refresh drawn first. When the refresh is zero the identity is retained, and its vocabulary probabilities cannot affect the transition, so they need not be computed; when it is one, all 37,821 entries are scored and an identity is sampled, which may coincide with the current one. Edges are governed by analogous gates, all predictions use the incoming graph, and updates are simultaneous. Because the gate is independent of the prediction, this ordering preserves Equation 3 in real arithmetic, and expected full-vocabulary projections per node decrease from T to HT = PTj=1 1/j , approximately 6.1 instead of 250. Measured refresh counts agree with this prediction (Appendix B.5). Early refreshes are sparse and the final step refreshes every node, while a graph in which nothing refreshes requires no forward pass. Within each active graph, the backbone and edge predictor remain dense; end-to-end speed is measured separately. 
+
+3.3 Assembly: from block graph to molecule 
+
+The assembly decoder converts the sampled building blocks into a connected molecule. It reuses the node and edge probabilities computed at the final sampling transition without a new prediction, and selects connections from the terminal edge probabilities rather than the sampled adjacency. The decoder joins the blocks into a tree and uses every attachment site exactly once; joined sites must also have compatible types. Let ˜xi denote the identity at position i after any decoder changes, m(˜ xi) its attachment count, and di its degree in the tree. These requirements give: 
+
+di = m(˜ xi), and hence 
+
+> n
+
+X
+
+> i=1
+
+m(˜ xi) = 2( n − 1) . (4) 4MIRRA: Fast, High-Fidelity Molecular Generation Before constructing a tree, the decoder checks the total-site condition on the right. For n > 1, every block must also have at least one attachment site. If these count requirements are unmet, node probabilities guide changes to the sampled identities. Once the counts are feasible, terminal edge probabilities guide a bounded search over degree-exact trees. Training-derived attachment preferences rank the compatible site pairings of each candidate. If this search finds no valid molecule, the decoder tries a bounded set of identity replacements that preserve the attachment counts. The search and repair procedures are specified in Appendix B.6. Section 5 separately examines identity correction during generation and terminal assembly. Failed assemblies count as failed generation attempts and are not replaced. 
+
+# 4 High fidelity at low sampling cost 
+
+Evaluation protocol. We measure chemical distribution matching with FCD (Preuer et al., 2018), graph discrepancy with NSPDK MMD 2 (Jo et al., 2022), and validity, uniqueness and novelty separately. For results evaluated in this study in Table 1 and Figures 2–4, we score valid molecules from 10,000 attempts against all 24,887 ZINC references; failures are not replaced. ZINC informed architecture and correction-rank selection, so MOSES and the reserved polymer test evaluate the fixed design (Appendix A).                                                                 
+
+> Table 1: High fidelity at few sampling steps on ZINC250k. Both MIRRA settings lead on FCD and NSPDK. Bold /underline mark best/second-best among compared models, using unrounded values.
+> (a) Fidelity and validity: all baselines
+> Model (sampling steps) FCD ↓NSPDK ×10 3↓Valid (%) ↑
+> Training reference 0.336 0.110 n/a GDSS (1000) 14.656 19.500 97.01 DiGress (1000) 3.482 2.100 94.99 GruM (1000) 2.257 1.500 98.65 GraphBFN (500) 2.116 1.300 99.22 SID, marginal (500) 2.010 2.060 99.50 DFM (128 NFE) 1.480 0.554 99.41 DeFoG (500) 1.425 0.800 99.22 HDFM (128 NFE) 1.230 0.433 99.30 FragFM (500) 0.528 0.382 99.14 MIRRA (25) 0.377 0.180 99.27 MIRRA (250) 0.366 0.154 99.81 (b) Uniqueness
+> Model (steps) Unique (%) ↑
+> GDSS (1000) 99.64 DiGress (1000) 99.97 GruM (1000) 99.97 SID (500) 99.84 FragFM (500) 99.98 MIRRA (25) 99.98
+> MIRRA (250) 99.97
+> (c) Novelty
+> Model (steps) Novel (%) ↑
+> GDSS (1000) 100.00
+> DiGress (1000) 99.99 GruM (1000) 99.98 SID (500) 99.97 FragFM (500) 99.23 MIRRA (25) 97.69 MIRRA (250) 97.61 Results evaluated in this study use 10,000 attempts and 24,887 references; MIRRA250 is a three-draw per-metric median, other results evaluated here use one draw. Training reference is not ranked; validity is not applicable. Diversity panels use the same models with both metrics available. Sources and protocols: Appendix A.
+
+4.1 The fidelity advantage survives few sampling steps 
+
+At 250 steps, MIRRA reaches FCD 0.366 versus 0.528 for FragFM at 500 steps, a 30.6% reduction under the same evaluation protocol, and NSPDK ×10 3 improves from 0.382 to 0.154. At 25 steps, FCD remains 28.7% below FragFM500 while matched generation is 8.6 times faster , including assembly (Figure 2). These are complete generators trained on the same data, though capacities, representations and recipes differ. The broader comparison places both MIRRA settings below every baseline in Table 1 on FCD and NSPDK, and MIRRA250 has the highest validity in the table at 99.81%, with 99.97% uniqueness and 97.61% novelty. 5MIRRA: Fast, High-Fidelity Molecular Generation 0.110 0.3 1 3 10 0.336 0.5 12510               
+
+> Training data
+> GDSS DiGress GruM GraphBFN SID (marginal) DFM
+> 25 250 FragFM HDFM DeFoG
+> MIRRA
+> FCD ↓ NSPDK × 10³ ↓
+> 25 50 100 250 500 1000 0.336 0.5 12
+> MIRRA
+> HDFM FragFM DeFoG
+> FCD ↓ Sampling steps (NFE)
+> 10 0
+> 250 25 250 500 1000 32 64 128 500
+> 8.6× faster
+> HDFM DeFoG FragFM
+
+a Chemical and graph fidelity 
+
+> MIRRA
+> FragFM HDFM DeFoG Other published Training-data floor
+
+b Sampling steps c Generation time 
+
+> Training-data floor
+> Generation time per attempted molecule (ms)
+
+Figure 2: Strong chemical and graph fidelity at low sampling cost. (a) FCD and NSPDK discrepancies; (b) FCD versus steps (reported number of function evaluations, NFE, for HDFM); (c) FCD versus time per attempted molecule. Lower is better. Quality for MIRRA and FragFM uses 10,000 attempts; MIRRA250 is a three-draw median. MIRRA and FragFM suffixes denote sampling steps. Hatching marks the training-data floor, measured from a fixed training sample. The 8.6-fold arrow is the matched MIRRA25–FragFM500 timing comparison; their times are medians of four runs (three for FragFM250/1000). See Appendix A. 
+
+4.2 Scheduling, not restriction, makes the vocabulary practical 
+
+We run the benchmark checkpoint in three ways at 250 steps: score every entry at every position; score every entry only at scheduled positions; or score only a candidate subset at scheduled positions. The subset contains 1,536 distinct prior-sampled entries plus the current identities, renormalized over that set, and its runtime includes candidate construction. All three modes supply assembly with the same complete terminal scores. Scheduling reduces median time from 131.6 to 43.7 ms per attempt, a 3.0-fold speedup , with nearly identical observed FCD (0.3680 versus 0.3665). The candidate subset behaves differently: its FCD rises to 0.9469 and NSPDK ×10 3
+
+to 0.8780, and at 46.2 ms it is marginally slower than scoring all 37,821 entries under the same schedule (Figure 3), while saving 34.7% of peak allocated tensor memory. For this implementation and checkpoint, restricting the choices therefore yields memory savings rather than speed, at a substantial cost in fidelity (Appendix D). 
+
+Keeping the full vocabulary preserves chemical fidelity. Candidate restriction can preserve almost all valid outputs while changing molecular composition: in the three-model controls, paired comparisons reveal a molecular-size shift before assembly. An elementary argument explains why. Even if exact predictions preserve the target distribution, proposing one candidate from a nonuniform prior and renormalizing over it and the current identity can overrepresent common entries, and smaller time steps need not remove that bias (Appendix D.2). 6MIRRA: Fast, High-Fidelity Molecular Generation 0.336 0.5 1       
+
+> 0.368
+> 0.366
+> 0.947
+> 0.110 0.3 1
+> 0.154
+> 0.154
+> 0.878
+> 0100 200
+> 131.6
+> 43.7
+> 46.2
+> 3.0× faster
+> 00.5 11.5
+> 1.36
+> 0.85
+> 0.56
+
+a Scoring choices 
+
+> Positions scored × building blocks
+> All positions all building blocks
+> MIRRA
+> Selected positions all building blocks Selected positions sampled subset
+
+b Fidelity c Generation cost        
+
+> FCD ↓ NSPDK × 10³ ↓ Time ↓
+> ms per attempt
+> Memory ↓
+> peak GiB
+> Filled cells: scores evaluated (illustrative) median median time; peak memory draws / runs training-data floor
+
+Figure 3: Schedule the computation while preserving the choices. (a) The positions and entries scored by three implementations of one checkpoint. (b) FCD and NSPDK: circles are three-draw medians; ticks show every draw. (c) Median time over three separate 1,024-attempt runs and peak allocated tensor memory, with individual runs shown. Scheduling is 3.0 times faster than dense scoring and slightly faster than the tested subset. Quality follows the 10,000-attempt protocol of Figure 2; timings use the same GPU and batch size 128. Candidate restriction has no separate training or proposal correction, and variation reflects sampling and timing repetitions. Table 2: Correct chemical features improve both chemical and graph fidelity on ZINC250k. Independently trained predictors share the input features, backbone, training budget and assembly rule, with comparable capacity. All rows use 250 sampling steps and the common final training update. Best values are bold; second-best values are underlined. Output predictor FCD ↓ NSPDK ↓ Novel (%) ↑
+
+(×10 3)
+
+Conventional learned predictor 0.1793 0.1223 98.05 
+
+Shuffled chemical features 0.1757 0.1547 97.55 Chemistry shuffled within matched groups 0.1655 0.1188 97.51 MIRRA: correctly assigned chemical features 0.1561 0.1063 97.81 Each row is one independently trained model at the common final update. Matched groups preserve attachment types and frequency bins. Correct alignment improves FCD by 11–16% across three independently trained pairs. FCD and NSPDK use 25,000 valid outputs and reference molecules; novelty uses unique valid outputs. 
+
+# 5 Why chemical sharing and identity corrections work together 
+
+Chemical alignment improves what the model learns. Chemical features could in principle help only by adding parameters. To separate chemical information from parameter count, we independently train predictors with correct or shuffled output-feature assignments, holding input features, individual labels, capacity and the training recipe fixed. Correct alignment improves FCD by 11–16% across three matched training pairs . A narrower shuffle within attachment-type and frequency-bin groups also worsens fidelity, the more informative outcome: the benefit follows not from a structured output space in general, but from one that is chemically correct. At a common final update, MIRRA outperforms both shuffles and a conventional learned predictor on FCD and NSPDK (Table 2), while that predictor has slightly higher novelty (Appendix E). 
+
+Identity corrections guide the generation trajectory. The corrections could in principle act only at the end, where assembly reads the terminal probabilities. We therefore enable them independently during generation and during terminal assembly (Figure 4). Holding full assembly scores fixed, enabling generation corrections changes median FCD from 7.638 to 0.366, with paired reductions of 95.1–95.4%. Assembly-only corrections cannot recover this loss: they raise validity from 80.03% to 88.10% while FCD remains near 7.6. The model therefore uses contextual identity preferences during generation. These interventions show how the trained model uses its corrections; Table 2 compares independently trained predictors. 7MIRRA: Fast, High-Fidelity Molecular Generation 0.336 1 3 10   
+
+> 7.421 7.638 0.367
+> 0.366
+> ~95% lower FCD
+> 80 90 100
+> 80.03 88.10 99.68
+> 99.81
+
+a Where identity scores are used          
+
+> Generation Assembly Neither Off Off
+> Assembly only Off On
+> Generation only On Off
+> MIRRA On On
+
+b Fidelity c Validity     
+
+> FCD ↓ Valid molecules (%) ↑
+> One model; identity scores switched at inference median 3 sampling draws training-data floor
+
+Figure 4: Assembly cannot replace accurate identity choices during generation. (a) A fixed-weight intervention includes or omits identity corrections during generation and assembly. (b) FCD on a logarithmic axis; (c) validity with an axis starting at 76%. Circles are medians and ticks show three sampling draws of the benchmark checkpoint. Assembly conditions within a generation arm share terminal states and edge probabilities. The full condition is exactly the MIRRA250 population in Figures 2–3; all use the same reference and evaluation. The roughly 95% FCD reduction compares full MIRRA with assembly-only correction. 
+
+# 6 What fast, faithful generation enables 
+
+Transfer beyond the development benchmark. On the official MOSES scaffold-test reference (Polykovskiy et al., 2020), the fixed design shows a mean FCD advantage over matched shuffled and conventional predictors, though the effect is smaller than on ZINC, varies across training runs and step counts, and comes with lower novelty (Appendix F). 
+
+Valid periodic structures on a reserved polymer test. A split grouped by periodic identity reserves 9,949 test identities, with checkpoints and generated samples fixed before test evaluation. Every sampled MIRRA repeat unit is periodically valid, versus 57.03% for OMG-VAE (Kim et al., 2023) and 35.49% for Graph DiT (Table 3); periodic validity is stricter than parseability, requiring a connected repeat unit, two attachment ports and successful periodic canonicalization. At 250 steps the structural discrepancy is 0.021 in MMD 2 × 10 3, with 98.30% novelty. MIRRA receives known linear chain topology while baselines generate full encodings, and variability is measured across two sampling runs per checkpoint (Appendix H). 
+
+Table 3: Valid polymer repeat units with closer structural distributions. Evaluation uses 9,949 reserved periodic identities. MIRRA has 100% periodic validity at both step counts. Best/second-best values are bold/underlined; ties share rank. Model Steps Structural distance ↓ Valid (%) Unique (%) Novel (%) (MMD 2 × 10 3) ↑ ↑ ↑
+
+OMG-VAE Native 30 .498 ± 0.458 57.03 97.32 100.00 
+
+Graph DiT 500 101 .325 ± 2.048 35.49 100.00 100.00 
+
+MIRRA 500 0.079 ± 0.030 100.00 99.96 98.57 MIRRA 250 0.021 ± 0.015 100.00 99.91 98.30 Means over two 4,096-attempt draws of one checkpoint per method; distance uncertainty is sample SD. Scorable fractions are 56.10% for OMG-VAE, 35.49% for Graph DiT and 100% for MIRRA; distances condition on these outputs. Native denotes autoregressive decoding. 
+
+More useful property-targeted outputs per unit time. We target drug-likeness (QED) (Bickerton et al., 2012) and lipophilicity (logP) using small property-dependent adapters that modify transformer states while the benchmark backbone stays frozen. All methods use 500 steps and validation-selected guidance at the 10th, 50th and 90th training quantiles. A useful output is valid, lies within the target window and has a distinct identity absent from training; its estimated rate is 
+
+br = distinct novel target hits /attempts separately measured seconds /attempt . (5) 8MIRRA: Fast, High-Fidelity Molecular Generation 0.1 0.3 1 3 10 
+
+7.8 –20.8 ×           
+
+> vs. strongest baseline
+> 0510
+> MIRRA individual adaptation runs FragFM (graph guidance) FragFM (graph + bag guidance) Graph DiT
+> Target Value
+> Low 0.53 Median 0.76 High 0.89 Low 0.57 Median 2.63 High 4.19
+> QED
+> ±0.05
+> logP
+> ±0.5
+
+a Useful hits per second  
+
+> Estimated distinct novel hits/s ↑
+
+b Fidelity  
+
+> Target-window FCD ↓
+
+Figure 5: Faster generation produces more useful property-targeted outputs. (a) Estimated distinct novel hits per second; (b) target-window FCD, including valid misses. Markers average three adapter runs sharing one backbone; ticks show each run. Rates combine 4,096-attempt yields with three separate 256-attempt timings; FCD uses 1,000 valid outputs and 1,000 target references. Tolerances are ±0.05 QED and ±0.5 logP. 
+
+MIRRA produces an estimated 7.8–20.8 times more distinct novel hits per second than the strongest tested baseline at each target (Figure 5); the range is 7.8–22.5 across both FragFM guidance settings and 11.4–24.4 against Graph DiT (Liu et al., 2024). The advantage does not arise from a higher hit rate: both FragFM settings reach every target more often per attempt, while MIRRA completes 21.3–25.3 times as many attempts per second as either of them, and 12.3–13.0 times as many as the fastest baseline at each target (Figure 8); throughput more than offsets the lower hit rate. MIRRA also has the lowest mean target-window FCD at five of six targets, with high QED favoring FragFM. These rates average three adapter runs on one backbone and combine separate yield and timing populations (Appendix G). 
+
+# 7 Discussion 
+
+MIRRA makes a large chemical vocabulary practical for fast, high-fidelity molecular generation. Chemical features let related building blocks share learning, while identity corrections preserve their differences in molecular context. Refresh scheduling makes these detailed choices affordable: it computes full-vocabulary probabilities only at positions where the transition will use them, preserving the finite-step kernel. Every identity remains available whenever a position refreshes. The experiments connect this design to both better distribution matching and faster generation. Training controls estab-lish the value of chemical alignment, and generation/assembly interventions show that contextual identity preferences guide the trajectory itself. In property targeting, higher throughput yields higher estimated rates of distinct novel hits. This connects generation speed to the practical yield of molecular search. Generation uses a finite vocabulary; broader transfer and candidate-specific training remain open. The central result is that detailed chemical choices can support both fidelity and speed: chemical knowledge improves their probabilities, and refresh scheduling removes the cost of predictions that generation does not use. 9MIRRA: Fast, High-Fidelity Molecular Generation 
+
+# References 
+
+Jacob Austin, Daniel D. Johnson, Jonathan Ho, Daniel Tarlow, and Rianne van den Berg. Structured denoising diffusion models in discrete state-spaces. In Advances in Neural Information Processing Systems , volume 34, pages 17981–17993, 2021. URL https://proceedings.neurips.cc/paper/2021/hash/958c530554f78bcd8e97125b70e6973d-Abstract.html. G. Richard Bickerton, Gaia V. Paolini, Jérémy Besnard, Sorel Muresan, and Andrew L. Hopkins. Quantifying the chemical beauty of drugs. Nature Chemistry , 4(2):90–98, 2012. doi: 10.1038/nchem.1243. URL https://doi.org/10.1038/nchem.1243. Yoann Boget. Simple and critical iterative denoising: A recasting of discrete diffusion in graph generation. In Proceedings of the 42nd International Conference on Machine Learning , volume 267 of Proceedings of Machine Learning Research , pages 4713–4736, 2025. URL https://proceedings.mlr.press/v267/boget25a.html. Yoann Boget, Pablo Strasser, and Alexandros Kalousis. Hierarchical discrete flow matching for graph generation. arXiv preprint arXiv:2604.00236, 2026. URL https://arxiv.org/abs/2604.00236. Xiaohui Chen, Jiaxing He, Xu Han, and Liping Liu. Efficient and degree-guided graph generation via discrete diffusion modeling. In Proceedings of the 40th International Conference on Machine Learning , volume 202 of Proceedings of Machine Learning Research , pages 4585–4610, 2023. URL https://proceedings.mlr.press/v202/chen23k.html. Fabrizio Costa and Kurt De Grave. Fast neighborhood subgraph pairwise distance kernel. In Proceedings of the 27th International Conference on Machine Learning , pages 255–262, 2010. URL https://icml.cc/Conferences/2010/papers/347.pdf. Jörg Degen, Christof Wegscheid-Gerlach, Andrea Zaliani, and Matthias Rarey. On the art of compiling and using ‘drug-like’ chemical fragment spaces. ChemMedChem , 3(10):1503–1507, 2008. doi: 10.1002/cmdc.200800178. URL https://doi.org/10.1002/cmdc.2 00800178. Wenhao Gao, Shitong Luo, and Connor W. Coley. Generative AI for navigating synthesizable chemical space. Proceedings of the National Academy of Sciences , 122(41):e2415665122, 2025. doi: 10.1073/pnas.2415665122. URL https://doi.org/10.1073/pnas.2 415665122. Itai Gat, Tal Remez, Neta Shaul, Felix Kreuk, Ricky T. Q. Chen, Gabriel Synnaeve, Yossi Adi, and Yaron Lipman. Discrete flow matching. In Advances in Neural Information Processing Systems , volume 37, pages 133345–133385, 2024. doi: 10.52202/07901 7-4239. URL https://proceedings.neurips.cc/paper_files/paper/2024/file/f0d629a734b56a642701bba7bc8bb3ed-Paper-Conferenc e.pdf. Chuqin Geng, Li Zhang, Mark Zhang, Zhaoyue Wang, Haolin Ye, and Xujie Si. Neural proposals, symbolic guarantees: Neuro-symbolic graph generative modeling. arXiv preprint arXiv:2602.16954, 2026. URL https://arxiv.org/abs/2602.16954. Arthur Gretton, Karsten M. Borgwardt, Malte J. Rasch, Bernhard Schölkopf, and Alexander Smola. A kernel two-sample test. 
+
+Journal of Machine Learning Research , 13(25):723–773, 2012. URL https://jmlr.org/papers/v13/gretton12a.html. Ming Han, Ge Sun, Paul F. Nealey, and Juan J. de Pablo. Attention-based functional-group coarse-graining: a deep learning framework for molecular prediction and design. npj Computational Materials , 11:355, 2025. doi: 10.1038/s41524-025-01836-7. URL https://doi.org/10.1038/s41524-025-01836-7. Yiming Huang and Tolga Birdal. HOG-Diff: Higher-order guided diffusion for graph generation. In International Conference on Learning Representations , 2026. URL https://arxiv.org/abs/2502.04308. John J. Irwin and Brian K. Shoichet. ZINC – a free database of commercially available compounds for virtual screening. Journal of Chemical Information and Modeling , 45(1):177–182, 2005. doi: 10.1021/ci049714+. URL https://doi.org/10.1021/ci049714+. Wengong Jin, Regina Barzilay, and Tommi Jaakkola. Junction tree variational autoencoder for molecular graph generation. In 
+
+Proceedings of the 35th International Conference on Machine Learning , volume 80 of Proceedings of Machine Learning Research ,pages 2323–2332, 2018. URL https://proceedings.mlr.press/v80/jin18a.html. Wengong Jin, Regina Barzilay, and Tommi Jaakkola. Hierarchical generation of molecular graphs using structural motifs. In 
+
+Proceedings of the 37th International Conference on Machine Learning , volume 119 of Proceedings of Machine Learning Research , pages 4839–4848, 2020. URL https://proceedings.mlr.press/v119/jin20a.html. Jaehyeong Jo, Seul Lee, and Sung Ju Hwang. Score-based generative modeling of graphs via the system of stochastic differential equations. In Proceedings of the 39th International Conference on Machine Learning , volume 162 of Proceedings of Machine Learning Research , pages 10362–10383, 2022. URL https://proceedings.mlr.press/v162/jo22a.html. Jaehyeong Jo, Dongki Kim, and Sung Ju Hwang. Graph generation with diffusion mixture. In Proceedings of the 41st International Conference on Machine Learning , volume 235 of Proceedings of Machine Learning Research , pages 22371–22405, 2024. URL https://proceedings.mlr.press/v235/jo24b.html. Alexia Jolicoeur-Martineau, Aristide Baratin, Kisoo Kwon, Boris Knyazev, and Yan Zhang. Any-property-conditional molecule generation with self-criticism using spanning trees. Transactions on Machine Learning Research , 2025. URL https://openreview .net/forum?id=QGZd5Bfb1L. Mohamed Amine Ketata, Nicholas Gao, Johanna Sommer, Tom Wollschläger, and Stephan Günnemann. Lift your molecules: Molecular graph generation in latent Euclidean space. In International Conference on Learning Representations , pages 16890– 16921, 2025. URL https://proceedings.iclr.cc/paper_files/paper/2025/file/2af641762dc02035c31a9314b2d090b6-Paper-Confere nce.pdf. Seonghwan Kim, Charles M. Schroeder, and Nicholas E. Jackson. Open macromolecular genome: Generative design of synthetically accessible polymers. ACS Polymers Au , 3(4):318–330, 2023. doi: 10.1021/acspolymersau.3c00003. URL https://doi.org/10.1021/ acspolymersau.3c00003. Mario Krenn, Florian Häse, AkshatKumar Nigam, Pascal Friederich, and Alán Aspuru-Guzik. Self-referencing embedded strings (SELFIES): A 100% robust molecular string representation. Machine Learning: Science and Technology , 1(4):045024, 2020. doi: 10.1088/2632-2153/aba947. URL https://doi.org/10.1088/2632-2153/aba947. 
+
+10 MIRRA: Fast, High-Fidelity Molecular Generation 
+
+Joongwon Lee, Seonghwan Kim, Seokhyun Moon, Hyunwoo Kim, and Woo Youn Kim. FragFM: Hierarchical framework for efficient molecule generation via fragment-level discrete flow matching. In International Conference on Learning Representations ,pages 90722–90777, 2026. URL https://proceedings.iclr.cc/paper_files/paper/2026/hash/92f556b408cfac2943fb228207487967-A bstract-Conference.html. Tzyy-Shyang Lin, Connor W. Coley, Hidenobu Mochigase, Haley K. Beech, Wencong Wang, Zi Wang, Eliot Woods, Stephen L. Craig, Jeremiah A. Johnson, Julia A. Kalow, Klavs F. Jensen, and Bradley D. Olsen. BigSMILES: A structurally-based line notation for describing macromolecules. ACS Central Science , 5(9):1523–1531, 2019. doi: 10.1021/acscentsci.9b00476. URL https://doi.org/10.1021/acscentsci.9b00476. Gang Liu, Jiaxin Xu, Tengfei Luo, and Meng Jiang. Graph diffusion transformers for multi-conditional molecular generation. In 
+
+Advances in Neural Information Processing Systems , volume 37, pages 8065–8092, 2024. doi: 10.52202/079017-0260. URL https://proceedings.neurips.cc/paper_files/paper/2024/file/0f6931a9e339a012a9909306d7c758b4-Paper-Conference.pdf. Sulin Liu, Juno Nam, Andrew Campbell, Hannes Stärk, Yilun Xu, Tommi Jaakkola, and Rafael Gómez-Bombarelli. Think while you generate: Discrete diffusion with planned denoising. In International Conference on Learning Representations , 2025. URL https://proceedings.iclr.cc/paper_files/paper/2025/file/cbf883a744952d4a40591271a58ab9d0-Paper-Conference.pdf. Jingyang Ou, Shen Nie, Kaiwen Xue, Fengqi Zhu, Jiacheng Sun, Zhenguo Li, and Chongxuan Li. Your absorbing discrete diffusion secretly models the conditional distributions of clean data. In International Conference on Learning Representations , 2025. URL https://proceedings.iclr.cc/paper_files/paper/2025/file/a365e37c18fb91af547a2f0012a89e98-Paper-Conference.pdf. Nikolaos Pappas and James Henderson. Deep residual output layers for neural language generation. In Proceedings of the 36th International Conference on Machine Learning , volume 97 of Proceedings of Machine Learning Research , pages 5000–5011, 2019. URL https://proceedings.mlr.press/v97/pappas19a.html. Daniil Polykovskiy, Alexander Zhebrak, Benjamin Sanchez-Lengeling, Sergey Golovanov, Oktai Tatanov, Stanislav Belyaev, Rauf Kurbanov, Aleksey Artamonov, Vladimir Aladinskiy, Mark Veselov, Artur Kadurin, Simon Johansson, Hongming Chen, Sergey Nikolenko, Alán Aspuru-Guzik, and Alex Zhavoronkov. Molecular sets (MOSES): A benchmarking platform for molecular generation models. Frontiers in Pharmacology , 11:565644, 2020. doi: 10.3389/fphar.2020.565644. URL https://doi.org/10.3389/fphar.2020.565644. Kristina Preuer, Philipp Renz, Thomas Unterthiner, Sepp Hochreiter, and Günter Klambauer. Fréchet ChemNet distance: A metric for generative models for molecules in drug discovery. Journal of Chemical Information and Modeling , 58(9):1736–1741, 2018. doi: 10.1021/acs.jcim.8b00234. URL https://doi.org/10.1021/acs.jcim.8b00234. Yiming Qin, Manuel Madeira, Dorina Thanou, and Pascal Frossard. DeFoG: Discrete flow matching for graph generation. In 
+
+Proceedings of the 42nd International Conference on Machine Learning , volume 267 of Proceedings of Machine Learning Research , pages 50269–50326, 2025. URL https://proceedings.mlr.press/v267/qin25d.html. Daan Roos, Oscar Davis, Floor Eijkelboom, Michael Bronstein, Max Welling, ˙ Ismail ˙ Ilkan Ceylan, Luca Ambrogioni, and Jan-Willem van de Meent. Categorical flow maps. In Proceedings of the 43rd International Conference on Machine Learning , 2026. URL https://icml.cc/virtual/2026/poster/61953. Subham Sekhar Sahoo, Marianne Arriola, Yair Schiff, Aaron Gokaslan, Edgar Marroquin, Justin T. Chiu, Alexander Rush, and Volodymyr Kuleshov. Simple and effective masked diffusion language models. In Advances in Neural Information Processing Systems , volume 37, 2024. doi: 10.52202/079017-4135. URL https://proceedings.neurips.cc/paper_files/paper/2024/hash/eb0b1 3cc515724ab8015bc978fdde0ad-Abstract-Conference.html. Hyunjin Seo, Taewon Kim, Sihyun Yu, and Sungsoo Ahn. Learning flexible forward trajectories for masked molecular diffusion. In 
+
+International Conference on Learning Representations , pages 95424–95448, 2026. URL https://proceedings.iclr.cc/paper_files/p aper/2026/file/9a17c1eb808cf012065e9db47b7ca80d-Paper-Conference.pdf. Yuxuan Song, Juntong Shi, Jingjing Gong, Minkai Xu, Stefano Ermon, Hao Zhou, and Wei-Ying Ma. Smooth interpolation for improved discrete graph generative models. In Proceedings of the 42nd International Conference on Machine Learning , volume 267 of Proceedings of Machine Learning Research , pages 56363–56388, 2025. URL https://proceedings.mlr.press/v267/song25f.html. Ge Sun, Gervasio Zaldivar, Yuan Tian, Gustavo Perez Lemus, Juhae Park, Daryna Safarian, Ming Han, and Juan J. de Pablo. HiPoly: A hierarchical polymer-native AI framework for property prediction and generative design. arXiv preprint arXiv:2609.02746, 2026. URL https://arxiv.org/abs/2609.02746. Xu Sun, Bingzhen Wei, Xuancheng Ren, and Shuming Ma. Label embedding network: Learning label representation for soft training of deep networks. arXiv preprint arXiv:1710.10393, 2017. URL https://arxiv.org/abs/1710.10393. Clément Vignac, Igor Krawczuk, Antoine Siraudin, Bohan Wang, Volkan Cevher, and Pascal Frossard. DiGress: Discrete denoising diffusion for graph generation. In International Conference on Learning Representations , 2023. URL https://arxiv.org/abs/2209.1 4734. Gervasio Zaldivar, Yuan Tian, Ge Sun, Chryssa Kappatou, Philipp Eiden, Niklas B. Wulkow, Volker Settels, and Juan J. de Pablo. G2RINS: A generative string-and-graph polymer representation to assist computational materials discovery. ChemRxiv preprint, version 1, 2026. URL https://chemrxiv.org/doi/full/10.26434/chemrxiv.15007504/v1. Shuai Zhang, Weibo Xu, Jiahao Nie, and Kecheng Huang. LGSA: Label geometry structuring and aligning for hierarchical text classification. In Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 28654–28665, 2026. doi: 10.18653/v1/2026.acl-long.1322. URL https://aclanthology.org/2026.acl-long.1322/. Jiachi Zhao, Zehong Wang, Yamei Liao, Chuxu Zhang, and Yanfang Ye. Controllable graph generation with diffusion models via inference-time tree search guidance. In Proceedings of the ACM Web Conference 2026 , pages 1195–1205, 2026. doi: 10.1145/3774904.3792489. URL https://doi.org/10.1145/3774904.3792489. Kaiwen Zheng, Yongxin Chen, Hanzi Mao, Ming-Yu Liu, Jun Zhu, and Qinsheng Zhang. Masked diffusion models are secretly time-agnostic masked models and exploit inaccurate categorical sampling. In International Conference on Learning Representations ,pages 63186–63227, 2025. URL https://arxiv.org/abs/2409.02908. 
+
+11 MIRRA: Fast, High-Fidelity Molecular Generation 
+
+# Appendix contents 
+
+Section and contents Page A Evaluation protocols 13 Evaluation samples, metrics and timing protocols 
+
+B Model, training and exact scheduling 14 Representation, architecture, output algebra, sampler and assembly 
+
+C Benchmark results and comparison protocols 17 Step counts, sampling variability, runtime and comparison protocols 
+
+D Full-vocabulary execution and candidate restriction 20 Matched cost and fidelity, composition shift and oracle calculation 
+
+E Chemical alignment and identity corrections 21 Retrained controls, trajectory/assembly intervention and replications 
+
+F Transfer to MOSES 24 Three-seed matched heads, checkpoint sensitivity and novelty 
+
+G Property-conditioned generation 25 Adapters, guidance, six-target results, controls and useful rates 
+
+H Polymer generation 28 Reserved split, baseline adaptations, metric and internal controls 12 MIRRA: Fast, High-Fidelity Molecular Generation 
+
+# A Evaluation protocols 
+
+A.1 ZINC250k benchmark 
+
+ZINC250k is a molecular-generation benchmark derived from the ZINC database (Irwin and Shoichet, 2005). For results evaluated in this study in Table 1 and Figures 2–4, we score valid molecules among the first 10,000 attempted outputs against all 24,887 reference molecules, with reference stereochemistry retained. Failures are not replaced; duplicate valid molecules remain in FCD and NSPDK. Validity divides valid outputs by attempts, uniqueness divides unique identities by valid outputs, and novelty divides unseen unique identities by unique identities against the common training reference. FCD measures ChemNet feature distributions; NSPDK is the squared maximum mean discrepancy of labeled local graph features, reported as MMD 2 × 10 3 (Preuer et al., 2018; Costa and De Grave, 2010; Jo et al., 2022). MIRRA250 reports per-metric medians over three sampling draws of one checkpoint. FCD is 0.3665 (range 0.3514– 0.3745); NSPDK is 0.1537 (0.1530–0.1723). MIRRA25 and FragFM500 use single draws with FCD 0.3766 and 0.5281, giving reductions of 28.7% and 30.6% for MIRRA25 and MIRRA250, respectively. A fixed 10,000-molecule training draw defines the training-data floor: FCD 0.3361 and NSPDK 0.1096. ZINC informed architecture and correction-rank selection; MOSES and the reserved polymer reference assess the fixed design. 
+
+A.2 Evaluation protocols for controls and applications Independently trained predictors (Table 2). The matched heads use final exponential moving average (EMA) weights, 250 steps, assembly using training-derived attachment preferences (prior assembly), and the first 25,000 valid outputs from 25,600 attempts, with reference stereochemistry removed (Appendix E). Appendix C.4 reports an additional comparison using the 25,000-valid-output protocol. 
+
+Property targeting (Figure 5). Three property-adaptation runs share one frozen benchmark backbone; each baseline regime is one trained model. Each evaluation setting uses 4,096 attempts. Target-window FCD scores the first 1,000 valid outputs, including misses and duplicates, against 1,000 held-out molecules inside the requested window. Distinct novel hits count each valid, in-window, non-training identity once, ignoring stereochemistry. Each adaptation’s yield is divided by its separately measured time per attempt before rates are averaged. The evaluated property and target settings, two-seed shuffled-label controls and timing protocol are in Appendix G. 
+
+Polymers (Table 3). The reference contains 9,949 reserved periodic identities; each setting uses two 4,096-attempt draws of one checkpoint. Structural distances condition on scorable outputs; validity retains all attempts. MIRRA receives a known linear chain topology, while the baselines generate complete repeat-unit encodings. Appendix H specifies the split, periodic canonicalization, metric and separate validation controls. 
+
+A.3 Timing scopes and uncertainty 
+
+Between-generator timings in Figure 2 use batch 256 and four 4,096-attempt repetitions per primary comparison; the FragFM 250- and 1000-step settings use three repetitions. Figure 3 instead uses batch 128 and three 1,024-attempt repetitions per arm. Both include initialization, generation, transfer, assembly and strict acceptance, excluding loading, warmup, writing and distribution scoring. Thus 23.32 ms for MIRRA250 in the first study and 43.74 ms in the second refer to different batching and execution conditions. Conditional timing uses batch 128 and three 256-attempt repetitions per cell, including generation, decoding and the common property, identity and hit checks. Methods within each matched study use the same physical GPU and balanced execution order, but retain their software versions (Appendix B.2). Sampling variability is measured over draws from fixed checkpoints; training variability is measured over independently trained models. 13 MIRRA: Fast, High-Fidelity Molecular Generation 
+
+# B Model, training and exact scheduling 
+
+B.1 Representation and architecture 
+
+A molecule is represented by fragment identities X = ( x1, . . . , x n) and a symmetric binary adjacency matrix E.BRICS-derived decompositions expose typed attachment sites (Degen et al., 2008); identities specify internal atoms and bonds, while assembly resolves inter-fragment connections. The benchmark vocabulary has 37,821 entries. Matched output-head controls and independent replication models use a separate 38,951-entry vocabulary. Each identity has a fixed structural and attachment vector sv combining normalized Morgan fingerprints and BRICS attachment-type counts. The graph transformer reads sxi , noisy edges, time and graph structural features. It has 12 layers, eight attention heads, and node/edge/global widths 384/96/64. A two-layer MLP g maps its contextual node state zi into the chemical-feature space, giving vocabulary scores 
+
+ℓi(v) = a s ⊤ 
+
+> v
+
+g(zi) + u⊤ 
+
+> v
+
+Dz i + bv , a = exp( τ ), pi = softmax ℓi. (6) The fixed offset bv is log training frequency floored at 10 −12 . The correction U Dz i has rank at most 256; U starts at zero. Both branches score every vocabulary entry. In the 38,951-entry vocabulary, 920 entries share a feature row with another identity: categorical labels are retained in the state, but their feature encoding is not injective. 
+
+B.2 Training and compute environment 
+
+The linear independent-coupling path is 
+
+qt(xt | x1) = t δ x1 (xt) + (1 − t)p0(xt). (7) Binary edges undergo analogous corruption, sampled on the upper triangle and mirrored. The objective is mean node cross-entropy plus five times mean edge cross-entropy, excluding padding and diagonal edges. The source identity distribution is the empirical fragment-frequency distribution in the training subset. The binary edge prior uses empirical frequencies over undirected node pairs, excluding padding and diagonal entries. Graph sizes are drawn from the empirical distribution of training-graph node counts. These source distributions remain fixed within each comparison. The experiments use three model groups: benchmark models for the ZINC comparisons and the property-adaptation backbone; matched output-head controls for chemical alignment (Appendix E); and independent replication models for the candidate-restriction and identity-correction studies (Appendices D and E.2). 
+
+Matched output-head controls. The ZINC controls use 213,340 training examples, 11,228 internal-validation examples, and an 8,192-example checkpoint-selection subset. They train for 150 epochs at batch 128 (249,900 updates), using AdamW with learning rate 2 × 10 −4, one-epoch warmup, weight decay 10 −12 and EMA decay 0.9995. Appendix E distinguishes validation selection from the common-final comparison. 
+
+Benchmark models. The benchmark comparison uses the same 208,302 training and 10,926 validation examples for MIRRA and FragFM. Novelty uses 207,114 unique canonical training identities. MIRRA has 27.2M parameters and trains for 150 epochs (244,050 updates); FragFM uses 100,000 autoencoder and 100,000 flow updates, with 21.7M flow parameters and a frozen 6.6M-parameter autoencoder. Data and evaluation are controlled, while architectures, tokenizations and training recipes differ. 
+
+Independent replication models. Three models use separate 213,340/11,228 internal splits, ten-epoch warmup, epoch-wise cosine decay and training times t = u0.7 for uniform u. They retain final-epoch EMA. Their initial log-frequency offset uses the 224,568-example standard training corpus; corruption priors use each training subset. 
+
+Compute environment. Training and sampling use RTX6000 and H100 GPUs. MIRRA’s stack is PyTorch 2.10.0, CUDA 12.8 and RDKit 2025.03.3. Matched unconditional timing uses one RTX6000 per comparison, four CPU threads, synchronized boundaries and balanced order. Cross-model throughput includes software differences. Peak GPU memory means PyTorch allocated tensor memory after warmup, including persistent model tensors, excluding CPU memory and allocations outside that allocator. 
+
+B.3 What chemical sharing and identity correction express 
+
+Write ℓ = aSh + U c + b, with h = g(z), c = Dz and d = p − ey for target y. Cross-entropy gives 
+
+∇hL = aS ⊤d, ∇U L = dc ⊤, ∇D L = ( U ⊤d)z⊤. (8) 14 MIRRA: Fast, High-Fidelity Molecular Generation For a feature-coordinate step h′ = h − η∇hL holding other factors fixed, 
+
+ℓ′ 
+
+> v
+
+− ℓv = ηa 2 s⊤ 
+
+> v
+
+sy − X
+
+> w
+
+pws⊤ 
+
+> v
+
+sw
+
+!
+
+. (9) Thus SS ⊤ couples label errors through chemical similarity. Permuting its feature rows preserves the spectrum but changes which identities share those directions. Trained alignment controls test the assignment. If sv = sw, the structural head alone fixes their log-odds at bv − bw. The correction adds (uv − uw)⊤Dz , allowing context-dependent odds. More generally, if P projects onto col([ 1, S ]) , then (I − P )U Dz contains score directions the structural branch cannot express, even allowing a common logit shift. Appendix E.3 tests their usefulness. A label with no positive optimizer examples still receives residual gradient pv c through softmax competition. The head for the 38,951-entry vocabulary has 10.4M trainable parameters versus 15.1M for a hypothetical 384 → 384 →
+
+38 ,951 dense MLP, but requires 2.05 times as many matrix multiply–accumulates per scored node. Parameter sharing alone does not establish a runtime advantage; the matched execution experiment does. 
+
+B.4 Sampler and kernel preservation 
+
+Sampling initializes graph sizes, identities and edges from fixed source laws. On tk = k/T , k = 0 , . . . , T − 1,independently draw node and upper-triangular edge gates with probability αk = 1 /(T − k). For each graph with any active coordinate, evaluate the backbone on its incoming state. Evaluate full-vocabulary scores only for active nodes; sample their identities and the active binary edges, then commit all updates simultaneously and mirror the edges. An active node can resample its current identity. Graphs without active coordinates require no forward pass. This realizes exactly 
+
+Ki,k (v | X, E ) = (1 − αk)1[v = xi] + αkpθ,i (v | X, E, t k) (10) in real arithmetic: a zero gate retains the identity regardless of its unused prediction; a one gate draws from the complete posterior. Gate independence permits the computation order to change. Graphs can also be batched at their next active times because inference has no interaction between batch members. For n nodes and m = n(n − 1) /2 undirected edges, the expected numbers of node projections and graph evaluations are respectively 
+
+nH T = n
+
+> T
+
+X
+
+> j=1
+
+1
+
+j , 
+
+> T−1
+
+X
+
+> k=0
+
+1 − (1 − αk)n+m . (11) The first replaces nT dense projections. The backbone and edge head remain dense within active graphs; batching and assembly still cost time. Rebatching changes floating-point arithmetic, so kernel equality does not imply bitwise-identical trajectories. Floating-point differences occasionally change categorical draws near CDF boundaries. Their quality is measured separately in Appendix D. 
+
+B.5 Measured refresh counts 
+
+At both 250 and 25 steps, measured mean refresh counts per node agree with the harmonic prediction HT (Figure 6). 15 MIRRA: Fast, High-Fidelity Molecular Generation 0 50 100 150 200 250             
+
+> sampling step k
+> 10 100 1,000
+> schedule n/ ( T−k+ 1)
+> measured gates
+> 0510 15 20 25
+> sampling step k
+> 100 1,000
+
+a 250 sampling steps 
+
+> 1,024 attempts · 5,433 block nodes
+
+b 25 sampling steps 
+
+> 128 attempts · 681 block nodes
+
+c Scorings per node              
+
+> Steps T250 25 Dense scoring 250 25 Schedule HT6.101 3.816
+> Measured 6.115 3.812
+> Scheduling removes 97.6% of full-vocabulary scorings at
+> T= 250 , and 84.8% at T= 25 .
+> Node refreshes per step
+
+Figure 6: Refresh scheduling reduces expected full-vocabulary evaluations per node from T to HT . (a) At T = 250 , node refreshes per step against the schedule’s expectation n/ (T − k + 1) for n block nodes and one-based step index k = 1 , . . . , T , on a logarithmic axis. Early steps refresh few positions and the final step refreshes every one. (b) The same at T = 25 . (c) Full-vocabulary evaluations per node. Dense scoring evaluates the vocabulary at every step; the schedule predicts the harmonic number HT ; the measured counts are total refreshes divided by the number of block nodes. Sampling uses 1,024 attempts at T = 250 and 128 at 
+
+T = 25 from the benchmark checkpoint. 
+
+B.6 Assembly decoder 
+
+At k = T − 1, every node refreshes. The complete node and edge probabilities evaluated on the final incoming graph are retained for assembly. The decoder receives these probabilities, the sampled terminal identities and the graph size. Terminal edge probabilities supply connection scores for the tree search. 
+
+Attachment-count feasibility. For n > 1, the current identities must expose at least one attachment site per block and 2( n − 1) sites in total (Equation 4). When these requirements are unmet, the decoder attempts at most n identity adjustments. Positions are initially ordered by increasing maximum node probability. Blocks with no attachment sites are considered first; otherwise, the decoder seeks a position whose replacement can balance the total count. It selects the highest-probability identity in the chosen attachment-count group and moves the edited position to the end of the order. The desired count is restricted to 1, . . . , n − 1. If the count requirements remain unmet, the attempt fails before tree search. A single-block output requires no attachment sites and a valid molecule. 
+
+Tree search and site pairing. Connection scores are the terminal edge log-odds, wij = log pEij (1) − log pEij (0) , with probabilities floored at 10 −9 for this calculation. Candidate trees have degrees equal to the attachment counts. A greedy construction first considers edges in decreasing score order, subject to degree limits and cycle avoidance. When this produces a spanning tree, it is placed first in the candidate list. Additional degree-exact trees are obtained from 96 randomized Prüfer-sequence draws, deduplicated and ordered by summed edge score. They are added to the list up to a total of 48 candidates. Each tree is checked in order, stopping at the first successful assembly. For each candidate tree, the decoder enumerates at most 1,000 compatible attachment pairings. The primary policy scores these pairings using training-derived attachment preferences and tests the highest-scoring pairing for valid molecular assembly. The canonical policy instead considers the valid molecules produced by the enumerated pairings and selects the one with the lexicographically smallest canonical SMILES. This policy also defines the alternate assembly arm used in the controls. 
+
+Identity repair and failed attempts. If the attachment counts are feasible but tree assembly is unsuccessful, the decoder tries single-identity replacements at up to three positions with the lowest maximum node probabilities. At each position, it considers up to eight highest-probability identities with the same attachment count, skipping the current identity. Each candidate is tried separately and the first successful replacement is accepted. These repair attempts use canonical assembly, including when the initial search used the attachment prior. Unsuccessful attempts remain failures and are not replaced. Appendix E.2 separates identity correction during the trajectory from its use in terminal assembly scores. 16 MIRRA: Fast, High-Fidelity Molecular Generation 
+
+# C Benchmark results and comparison protocols 
+
+C.1 Operating points and sampling variability 
+
+Table 4 reports the operating points in Figure 2. MIRRA has lower FCD and NSPDK at both shared step counts, 250 and 1000; the separate matched timings establish its practical advantage at 25 and 250 steps. FragFM retains higher novelty. All rows use the 10,000-attempt protocol of Appendix A.                                                           
+
+> Table 4: ZINC250k results across sampling step counts. Both generators use the same training data. Bold marks the best value in each column, using unrounded values. Setting Valid nFCD ↓NSPDK ↓Valid Unique Novel ms/attempt
+> (×10 3)(%) (%) (%) ↓
+> Common training data, one evaluation protocol
+> MIRRA, 25 steps 9,927 0.3766 0.1795 99.27 99.98 97.69 15.7
+> MIRRA, 250 steps 9,980–9,985 0.3665 0.1537 99.81 99.97 97.61 23.3 MIRRA, 1000 steps 9,988 0.3824 0.1613 99.88 99.97 97.61 –FragFM, 250 steps 9,878 0.5296 0.3782 98.78 99.97 99.22 81.5 FragFM, 500 steps 9,914 0.5281 0.3824 99.14 99.98 99.23 132.4 FragFM, 1000 steps 9,890 0.5167 0.4010 98.90 99.97 99.27 270.6 Every row scores the valid subset of the first 10,000 attempts against all 24,887 references, with failures not replaced. MIRRA at 250 steps is a per-metric median of three sampling draws; all other rows are single draws. Times are medians of four 4,096-attempt repetitions, except the FragFM 250- and 1000-step settings (three repetitions); their scope and compute setup are defined in Appendix A. Quality and timing use separate populations. FragFM500 timing is from the 250-versus-500 study; the separately matched 25-versus-500 study appears in Table 5. At the shared 250- and 1000-step settings MIRRA has lower FCD and NSPDK; no matched 1000-step MIRRA timing is reported. FragFM has higher novelty at all reported settings.
+
+Eight sampling draws of the benchmark checkpoint at 250 steps give mean FCD 0.3659 and sample SD 0.0068 (range 0.3514–0.3745), compared with FragFM500’s single-draw 0.5281. Mean NSPDK is 0.1610 ± 0.0073 ; mean validity, uniqueness and novelty are 99.82%, 99.94% and 97.54%. The first three draws supply the per-metric medians. The spread describes sampling variability from one checkpoint. The checkpoint’s step sweep is not monotone: FCD improves from 25 to 250 steps, then rises slightly at 1000. 
+
+C.2 Matched generation time and memory 
+
+Table 5 reports matched generation times across sampling step counts. Timers include all attempts and one assembly policy, with the scope in Appendix A. The matched 25-versus-500 experiment gives median times 15.69 and 134.53 ms, a factor of 8.58. The separate 250-versus-500 experiment gives 23.32 and 132.43 ms, a factor of 5.68. Quality populations are separate from timing runs. In the 250-versus-500 study, median peak PyTorch allocation is 1.47 versus 2.73 GiB, 46.0% lower for MIRRA. This counter includes persistent model tensors but excludes loading and warmup peaks, CPU memory and allocations outside PyTorch. 
+
+C.3 Metric conventions 
+
+FCD is sensitive to population size and molecular representation. In a separate preprocessing sensitivity analysis, a stereo-stripped training population against the reference scores 0.3361, compared with 0.1881 for a stereo-retaining population. Passing molecules through a simplified element-only graph reconstruction raises the training score to 1.1183, close to the published 1.13 anchor; the same transformation gives 1.1118–1.1332 for the independent replication models. This transformation changes approximately one third of training molecules, illustrating the sensitivity of FCD to molecular representation. NSPDK’s element/bond labels give a much more stable training anchor, 0.1096 × 10 −3,near the published 0.10 × 10 −3.Our NSPDK implementation follows GDSS: atom-symbol and integer bond-order labels without kekulization; EDeN complexity four, discrete features, 16-bit hashing, inner/global normalization and a fixed Python hash seed. The biased linear-kernel MMD 2, including diagonal terms, is the squared distance between mean feature vectors. These graph features complement the ChemNet features used by FCD. 17 MIRRA: Fast, High-Fidelity Molecular Generation 
+
+Table 5: Matched generation times. Individual timing repetitions and their medians. Arm Attempts Rep 1 Rep 2 Rep 3 Rep 4 Median per rep (ms) (ms) (ms) (ms) (ms) 
+
+Matched 25 vs. 500 steps 
+
+MIRRA, 25 steps 4,096 26.31 15.77 15.61 15.04 15.69 
+
+FragFM, 500 steps 4,096 267.43 144.19 122.19 124.86 134.53 
+
+Matched 250 vs. 500 steps 
+
+MIRRA, 250 steps 4,096 23.40 22.90 23.24 24.48 23.32 
+
+FragFM, 500 steps 4,096 132.20 131.52 132.67 136.39 132.43 
+
+FragFM, 250 steps 
+
+FragFM, 250 steps 4,096 81.54 79.19 99.77 – 81.54 
+
+FragFM, 1000 steps 
+
+FragFM, 1000 steps 4,096 323.44 264.70 270.58 – 270.58 
+
+Milliseconds per attempted molecule, covering generation, transfer, single-policy assembly and strict acceptance after warmup, and excluding loading, warmup, output writing and distribution scoring. Within each study both arms share the same GPU and batch size 256, in balanced order. MIRRA and FragFM retain different software versions. 
+
+C.4 25,000-valid-output and released-checkpoint comparisons 
+
+The comparison using the benchmark models uses 25,600 attempts, FCD on the first 25,000 valid outputs and the 24,887-entry stereo-stripped reference. MIRRA250 and locally trained FragFM500 score 0.1584 and 0.3744, a 57.7% reduction; NSPDK is 0.1131 and 0.3272 ( ×10 3). Validity favors MIRRA; uniqueness and novelty favor FragFM. All 16 comparisons across assembly rules, step counts and valid-output sample sizes favor MIRRA on both distances. For charge-projected FCD, the same transformation is applied to generated and reference molecules: negatively charged atoms are converted to their protonated neutral form, while positive charges are retained. This gives FCD 0.1585 versus 0.2875, retaining a 44.9% advantage. The 25-step setting gives FCD 0.1792 with prior assembly. The authors’ released FragFM checkpoint is a separate comparator trained on a split containing 93.9% of the evaluation-reference rows. Table 6 reports its tested operating points and the MIRRA benchmark checkpoint. Each time is the median of four 1,024-attempt repetitions at batch 256 on the same GPU, in rotated order after 256 warmup attempts. Both methods include initialization, sampling, transfer and decoding; loading, writing and scoring are excluded. Their decoders and software versions remain different. 
+
+Table 6: Fidelity and measured cost against the released FragFM checkpoint. Both measured MIRRA settings reach lower FCD and lower median generation time than the three tested released settings. Model Steps Median (s) FCD ↓ Projected FCD ↓
+
+MIRRA 25 17.09 0.1792 0.1814 MIRRA 250 27.83 0.1584 0.1585 Released FragFM 100 44.74 0.4220 0.3071 Released FragFM 250 78.66 0.3261 0.2228 Released FragFM 500 136.54 0.3356 0.2255 Seconds per 1,024 raw attempts including assembly, as the median of four repetitions; the two FCD columns retain the molecular scoring conventions before and after the charge projection defined above. Each FCD value is computed from one generated sample; times are medians of four separate timing runs. The released and benchmark checkpoints use different training splits. 
+
+C.5 Consecutive molecular samples 
+
+Figure 7 compares consecutive generated molecules with training molecules and summarizes their structural descriptors. 18 MIRRA: Fast, High-Fidelity Molecular Generation a MIRRA, 250 sampling steps b ZINC250k training molecules      
+
+> mean heavy atoms
+> 23.7 23.6 mean rings
+> 2.75 2.71 mean MW
+> 340.9 336.8 mean logP
+> 2.68 2.31 mean QED
+> 0.704 0.716
+> 12 drawn uniformly from training molecules
+> Means over 48 generated and 48 training molecules; MIRRA (purple), ZINC250k (black).
+
+Figure 7: Consecutive MIRRA outputs beside training molecules. (a) The first 12 outputs of one 250-step run of the benchmark checkpoint, shown in generation order without filtering, deduplication or manual selection. All 12 are chemically valid and connected. (b) 12 molecules drawn uniformly at random, without replacement, from the training molecules. The strip beneath reports descriptor means over the first 48 outputs of the same run and 48 uniformly drawn training molecules. 
+
+19 MIRRA: Fast, High-Fidelity Molecular Generation 
+
+# D Full-vocabulary execution and candidate restriction 
+
+D.1 Dense, scheduled and restricted scoring 
+
+This comparison uses the 37,821-entry benchmark checkpoint, 250 steps, and the 10,000-attempt quality protocol. The three arms share weights, source laws and assembly: dense full-vocabulary evaluation; scheduled full-vocabulary evaluation; and scheduled candidate-only evaluation. The last draws 1,536 distinct identities without replacement from the training prior per scheduled round and adds current graph identities, so actual set sizes can exceed 1,536. It gathers and projects only candidate columns at nonterminal updates and renormalizes over that set. It uses neither retraining nor a proposal correction. Its sampled terminal state follows the restricted transition, while assembly receives complete terminal posteriors in every arm. Three quality draws per arm give the fidelity ranges in Table 7. Three separate 1,024-attempt timing runs rotate arm order on the same GPU at batch 128 after warmup, including candidate construction, transfer and assembly. Scheduling reduces median time from 131.56 to 43.74 ms per attempt at essentially unchanged FCD. Candidate scoring uses less peak memory (0.556 versus 0.853 GiB), but takes 46.18 ms and raises FCD to 0.9469. Its higher novelty accompanies a shifted distribution.                                   
+
+> Table 7: Exact refresh scheduling preserves full-support quality; candidate restriction changes it. One benchmark checkpoint at 250 steps. Setting FCD ↓NSPDK ↓Valid (%) Unique (%) Novel (%) Dense, full vocabulary 0.3680 0.1543 99.81 99.97 97.62 Refresh, full vocabulary 0.3665 0.1537 99.81 99.97 97.61 Refresh, sampled subset 0.9469 0.8780 99.76 99.67 98.14
+> End-to-end timing and peak allocated memory
+> Setting ms/attempt, median [range] Peak allocation (GiB) Dense, full vocabulary 131.56 [125.52, 191.77] 1.364 Refresh, full vocabulary 43.74 [42.64, 52.43] 0.853 Refresh, sampled subset 46.18 [44.23, 48.70] 0.556 Quality entries are per-metric medians of three 10,000-attempt draws against 24,887 references; NSPDK is MMD 2×10 3. FCD ranges are 0.3510–0.3741, 0.3514–0.3745 and 0.9057–0.9690 in row order. Timing uses three separate 1,024-attempt repetitions at batch 128, including assembly and acceptance; peak allocation is the maximum across repetitions. These timings have a different batch and execution scope from the between-generator study.
+
+D.2 Composition shifts occur before assembly 
+
+A separate replication on three independent replication models with 38,951 entries uses one 25,000-valid population per arm and model, with full terminal assembly scores. Restriction raises mean FCD from 0.1500 to 0.6925, lowers mean heavy-atom count from 23.07 to 21.77 and molecular weight from 331.1 to 311.7, while raw validity remains above 99.7%. Ten of eleven descriptor distances worsen; logP is the exception. Paired comparisons use 512 attempts per arm and model. Among pairs for which both outputs are valid, the restricted-minus-full heavy-atom difference averages −1.145 before assembly and −1.103 in the final molecule. Attachment-count adjustment and assembly contribute −0.016 and +0 .058 , respectively. Across all attempts, the terminal difference is 
+
+−1.173 . The size shift therefore precedes assembly. At a fixed incoming state and realized candidate set S, write m = p(S) and pS = p(· | S). Then 
+
+DTV (p, p S ) = 1 − m, DTV (K, K S ) = αk(1 − m). (12) For a fragment property h, with posterior means μS and μSc ,
+
+EpS h − Eph = (1 − m)( μS − μSc ). (13) Across 4,114 recorded node refreshes per model, mean omitted posterior mass is 4.75–5.16%, and expected heavy-atom count shifts by −0.195 to −0.215 per refresh. These measurements share graphs, candidate sets and trajectories. 
+
+D.3 An oracle example: smaller steps do not remove proposal bias 
+
+Consider one coordinate with V ≥ 2 identities, strictly positive source and target both p, and the linear conditional path qt(x | y) = (1 − t)p(x) + t1[x = y]. Its marginal is p for every t, and its exact Bayes endpoint posterior is 20 MIRRA: Fast, High-Fidelity Molecular Generation 
+
+p1|t(v | x) = (1 − t)p(v) + t1[v = x]. At each refresh, independently draw one candidate from a fixed strictly positive distribution ν, add the current identity, and renormalize this posterior over the resulting set. 
+
+Proposition. All candidate-averaged transition kernels share the invariant distribution 
+
+πi = piνi/ X
+
+> j
+
+pj νj .
+
+Their time-one endpoint equals p on every uniform grid, and in the continuous-time limit, if and only if ν is uniform. Full-support refreshes preserve p on every grid. 
+
+Proof. A transition from i to j̸ = i requires drawing candidate j. The retained posterior mass is dij (t) = t + (1 −
+
+t)( pi + pj ), giving the averaged kernel Kk = I + Gtk /T , where 
+
+Gt(i, j ) = νj pj
+
+dij (t) (i̸ = j), Gt(i, i ) = − X 
+
+> j̸=i
+
+Gt(i, j ). (14) Symmetry of dij gives detailed balance: πiGt(i, j ) = πj Gt(j, i ) for every t. Thus πK k = π. All entries of Kk are positive, including the diagonal, since drawing the current identity forces a stay. The strict log-sum inequality gives 
+
+DKL (μK k∥π) < D KL (μ∥π) whenever μ̸ = π. If ν is nonuniform, p̸ = π, so a trajectory starting at p cannot return to 
+
+p after any positive number of steps. If ν is uniform, π = p and every kernel preserves it. The rates in Equation 14 are bounded and smooth on [0 , 1] , so grid refinement converges to ˙μ = μG t. With ri = μi/π i,its relative entropy satisfies 
+
+ddt DKL (μ∥π) = − 12
+
+X
+
+> i̸=j
+
+πiGt(i, j )( ri − rj )(log ri − log rj ), (15) which is strictly negative away from π. Hence the time-one limit also differs from p for nonuniform ν. Finally, 
+
+p p 1|t = p implies preservation under full-support refreshes. This proves the proposition. For a prior proposal ν = p, the common invariant is proportional to p2 
+
+> i
+
+; it is generally not the finite-time endpoint. 
+
+Two-identity closed form. Set p = ν = ( a, 1 − a). If the candidate equals the current identity no change is possible; otherwise both identities are available. Since αk(1 − tk) = 1 /T , averaging over the candidate gives the same kernel at every step: 
+
+KS =
+
+1 − (1 − a)2/T (1 − a)2/T a2/T 1 − a2/T 
+
+
+
+. (16) Writing c = a2 + (1 − a)2 and π = a2/c , the probability of the first identity after all T steps is 
+
+Pr( XT = 0) = π + ( a − π)(1 − c/T )T −→ π + ( a − π)e−c. (17) For a = 0 .8, the restricted endpoint tends to (0 .870 , 0.130) , a total variation of 0.070 from the target (0 .8, 0.2) . Uniform candidate proposals preserve the target, and reversing the proposal weights reverses the direction of the mass shift. Restriction therefore need not bias every proposal, but time refinement alone does not generally remove its bias. 
+
+# E Chemical alignment and identity corrections 
+
+E.1 Retrained output-head controls 
+
+Table 2 fixes input features, backbone, full categorical support, training budget and assembly, while changing the output predictor. All models use the 38,951-entry vocabulary and matched recipe in Appendix B.2; FCD and NSPDK use the first 25,000 valid outputs and the stereo-stripped reference. These experiments test learning, separately from the fixed-weight interventions below. The broad shuffle replaces output row sv by sπ(v) within positive- and zero-prior strata. It preserves the feature multiset, residual correction, fixed priors and all 27.5M parameters, while breaking feature-to-label and feature-to-frequency associations. Correct alignment lowers primary FCD by 10.63–15.74% across three independently trained pairs (Table 8). The narrower shuffle preserves exact attachment signatures and log2 frequency bins, changing fingerprints for identities accounting for 37.32% of training occurrences; exact within-bin frequencies are not matched. Its FCD 0.1655 versus 0.1561 aligned gives a 5.72% reduction at 250 steps, with an 8.25% reduction at 1000. Both distances favor alignment in all eight comparisons across assembly rules, step counts and valid-output sample sizes. 21 MIRRA: Fast, High-Fidelity Molecular Generation                                
+
+> Table 8: Chemical alignment improves fidelity in three independently trained pairs. Primary 250-step, prior-assembly comparison. Training pair Aligned FCD Shuffled FCD Reduction (%) A0.1561 0.1757 11.19 B0.1543 0.1727 10.63 C0.1551 0.1841 15.74 Each pair uses one generation draw per arm. Mean NSPDK ×10 3is 0.1117 ±0.0073 aligned versus 0.1368 ±0.0156 shuffled at 250 steps, and 0.1121 ±0.0079 versus 0.1278 ±0.0110 at 1000 (sample SD over models). Both distances favor alignment in all three primary pairs. Execution is matched within each pair; pooled spread also includes hardware and execution differences across pairs.
+
+Conventional head and checkpoint selection. A 384 → 264 → 38 ,951 ReLU MLP with biases and the same fixed log-frequency offset matches the parameter count within 0.02%. Structural inputs, backbone initialization, training streams and budget are held fixed; output architecture, initialization and score rank change. Minimum EMA validation loss selects update 40,000 for this head and 249,900 for MIRRA. The selected FCDs are 0.4001 versus 0.1561; at the common final update they are 0.1793 versus 0.1561. At 1000 steps, final FCD is 0.1695 versus 0.1500. The main text uses the common-final comparison. An additional weight-decay-0.1 control improves the conventional selected FCD to 0.2625, but worsens its final FCD to 0.2077. MIRRA stays ahead under both policies. The conventional head retains slightly higher novelty (98.05% versus 97.81% at final EMA, 250 steps). 
+
+Reference overlap and representation checks. Removing 285 exact training identities from the matched-control reference leaves 24,602 molecules and preserves every comparison’s direction: primary FCD is 0.1587 aligned versus 0.1776 shuffled. Separately, four fragmentation schemes on the same training data cross implicit/explicit-hydrogen cut selection with all/single-bond BRICS cuts. Their 250-step prior-assembly FCDs span 0.1537–0.1640. The explicit-H, single-bond variant reproduces FragFM’s mean training fragment count (6.12) and scores 0.1640 versus 0.3744 for FragFM500. Vocabulary, capacity and graph size change together; this checks robustness to representation choices rather than isolating fragment count. 
+
+E.2 Where identity corrections affect generation 
+
+The benchmark intervention independently enables the learned identity correction during the generation trajectory and at final assembly. Within a trajectory, the two assembly conditions share terminal states, edge posteriors and paired assembly randomness; only terminal node scores change. Three 10,000-attempt draws per condition use the benchmark reference and are summarized in Table 9. Holding assembly correction on, enabling trajectory correction reduces FCD by 95.1–95.4% across the three primary draws. Assembly-only correction raises validity by about eight percentage points without recovering FCD. With full trajectory correction, assembly effects on FCD are small and mixed. Repeating the experiment on a second GPU type with additional sampling draws retains the dominant trajectory effect. These comparisons measure reliance of fixed coadapted weights; the independently trained heads above address the separate learning question. A separate replication uses three independent replication models, 4,096 attempts per cell and the first 3,000 valid molecules against an 11,228-molecule internal reference. With full assembly scoring fixed, enabling trajectory corrections reduces FCD by 92.1–92.5% across the three models. Using the first 1,000 valid outputs and the alternate assembly rule, every trajectory comparison also favors correction. 
+
+E.3 What the correction adds to the output probabilities 
+
+At a fixed contextual state, write the base logit as b(v) = as ⊤ 
+
+> v
+
+g(z) + bv and its learned correction as r(v) = u⊤ 
+
+> v
+
+Dz .Let B = softmax( b) and F = softmax( b + r). The attachment groups partition the vocabulary by the multiset of typed attachment sites; the 38,951-entry ZINC vocabulary has 452 such groups. These groups need not have identical structural feature vectors. Define 
+
+Ag = log X
+
+> v:G(v)= g
+
+eb(v), Cg = log X
+
+> v:G(v)= g
+
+eb(v)+ r(v), ∆g = Cg − Ag . (18) Then ∆g = log Ev∼B(·| g)er(v) and 
+
+F (g) = B(g)e∆g
+
+P 
+
+> h
+
+B(h)e∆h
+
+, F (v | g) = B(v | g)er(v)−∆g . (19) 22 MIRRA: Fast, High-Fidelity Molecular Generation                                                     
+
+> Table 9: Corrections during generation dominate the fidelity improvement on both devices. The assembly effect is smaller and metric-dependent. Correction active at FCD, median [range] ↓NSPDK ↓Valid Unique Novel
+> (×10 3)(%) (%) (%)
+> RTX6000
+> Neither 7.4210 [7.4134, 7.4297] 16.8574 80.03 96.87 98.59 Assembly only 7.6384 [7.5242, 7.6598] 13.9544 88.10 89.52 98.54 Generation only 0.3675 [0.3538, 0.3726] 0.1600 99.68 99.97 97.65 Generation + assembly 0.3665 [0.3514, 0.3745] 0.1537 99.81 99.97 97.61
+> H100
+> Neither 7.4976 [7.4637, 7.6855] 17.2978 80.51 96.56 98.64 Assembly only 7.4563 [7.4522, 7.7772] 13.5305 88.03 89.59 98.55 Generation only 0.3696 [0.3659, 0.3726] 0.1592 99.70 99.95 97.57 Generation + assembly 0.3734 [0.3713, 0.3735] 0.1614 99.81 99.95 97.48 Each device uses three 10,000-attempt draws per condition from the same checkpoint at 250 steps. All other quality entries are per-metric medians; FCD uses the common 24,887-entry reference. Assembly-only versus neither, and both versus generation-only, need not have the same sign for every metric.
+
+These identities follow by summing the exponentiated logits within each group. A single identity correction therefore induces both a group reweighting and a conditional identity reweighting. The group-only intervention uses logits 
+
+b(v) + ∆ G(v); identity-only uses b(v) + r(v) − ∆G(v). Their normalized probabilities are exactly F (G(v)) B(v | G(v)) 
+
+and B(G(v)) F (v | G(v)) , respectively, in real arithmetic. A correction constant within each group changes only group allocation. A correction with every ∆g = 0 changes only conditional identity probabilities. In general, both change. Group log-sums are computed in float64 and returned in model precision; the four probability factors match Equation 19 to numerical precision. Table 10 measures the generation effects of these interventions. The group-only and identity-only posteriors replace the predictor throughout inference, including generation and terminal assembly. Table 10 compares all four arms using the first 3,000 valid outputs from each condition’s 4,096 attempts, the common evaluation size supported by all four conditions, without replenishment. Group correction restores most validity, while both factors are needed for the best FCD in this model.                   
+
+> Table 10: Both within-group and between-group corrections contribute. Group and identity corrections are varied during both generation and assembly in a fixed trained model. Correction Valid / attempted Validity (%) FCD ↓
+> Neither 3,313 / 4,096 80.88 8.2378 Group only 4,047 / 4,096 98.80 4.0742 Identity only 3,266 / 4,096 79.74 4.1570 Both 4,090 / 4,096 99.85 0.6264 All four arms score the first 3,000 valid outputs from 4,096 attempts against the same 11,228-molecule internal reference. This common evaluation size is supported by all four conditions, without replenishment. The model uses the 38,951-entry vocabulary and the replication-model training protocol in Appendix B.2.
+
+Predictive information beyond chemical features. We test whether identity corrections provide predictive informa-tion outside the score space spanned by the chemical features, using the projector in Appendix B.3. At t = 0 .5, we compare the full predictor with predictors retaining only the inside-span or outside-span correction. Target bits per site measure the base-two log probability assigned to the correct identity at each node; a loss in bits denotes a reduction in that probability relative to the full predictor. In the final aligned checkpoint, removing the outside-span correction loses 1.79 target bits/site (paired molecule-bootstrap 95% interval [1.68, 1.89]) and 27.8 top-1 accuracy points. Removing the inside-span component loses 1.36 [1.14, 1.60] bits/site. Both components contribute in the trained model. The outside-span loss remains 1.79 bits on sites with unique feature rows, showing that the effect extends beyond feature collisions. The probe uses 512 validation molecules excluding exact training identities, with 2,730 sites whose target identities occur in training; 2,669 of those 23 MIRRA: Fast, High-Fidelity Molecular Generation sites have unique feature rows. The full predictor correctly classifies none of the 52 targets whose identities are absent from training. 
+
+Effect of chemical alignment on prediction. We compare independently trained aligned and shuffled predictors on the same corrupted inputs at t = 0 .5, using final EMA weights. Gain is the aligned predictor’s increase in target log probability, in bits per site; its group-level component measures the increase in log probability of the correct attachment group. The probe covers 3,036 validation molecules excluded from checkpoint selection and 16,331 sites. After excluding 36 exact training molecules, the gain for training-observed target identities is 0.0107 [ −0.0027 ,0.0244] bits/site. Before this exclusion, the corresponding group-level gain is 0.0119 [0.0037, 0.0198]. In that original population, targets with identities absent from training gain 12.15 bits but reach only 2.91% top-1 accuracy versus 0% for the shuffled predictor. The difference in mean gain between rare identities (1–10 training occurrences) and common identities (more than 1,000) is inconclusive. Intervals use 2,000 paired molecule-bootstrap resamples from one trained pair, without multiplicity adjustment. 
+
+# F Transfer to MOSES 
+
+F.1 Matched training and evaluation 
+
+The fixed design is trained on 1,505,430 training examples and 79,233 internal validation examples, using a 51,879-entry vocabulary and 8,192 validation examples for checkpoint selection. Three matched training runs each train aligned, shuffled and conventional output predictors for 42 epochs (493,962 updates), sharing the split, backbone initialization, source priors, corruption, EMA selection and assembly recipe. Aligned and shuffled models have approximately 30.8M parameters. Shuffling permutes whole output feature rows within positive/zero-count strata. The conventional head is a 
+
+384 → 262 → 51 ,879 ReLU MLP with biases and the same fixed log-frequency offset, matching the parameter count within 0.05%. Each checkpoint produces 30,720 raw attempts at 250 and 1000 steps, with paired canonical/prior assembly. The primary population is the first 25,000 raw attempts, prior assembly, scored against all 176,225 official scaffold-test (TestSF) molecules (Polykovskiy et al., 2020). Failures are not replenished. The official 176,074-molecule Test reference, samples of 30,000 attempted and 25,000 valid outputs, canonical assembly and 1000 steps are separate sensitivity analyses. Novelty uses unique valid canonical outputs against official training strings. Validation-selected and final EMA checkpoints are reported separately. 
+
+F.2 Results across training runs and checkpoint policies 
+
+Table 11 gives every run’s primary FCD under both checkpoint policies and both step counts. At 250 steps, selected aligned FCD averages 0.5349 versus 0.5507 shuffled and 0.5589 conventional, reductions of 2.9% and 4.3%. The common-final means are 0.5393, 0.5483 and 0.5465. The mean FCD advantage also appears on MOSES, with a smaller effect than on ZINC. At 250 steps, aligned prediction wins two of three selected pairs against each comparator. At final EMA it wins two of three against shuffling and one of three against the conventional head. At 1000 steps it wins three of three final pairs against the conventional head and two of three against shuffling. Both comparators retain higher primary novelty. These reversals distinguish a positive mean effect from a uniform improvement across training runs. Eight 25,000-molecule training draws score scaffold-test FCD 0.518 ± 0.012 (mean and sample SD), providing the training-data floor for this evaluation. 24 MIRRA: Fast, High-Fidelity Molecular Generation                                                                                                
+
+> Table 11: MOSES: three training runs and both checkpoint policies. FCD against TestSF; smaller is better. Head Run 250 steps 1000 steps Selected Final Selected Final Aligned A0.5282 0.5443 0.5169 0.5245 Aligned B0.5622 0.5622 0.5299 0.5299 Aligned C0.5142 0.5115 0.5333 0.5251 Mean ±SD 0.5349 ±0.0247 0.5393 ±0.0257 0.5267 ±0.0087 0.5265 ±0.0030
+> Shuffled A0.5626 0.5504 0.5401 0.5443 Shuffled B0.5590 0.5536 0.5435 0.5539 Shuffled C0.5306 0.5408 0.5355 0.5237 Mean ±SD 0.5507 ±0.0175 0.5483 ±0.0066 0.5397 ±0.0040 0.5407 ±0.0155
+> Conventional A0.5700 0.5422 0.5586 0.5437 Conventional B0.5475 0.5544 0.5324 0.5325 Conventional C0.5591 0.5430 0.5317 0.5445 Mean ±SD 0.5589 ±0.0112 0.5465 ±0.0068 0.5409 ±0.0153 0.5402 ±0.0067
+> Each cell uses valid outputs among the first 25,000 raw attempts, without refill, prior assembly and the 176,225-molecule scaffold-held-out TestSF reference. Selected and final EMA policies are not pooled. Means and sample standard deviations are across independent training seeds. All heads use the matched recipe and approximately 30.8M parameters.
+
+# G Property-conditioned generation 
+
+G.1 Adaptation and baseline training MIRRA adaptation. The conditional split contains 207,114 unique training identities and 10,800 validation identities. The property vector holds training-standardized QED (Bickerton et al., 2012) and logP together with a two-entry indicator naming the requested property; the unrequested property’s standardized value and its indicator are both zero. For each of the 12 frozen transformer layers, a separate 4 → 64 → 544 MLP with SiLU activation maps this four-dimensional input to offsets of widths 384/96/64 for the node, edge and graph states, broadcast across valid nodes and edges after that layer’s output. The final adapter projection starts at zero and a missing condition multiplies every offset by zero, so the unconditioned computation is preserved exactly. Conditioning changes neither the categorical vocabulary nor the linear probability path. Training updates only the approximately 0.43M adapter parameters. The pretrained backbone and the output predictor stay frozen and in evaluation mode. Each real and shuffled arm uses matched initial adapters and matched data and corruption streams for 20,000 updates at batch 128 of AdamW with learning rate 2 × 10 −4, weight decay 10 −12 
+
+and EMA decay 0.999, retaining the molecular endpoint cross-entropy objective. Each training example requests one property at random, with 10% condition dropout. Every 2,000 updates, a fixed 2,048-molecule validation subset selects the adapter by denoising loss. Three real-label adaptations share one frozen backbone; two have matched fixed-label-permutation controls. Generation multiplies the learned offsets by a selected strength in {1, 2}; this is adapter scaling, not classifier-free extrapolation between two separately evaluated predictions. 
+
+External conditional models. FragFM uses its native noisy property-predictor objective and guidance, with the molecular generator trained on the shared benchmark data frozen. Separate 6.57M-parameter QED and logP predictors train for 50,000 updates at batch 256 of AdamW with learning rate 5 × 10 −4, a 10,000-update warmup and weight decay 10 −12 , using the authors’ four-layer fragment and graph predictors; fixed validation MSE selects the EMA checkpoints. Graph-only and graph-plus-bag guidance remain separate regimes, both retaining 500 generation steps. Graph DiT trains a separate 157.9M-parameter model per property from scratch: width 1152, six layers, 16 attention heads, 500 diffusion steps, Adam with learning rate 2 × 10 −4, and 100 epochs (161,900 updates) at effective batch 128 and condition-drop probability 0.1, with fixed validation noising on 2,048 molecules selecting the checkpoint. Training labels and generation requests use the same training-set standardization. The adaptation-based and from-scratch methods therefore differ in training cost and objective. 
+
+Guidance selection. For each property and candidate strength, validation generation drew 512 attempts at each of the three targets, and the setting maximizing their mean raw hit rate was selected, with ties resolved toward the first candidate. Guidance was fixed before final evaluation. Table 12 gives the candidate and selected strengths. The selection made on the real MIRRA arm was applied unchanged to its shuffled-label control. 25 MIRRA: Fast, High-Fidelity Molecular Generation                  
+
+> Table 12: Guidance candidates and validation-selected strengths. FragFM pairs list graph and bag strengths; graph-only guidance uses the graph entry. Method Property Candidates Selected MIRRA QED, logP 1; 2 2Graph DiT QED, logP 1; 2 2FragFM QED (20, 1); (1042, 52.09) (1042, 52.09) FragFM logP (20, 1); (9.814, 0.491) (20, 1)
+
+G.2 Targets, metrics and matched timing 
+
+Targets are the 10th, 50th and 90th training quantiles (q10, q50 and q90): approximately 0.529, 0.763 and 0.885 for QED, and 0.571, 2.626 and 4.186 for logP. All target tolerances and guidance choices were fixed before final scoring. Each external method uses one trained model per property. A hit is a valid output whose property lies within ±0.05 
+
+QED or ±0.5 logP of the requested value, endpoints included. Raw hit rates divide hits by all 4,096 attempts, so invalid attempts and repeated hits stay in the denominator and in the cost accounting. Distinct novel hits count each hitting molecular identity once and additionally require it to be absent from the conditional training identities; identity ignores stereochemistry, and all methods use the same validity, identity and property checks. Target-window FCD uses the first 1,000 valid outputs from each eligible cell, including valid misses, rather than a subset selected for hitting the target. It scores them against the first 1,000 held-out reference identities inside the same target window; generated duplicates remain and there is no refill. Conditional identity and reference preprocessing differ from the unconditional protocol, so these values are not numerically comparable with the unconditional ZINC evaluation. 
+
+Matched conditional timing protocol. The matched comparison measures every primary 500-step setting: three targets for each property, three MIRRA adaptations, both FragFM guidance regimes and Graph DiT. Checkpoints and validation-selected guidance strengths are those used for the evaluation samples. Each setting has three 256-attempt timing repetitions, with method order rotated across repetitions and each setting run in an isolated process with its model’s software versions at batch 128 after 128 warmup attempts, with four CPU threads. Within a target comparison, all methods run on the same physical GPU. The primary timer starts before random-state and graph initialization and ends after generation, decoding and the shared property, identity, novelty and hit checks. Guidance, failed assemblies and invalid outputs remain inside this interval. A second endpoint before annotation records generation and decoding alone. Loading, warmup, file writing, FCD scoring, training and guidance search are excluded for every method, and GPU work is synchronized at the generation boundaries. FragFM timing uses its strict assembly decoder. For each adaptation or baseline setting s, let Us be the number of distinct novel target hits in its 4,096-attempt evaluation sample, and let ts,r be the annotation-inclusive time for timing repetition r. The estimated useful rate is 
+
+qs = Us
+
+4,096 , brs = 256 qs
+
+median r=1 ,2,3 ts,r 
+
+. (20) The reported MIRRA value is the arithmetic mean of its three adaptation-specific rates. Distinct-hit yield depends on the evaluation sample size. 
+
+G.3 Conditional yield, throughput and fidelity 
+
+Table 13 reports all targets, models and guidance settings across five metrics. Both FragFM settings reach every target more often per attempt than MIRRA does; at the high-QED target FragFM also attains the lower target-window FCD. Figure 8 separates hit rate from throughput. MIRRA completes 21.3–25.3 times as many attempts per second as either FragFM setting and 12.3–13.0 times as many as the fastest baseline at each target. That throughput more than offsets a per-attempt hit rate between 0.34 and 0.96 of FragFM’s, depending on the target: the gap is widest at low logP and nearly closed at high QED. The resulting rate advantage is 7.8–20.8-fold against the strongest baseline at each target, 7.8–22.5-fold against either FragFM setting and 11.4–24.4-fold against Graph DiT. 
+
+G.4 Label controls and adaptation variability 
+
+Table 14 reports the two runs with matched real-label, shuffled-label and unconditional populations. Real conditioning increases mean hit rate at all six targets relative to both controls, with smaller gains at the central targets. Each entry 26 MIRRA: Fast, High-Fidelity Molecular Generation 
+
+Table 13: Complete property-targeted generation results. Distinct novel hits per second, hit rate, distinct novel hits per attempt, target-window FCD and validity for every target, model and guidance setting. Model Distinct novel Hit rate Distinct novel Target-window Valid hits / second (%) hits / attempt FCD ↓ (%) 
+
+QED, low (10th) quantile : target 0.529 ± 0.05 MIRRA 2.719 18.12 0.1739 5.156 99.71 FragFM, graph guidance 0.236 34.06 0.3386 5.330 90.92 FragFM, graph + bag guidance 0.225 35.45 0.3503 5.346 90.21 Graph DiT 0.119 9.69 0.0969 11.614 43.65 
+
+QED, median (50th) quantile : target 0.763 ± 0.05 MIRRA 4.871 31.63 0.3089 2.927 99.66 FragFM, graph guidance 0.376 51.88 0.5159 3.434 97.51 FragFM, graph + bag guidance 0.376 51.46 0.5107 3.674 97.34 Graph DiT 0.273 21.85 0.2185 5.307 57.30 
+
+QED, high (90th) quantile : target 0.885 ± 0.05 MIRRA 8.430 52.99 0.5224 3.465 99.72 FragFM, graph guidance 0.375 55.15 0.5479 3.284 96.56 FragFM, graph + bag guidance 0.404 59.08 0.5874 3.256 98.44 Graph DiT 0.345 27.81 0.2778 4.678 63.09 
+
+logP, low (10th) quantile : target 0.571 ± 0.5 MIRRA 3.519 21.96 0.2145 3.518 99.58 FragFM, graph guidance 0.453 64.23 0.6392 3.636 93.24 FragFM, graph + bag guidance 0.393 60.94 0.6047 4.129 91.11 Graph DiT 0.175 13.87 0.1387 7.231 75.66 
+
+logP, median (50th) quantile : target 2.626 ± 0.5 MIRRA 4.784 31.48 0.3050 3.079 99.67 FragFM, graph guidance 0.519 71.19 0.7068 4.873 96.34 FragFM, graph + bag guidance 0.540 73.71 0.7327 4.731 97.02 Graph DiT 0.398 31.25 0.3125 6.412 64.62 
+
+logP, high (90th) quantile : target 4.186 ± 0.5 MIRRA 5.277 33.57 0.3288 4.040 99.72 FragFM, graph guidance 0.451 63.62 0.6348 5.385 96.73 FragFM, graph + bag guidance 0.435 66.60 0.6616 4.926 97.39 Graph DiT 0.465 36.79 0.3677 8.605 58.98 All settings use 500 steps, 4,096 attempts and validation-selected guidance. MIRRA rows average three adaptations of one frozen backbone; each baseline regime is one trained model. A hit is valid and inside the target window; distinct novel hits additionally count each non-training identity once. Rates combine each population’s useful yield with separate timing repetitions (Equation 20). Target-window FCD scores the first 1,000 valid outputs, including misses, against 1,000 held-out in-window references. 
+
+averages two matched 4,096-attempt populations. Filtering an unconditional population within the same attempt budget cannot increase its number of hits; it only discards misses. Thus the unconditional column also records the raw-budget hit yield of sample-and-filter. The right-hand columns show each of the three primary adaptations’ useful rates, computed separately by Equation 20. The rates describe adaptation and sampling variability on one frozen backbone. 27 MIRRA: Fast, High-Fidelity Molecular Generation 0 25 50 75 100 0.3 1 3 10 30 
+
+12.3 –13.0 ×     
+
+> vs. fastest baseline
+> MIRRA individual adaptation runs FragFM (graph guidance) FragFM (graph + bag guidance) Graph DiT
+> Target Value
+
+Low 0.53 Median 0.76 High 0.89 Low 0.57 Median 2.63 High 4.19 
+
+QED 
+
+> ±0.05
+
+logP 
+
+> ±0.5
+
+a Target hit rate  
+
+> Hits per attempt (%) ↑
+
+b Throughput  
+
+> Attempts per second ↑
+
+Figure 8: Hit rate and throughput behind Figure 5a. (a) Target hits per attempted molecule, as a percentage of all 4,096 attempts. Both FragFM settings reach a higher hit rate than MIRRA at every target. (b) Attempts per second on a logarithmic axis. MIRRA completes 12.3–13.0 times as many attempts per second as the fastest baseline at each target, and 21.3–25.3 times as many as either FragFM setting. The rate in Figure 5a is each run’s distinct novel fraction of attempts multiplied by its throughput. MIRRA markers average three property-adaptation runs sharing one frozen backbone; rates and throughputs are averaged separately. Table 14: Condition-label controls and individual adaptation rates. Hit-rate controls average two matched adapter runs; distinct novel hit rates are reported for each of three adapter runs. Target Hit rate (%), two-run mean Distinct novel hits/s, real labels Real Shuffled Uncond. Run A Run B Run C QED, low 17.91 8.01 8.29 2.540 2.748 2.869 QED, median 31.56 28.50 29.36 4.956 4.828 4.830 QED, high 53.14 26.09 25.67 8.503 8.471 8.317 logP, low 21.36 11.01 10.41 3.494 3.452 3.610 logP, median 31.46 27.98 26.40 4.914 4.765 4.673 logP, high 33.70 15.41 15.41 5.264 5.311 5.255 Left: matched runs A and B, 500 steps and 4,096 attempts per cell. Shuffling permutes condition labels during adapter training; unconditional generation uses the same backbone and attempt budget. Right: useful rates for all three real-label adaptations, each computed using its own quality population and three timing repetitions. Rates are estimates under Equation 20. 
+
+# H Polymer generation 
+
+H.1 Data, representations and baseline adaptations 
+
+We use the Open Macromolecular Genome authors’ selected all-reactions training set of 99,500 source products across 17 reaction labels rather than the complete OMG database. 1 Canonicalization identifies 99,476 distinct periodic objects. Rotation, reversal and repeated-unit aliases share one split group, so no reserved identity can reappear in training under a relabeling. The split holds 79,580 training, 9,947 validation and 9,949 reserved test objects. Internal generation controls use validation only, including 996 objects with unseen blocks. Checkpoints and generated samples are fixed before evaluation on the 9,949 held-out test objects (Table 3). This experiment evaluates structural generation on a known linear chain topology. The comparison uses two 4,096-attempt draws per model and setting. MIRRA and Graph DiT use 500 sampling steps, with MIRRA also evaluated at 250 steps from the same checkpoint. The VAE uses native autoregressive decoding. Validity is computed over all 4,096 attempts in each sampling run; structural distances condition on scorable outputs, whose fractions are reported separately. 
+
+> 1
+
+https://github.com/TheJacksonLab/OpenMacromolecularGenome/tree/e4681336c9c7aa1b62ea3f4e31dcf60154d4ba5e. 
+
+28 MIRRA: Fast, High-Fidelity Molecular Generation 
+
+Representations and information supplied to each method. MIRRA predicts oriented building blocks on a supplied linear chain, using circular attention and reversal-compatible features; its 14.5M-parameter model trains for 200,000 updates and uses the validation-selected checkpoint. The external models instead generate complete repeat-unit encodings: OMG-VAE emits SELFIES strings (Krenn et al., 2020), and Graph DiT emits atom and bond labels including wildcard attachment atoms. Neither receives MIRRA’s fixed chain connectivity. The external comparison therefore measures complete modeling approaches under a common split and scorer, including the advantage of a task-specific representation. The paired internal controls reported below use the same representation in both arms. 
+
+OMG-VAE adaptation. The 3.95M-parameter model retains the OMG authors’ CNN encoder, 152-dimensional latent representation and four-layer bidirectional GRU decoder called one token at a time, with an auxiliary network predicting standardized logP normalized by backbone atom count. Training uses the authors’ reconstruction and IMQ-MMD objective with MMD weight 4.345, Adam learning rate 0.002, weight decay 10 −5, batch 32 and 60 epochs (149,220 updates); the learning rate falls tenfold at 40 epochs. Autoregressive reconstruction over all 9,947 validation objects under fixed latent draws selects the checkpoint, epoch 45. The SELFIES alphabet and maximum length come from training data only, and the fixed initial attachment token is removed for learning and prepended on decode. Generation samples a Gaussian latent prior and selects tokens greedily. Decoding truncates before the first no-operation token or the second generated attachment token, with the initial attachment token prepended afterward. Outputs are prior samples rather than reconstructions or optimized latent vectors. 
+
+Graph DiT adaptation. The 160.1M-parameter model retains six transformer layers of width 1152 with 16 heads, 500 diffusion steps and Adam learning rate 2 × 10 −4. It trains from scratch for 100 epochs (62,200 optimizer updates) at effective batch 128. Wildcard attachment atoms are included as nodes when estimating graph sizes and no-edge frequencies. Graph DiT uses normalized time during training and sampling. Fixed noising on up to 2,048 validation objects selects the checkpoint, epoch 100. The maximum graph size in the training set defines model support. Generation uses the trained size prior and predicts the complete graph without requesting any property. 
+
+Periodic validity. Ordinary chemical validity requires only a chemically parseable output. Periodic validity is stricter: the repeat unit must be connected, must carry the two required attachment ports, and must canonicalize periodically, with rotation, reversal and repeated-unit aliases collapsing to a single identity. Valid baseline outputs containing building blocks absent from MIRRA’s vocabulary are accepted. A periodically valid output is scorable if its seven-copy chain can be assembled and sanitized and its central-unit fingerprint and all six structural descriptors can be computed. Structural MMD and descriptor distances use these scorable outputs; validity and the scorable fraction are reported separately over all attempts. 
+
+H.2 Structural metrics and internal controls 
+
+The aligned and permuted models are sampled at 250 sampling steps (primary) and 1000 steps (sensitivity) with 4,096 raw attempts per population, no rejection or replenishment, matched requested lengths, the selected checkpoints and the full 41,266-token training vocabulary. The reference is the complete 9,947-object validation population, all scorable. Structural features are ℓ2-normalized 2,048-dimensional Morgan counts (radius two, chirality enabled), rooted at real atoms of the central unit in a seven-copy chain. For feature vectors x, y , the kernel averages exp[ −∥ x − y∥2/(2 s2f )] 
+
+over f ∈ { 0.5, 1, 2}, with s2 = 1 .158 fixed as the median squared distance of 4,096 unequal-index pairs drawn from 2,048 distinct training objects. The unbiased MMD 2 estimator (Gretton et al., 2012) excludes within-population self-pairs and retains duplicates, so it may be negative. The main external table reports MMD 2 in units of 10 −3; the smaller internal differences below use 10 −5. Descriptor distances are Wasserstein distances over primitive-unit mass, central topological polar surface area (TPSA), and heteroatom, aromatic-heavy, branched-heavy and nonring-single-heavy-bond fractions, each divided by its training-calibration sample standard deviation. These are structural descriptors, not measured bulk polymer properties. 
+
+Polymer prediction with shared outputs. Both arms have approximately 14.52M parameters and train for 200,000 updates from matching initial weights on the same data. Meaningful output sharing lowers the checkpoint-selection objective throughout training, with a 2.9% reduction at the final update. Selection uses mean endpoint cross-entropy on 1,024 validation objects, averaging each object’s token-average loss so that long objects receive no greater weight. Table 15 summarizes the selected and final checkpoints from this trained pair. At 250 steps the permuted-minus-aligned MMD 2 difference is 4.96, and aligned sharing improves five of six descriptor distances; the branched-heavy fraction favors the permuted control (aligned: 0.0359; permuted: 0.0153). Both arms are fully valid, with 98.29% and 97.66% novel draws, whereas a training-resampling control reaches comparably low MMD 2 with zero novelty. At 1000 steps the ordering reverses: aligned MMD 2 is 4.88 against permuted 3.60, aligned 29 MIRRA: Fast, High-Fidelity Molecular Generation            
+
+> Table 15: Chemically aligned output sharing lowers polymer prediction loss. Object-mean endpoint cross-entropy in nats. Output features Selected update Selected loss Final loss Aligned 192,000 2.4617 2.4632 Permuted 198,000 2.5347 2.5365
+
+sharing is closer only on TPSA and heteroatom fraction, and novelty is 98.36% and 97.56%. The favorable primary point estimate therefore reverses at 1000 steps. 
+
+Additional sampling runs at 250 steps. Four further paired draws repeat the 250-step comparison with 4,096 raw attempts per arm, fixed requested lengths and the same 9,947-object reference (Table 16). Three of four paired differences favor aligned sharing, and the mean permuted-minus-aligned difference is 0.97 ± 1.94 in units of 10 −5
+
+(sample standard deviation across draws). Five of six mean descriptor distances favor aligned sharing, with the branched-heavy fraction again favoring the control (aligned: 0.0266; permuted: 0.0227). Mean novelty is 98.55% against 97.56%, favoring aligned sharing in every paired draw, and both arms retain 100% validity. These additional draws use the same fixed checkpoints.                                    
+
+> Table 16: Aligned output sharing lowers polymer structural MMD 2in three of four additional 250-step draws. Paired draws of 4,096 attempts per arm against the full validation reference. Draw Aligned Permuted Difference Novelty A (%) Novelty P (%) 12.133 2.750 0.62 98.63 97.27 25.900 6.749 0.85 98.54 97.61 38.946 7.810 −1.14 98.76 97.97 45.193 8.755 3.56 98.27 97.41 Mean 5.543 6.516 0.97 98.55 97.56 Unbiased MMD 2in units of 10 −5; positive differences (permuted minus aligned) favor aligned sharing. Novelty A and P are the aligned and permuted novel fractions. Validity is 100% and uniqueness at least 99.85% in every population.
+
+H.3 Conventional output head on polymers 
+
+A matched comparison replaces only the output head in the circular backbone. The conventional head is a 256 →
+
+263 → 41 ,266 ReLU MLP, plus the same fixed log-frequency prior; its hidden width was chosen by nearest parameter count before training, matching the shared-output model to within 0.03%, at approximately 14.52M parameters each. Both arms retain structural inputs, full categorical support, the same 200,000-update recipe, shared initial backbone weights and identical training streams. The validation-selected EMA is primary and the final-update EMA is a separate checkpoint sensitivity. Each head and policy contributes two paired 250-step draws of 4,096 attempts against the same 9,947-object reference. This comparison uses a separate trained model pair.                                  
+
+> Table 17: The shared output head achieves lower structural discrepancy than a capacity-matched conventional head under both checkpoint policies. Paired 250-step draws of 4,096 attempts each; unbiased structural MMD 2in units of 10 −5.Checkpoint policy Draw Aligned head Conventional head Validation-selected EMA 13.243 11.36 20.5184 9.745 Mean 1.881 10.55 Final-update EMA 13.163 13.84 21.081 11.19 Mean 2.122 12.51 Values summarize sampling variability across two draws per fixed checkpoint. Final-update descriptor distances (aligned/conventional): heteroatom fraction, 0.0332/0.0220; nonring-single-heavy-bond fraction, 0.0303/0.0271.
+
+Aligned sharing has the lower MMD 2 in all four paired draws (Table 17). The conventional-minus-aligned difference averages 8.671 ± 0.786 under the validation-selected policy and 10 .39 ± 0.400 under the final-update policy (mean ±
+
+draw standard deviation). Under the validation-selected policy aligned sharing is closer on all six descriptors; under the final-update policy it is closer on four, with heteroatom and nonring-single-heavy-bond fractions favoring the conventional head. Validity is 100% in all eight populations and novelty ranges from 98.24% to 99.15%. 30

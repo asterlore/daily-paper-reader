@@ -1,0 +1,297 @@
+{
+  "date": "20261007-20261016",
+  "date_label": "2026-10-07 ~ 2026-10-16",
+  "generated_at": "2026-10-16 07:17:04 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2610.13006v1",
+      "route": "20261007-20261016/2610.13006v1-topolia-topology-inspired-latent-interaction-attention-for-drug-discovery",
+      "title": "TopoLIA: Topology-Inspired Latent Interaction Attention for Drug Discovery",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "aidd"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向药物发现的拓扑启发潜在交互注意力",
+      "first_seen_at": "2026-10-16 07:17:04 UTC",
+      "updated_at": "2026-10-16 07:17:04 UTC"
+    },
+    {
+      "paper_id": "2610.15284v1",
+      "route": "20261007-20261016/2610.15284v1-fragflex-fragment-based-flexible-molecular-generation-for-exploring-vast-chemical-space",
+      "title": "FragFlex: Fragment-Based Flexible Molecular Generation for Exploring Vast Chemical Space",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "aidd"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "片段级柔性长度离散扩散分子生成模型",
+      "first_seen_at": "2026-10-16 07:17:04 UTC",
+      "updated_at": "2026-10-16 07:17:04 UTC"
+    },
+    {
+      "paper_id": "2610.16586v1",
+      "route": "20261007-20261016/2610.16586v1-octmole-multiscale-3d-molecular-generation-with-hierarchical-spatial-flows",
+      "title": "OctMole: Multiscale 3D Molecular Generation with Hierarchical Spatial Flows",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "aidd"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "多尺度八叉树流框架用于3D分子生成",
+      "first_seen_at": "2026-10-16 07:17:04 UTC",
+      "updated_at": "2026-10-16 07:17:04 UTC"
+    },
+    {
+      "paper_id": "2610.17244v1",
+      "route": "20261007-20261016/2610.17244v1-mirra-fast-high-fidelity-molecular-generation-with-chemistry-informed-discrete-flow-matching",
+      "title": "MIRRA: Fast, High-Fidelity Molecular Generation with Chemistry-Informed Discrete Flow Matching",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "aidd"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "离散流匹配生成器，实现快速高保真分子生成",
+      "first_seen_at": "2026-10-16 07:17:04 UTC",
+      "updated_at": "2026-10-16 07:17:04 UTC"
+    },
+    {
+      "paper_id": "2610.18851v1",
+      "route": "20261007-20261016/2610.18851v1-mfg-multi-turn-feedback-guided-molecular-optimization",
+      "title": "MFG: Multi-turn Feedback Guided Molecular Optimization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "aidd"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "强化学习大模型框架用于多目标分子优化",
+      "first_seen_at": "2026-10-16 07:17:04 UTC",
+      "updated_at": "2026-10-16 07:17:04 UTC"
+    },
+    {
+      "paper_id": "2610.19123v1",
+      "route": "20261007-20261016/2610.19123v1-pairit-autoregressive-transformers-for-low-data-molecule-optimization",
+      "title": "PairIT: Autoregressive Transformers for Low-Data Molecule Optimization",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "aidd"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "自回归Transformer实现种子分子优化，生成有化学意义的编辑",
+      "first_seen_at": "2026-10-16 07:17:04 UTC",
+      "updated_at": "2026-10-16 07:17:04 UTC"
+    },
+    {
+      "paper_id": "2610.19920v1",
+      "route": "20261007-20261016/2610.19920v1-molhop-scaffold-hopping-molecular-design-with-agentic-reinforcement-learning",
+      "title": "MolHop: Scaffold-Hopping Molecular Design with Agentic Reinforcement Learning",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "aidd"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向跨骨架从头分子设计的智能体强化学习框架",
+      "first_seen_at": "2026-10-16 07:17:04 UTC",
+      "updated_at": "2026-10-16 07:17:04 UTC"
+    },
+    {
+      "paper_id": "2610.14862v1",
+      "route": "20261007-20261016/2610.14862v1-blending-experimental-electron-density-information-to-protein-ligand-interaction",
+      "title": "Blending experimental electron density information to protein-ligand interaction",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "aidd"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "融合实验电子密度的蛋白质-配体相互作用模型",
+      "first_seen_at": "2026-10-16 07:17:04 UTC",
+      "updated_at": "2026-10-16 07:17:04 UTC"
+    },
+    {
+      "paper_id": "2610.16920v1",
+      "route": "20261007-20261016/2610.16920v1-multi-objective-amortized-cdrh3-sequence-sampling-diversifies-promising-antibody-candidates",
+      "title": "Multi-Objective Amortized CDRH3 Sequence Sampling Diversifies Promising Antibody Candidates",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "aidd"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "生成流网络用于基于结构的抗体设计与亲和力优化",
+      "first_seen_at": "2026-10-16 07:17:04 UTC",
+      "updated_at": "2026-10-16 07:17:04 UTC"
+    },
+    {
+      "paper_id": "2610.16975v1",
+      "route": "20261007-20261016/2610.16975v1-maddie-multi-agent-drug-discovery-engine",
+      "title": "MADDIE: Multi-Agent Drug Discovery Engine",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "aidd"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向自主药物发现的多智能体LLM引擎",
+      "first_seen_at": "2026-10-16 07:17:04 UTC",
+      "updated_at": "2026-10-16 07:17:04 UTC"
+    },
+    {
+      "paper_id": "2610.17696v1",
+      "route": "20261007-20261016/2610.17696v1-zpocket-better-pocket-finding-with-frozen-co-folding-features",
+      "title": "zPocket: Better Pocket Finding with Frozen Co-Folding Features",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "aidd"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "利用冻结共折叠特征进行口袋预测以支持基于结构的药物设计",
+      "first_seen_at": "2026-10-16 07:17:04 UTC",
+      "updated_at": "2026-10-16 07:17:04 UTC"
+    },
+    {
+      "paper_id": "2610.09389v1",
+      "route": "20261007-20261016/2610.09389v1-accelerating-dynamic-polarizability-calculations-of-organic-molecules-using-equivariant-graph-neural-networks",
+      "title": "Accelerating dynamic polarizability calculations of organic molecules using equivariant graph neural networks",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "aidd"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "等变图神经网络预测分子性质",
+      "first_seen_at": "2026-10-16 07:17:04 UTC",
+      "updated_at": "2026-10-16 07:17:04 UTC"
+    },
+    {
+      "paper_id": "2610.11454v2",
+      "route": "20261007-20261016/2610.11454v2-zatom-2-multitask-pretraining-on-atomistic-data-for-generative-modeling-across-domains",
+      "title": "Zatom-2: Multitask Pretraining on Atomistic Data for Generative Modeling across Domains",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "aidd"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "基于条件流匹配的原子级生成模型用于分子生成",
+      "first_seen_at": "2026-10-16 07:17:04 UTC",
+      "updated_at": "2026-10-16 07:17:04 UTC"
+    },
+    {
+      "paper_id": "2610.12039v1",
+      "route": "20261007-20261016/2610.12039v1-mpge-a-multi-perspective-graph-explainer-for-molecular-classification-explanation",
+      "title": "MPGE: A Multi-Perspective Graph Explainer for Molecular Classification Explanation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "aidd"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向分子分类的图神经网络解释",
+      "first_seen_at": "2026-10-16 07:17:04 UTC",
+      "updated_at": "2026-10-16 07:17:04 UTC"
+    },
+    {
+      "paper_id": "2610.12522v1",
+      "route": "20261007-20261016/2610.12522v1-molp2sbench-do-llms-really-reason-from-molecular-properties-to-structure",
+      "title": "MolP2SBench: Do LLMs Really Reason from Molecular Properties to Structure?",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "aidd"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "面向LLM分子性质到结构推理的基准",
+      "first_seen_at": "2026-10-16 07:17:04 UTC",
+      "updated_at": "2026-10-16 07:17:04 UTC"
+    },
+    {
+      "paper_id": "2610.09558v1",
+      "route": "20261007-20261016/2610.09558v1-drugtargetworld-a-synthetic-biobank-for-training-and-benchmarking-ai-scientists",
+      "title": "DrugTargetWorld: A Synthetic Biobank for Training and Benchmarking AI Scientists",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "aidd"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "用于训练与评测药物靶点发现AI的合成生物样本库",
+      "first_seen_at": "2026-10-16 07:17:04 UTC",
+      "updated_at": "2026-10-16 07:17:04 UTC"
+    },
+    {
+      "paper_id": "2610.13917v1",
+      "route": "20261007-20261016/2610.13917v1-designing-protein-structures-from-natural-language",
+      "title": "Designing Protein Structures from Natural Language",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "aidd"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "文本条件全原子蛋白质结构生成",
+      "first_seen_at": "2026-10-16 07:17:04 UTC",
+      "updated_at": "2026-10-16 07:17:04 UTC"
+    },
+    {
+      "paper_id": "2610.14626v1",
+      "route": "20261007-20261016/2610.14626v1-tagbo-llm-driven-task-aware-graph-bayesian-optimization-for-scientific-discovery",
+      "title": "TagBO: LLM-Driven Task-Aware Graph Bayesian Optimization for Scientific Discovery",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "aidd"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "大模型驱动的贝叶斯优化用于分子与科学发现",
+      "first_seen_at": "2026-10-16 07:17:04 UTC",
+      "updated_at": "2026-10-16 07:17:04 UTC"
+    }
+  ]
+}

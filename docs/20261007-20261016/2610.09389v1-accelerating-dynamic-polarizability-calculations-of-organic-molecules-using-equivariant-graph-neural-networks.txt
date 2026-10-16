@@ -1,0 +1,627 @@
+Title: Accelerating dynamic polarizability calculations of organic molecules using equivariant graph neural networks
+
+URL Source: https://arxiv.org/pdf/2610.09389v1
+
+Published Time: Thu, 08 Oct 2026 00:48:53 GMT
+
+Number of Pages: 30
+
+Markdown Content:
+# Accelerating dynamic polarizability calculations of organic molecules using equivariant graph neural networks 
+
+# Houssam Metni 1,2, †, Maria Kraus 2, †, Marie Louise Schubert 1, Marjan Krstić 3,Carsten Rockstuhl 1,3, ⋆, and Pascal Friederich 1,2, ⋆
+
+> 1
+
+# Institute of Nanotechnology, Karlsruhe Institute of Technology (KIT), Karlsruhe, Germany 
+
+> 2
+
+# Institute of Anthropomatics and Robotics, Karlsruhe Institute of Technology (KIT), Karlsruhe, Germany 
+
+> 3
+
+# Institute of Theoretical Solid State Physics, Karlsruhe Institute of Technology (KIT), Karlsruhe, Germany 
+
+> †
+
+# These authors contributed equally; houssam.metni@kit.edu and maria.kraus@student.kit.edu 
+
+> ⋆
+
+# These authors are corresponding authors; carsten.rockstuhl@kit.edu and pascal.friederich@kit.edu 
+
+Abstract 
+
+Predicting the dynamic polarizability tensor of organic molecules is essential for simu-lating light–matter interactions in optoelectronic devices, yet conventional quantum-chemical methods such as time-dependent density functional theory (TD-DFT) are computationally expensive and limit large-scale screening. We present an equivariant graph neural network architecture that predicts frequency-dependent, complex-valued dynamic polarizability ten-sors directly from readily available molecular information, such as 3D geometry and UV–vis spectra. The model learns to approximate the shape and magnitude of the dynamic polar-izability tensor, capturing both dispersive and absorptive features that define the molecular optical response. We evaluate the model on molecules from both the QM9 dataset and the Harvard organic photovoltaic dataset using various metrics, including the earth mover’s dis-tance, which is suitable for comparing spectral quantities. For both datasets, the model successfully reproduces the main features of the dynamic polarizability tensor and generalizes across diverse molecules. To assess the applicability, we further validated the model using a downstream workflow to calculate the optical properties of organic photovoltaic devices. We used the model-predicted polarizabilities to perform device-level optical simulations, yielding charge carrier generation rates in agreement with TD-DFT-based results ( R2 = 0 .94 ). Our approach offers a promising complement, or even an alternative, to conventional methods such as TD-DFT, enabling faster and more efficient screening of photoactive organic molecules for optoelectronic applications. 
+
+# 1 Introduction 
+
+Organic optoelectronic materials, e.g. , materials used for organic photovoltaics (OPV) are a promis-ing class of materials due to their mechanical flexibility and lightweight fabrication [1, 2, 3, 4, 5, 6, 7, 8]. Their performance in optoelectronic devices is fundamentally determined by how they interact with light. Optimizing the optical properties of organic semiconductors is therefore central to advancing or-ganic optoelectronic technologies. However, this is challenging and computationally demanding. For each candidate molecule, one must determine how it interacts with electromagnetic fields across relevant excitation energies, a property encoded in the dynamic polarizability tensor. This frequency-dependent tensor quantifies how the molecular electron cloud deforms in response to incident light and thus serves as the fundamental link between molecular structure and optical behavior. 1arXiv:2610.09389v1 [physics.chem-ph] 7 Oct 2026 The dynamic polarizability tensor forms the core input to the transition matrix (T-matrix) for-malism [9, 10, 11], which reformulates molecular optical responses into a representation directly compatible with Maxwell-based electromagnetic simulations. This pipeline propagates quantum-chemical information from the molecular scale to device-level optical models, enabling accurate prediction and optimization of OPV device performance (Figure 1). Recent work by some of the present authors has begun to realize fully differentiable digital twins of complete OPV device stacks, unifying material-, device-, and system-level simulations to enable end-to-end, gradient-based optimization of solar cell performance [12]. Extending this differentiability down to the molecular property calculation step itself, where conventional quantum-chemical methods such as time-dependent density functional theory (TD-DFT) are used, remains desirable and motivates machine-learning (ML) approaches capable of predicting these properties directly and differen-tiably. Predictions of dynamic polarizability tensors typically rely on TD-DFT. Their computation re-mains a major bottleneck in molecular screening workflows. For example, calculating dynamic polarizability tensors for a subset of roughly 5 000 molecules from the Quantum Machine 9 (QM9) dataset [13, 14] requires approximately 13 600 CPU hours. For the Harvard Organic Photovoltaic dataset (HOPV15) [15], which contains 347 larger and more structurally complex organic photoac-tive molecules relevant to OPV applications, the cost is around 60 000 CPU hours. In contrast, computing only UV–vis spectra is far more efficient, requiring only about 500 CPU hours for the same QM9 subset and 5 300 CPU hours for the HOPV15 molecules. UV–vis spectra are directly related to the imaginary part of the dynamic polarizability tensor, but can be obtained without resolving its full frequency-dependent, complex-valued structure. However, calculating dynamic polarizabilities is much more computationally complex than obtaining the discrete transitions that define the absorption spectrum. These numbers highlight that dynamic polarizability calculations dominate the computational budget in high-throughput OPV screening pipelines, accounting for roughly 80 to 90% of the total cost. 
+
+Figure 1: A scheme depicting the overall multiscale multiscattering simulations of the OPV stack. A neural network (NN) replaces computationally demanding calculations of dynamic polarizability tensors needed for the T-matrix construction step of the photoactive molecules. Graph neural networks (GNNs) offer a promising alternative for predicting dynamic polarizabil-ity tensors at a fraction of the computational cost. Message passing neural networks (MPNNs), introduced by Gilmer et al. [16], enabled end-to-end learning of molecular representations. Early architectures such as SchNet and DimeNet started incorporating geometric information to im-prove quantum-chemical predictions [17, 18]. Equivariant architectures such as Tensor Field Networks [19], SE(3)-Transformers [20], EGNNs [21], and PaiNN [22], introduced rotation- and translation-equivariant message passing, enabling the learning of vector and tensor properties di-rectly from atomic coordinates. More recent and widely used models for molecular regression tasks include NequIP [23] and Alle-gro [24], which scale equivariant learning to large systems with high accuracy and data efficiency. Although these models internally propagate geometric information that can be viewed as low-order tensors, they primarily target scalar quantities such as energies (and, by extension, forces, which are the gradients of the energies). Recent developments push beyond this, aiming to learn higher-order tensorial observables. De-taNet [25] introduces explicit higher-order tensor message passing to predict static polarizabilities and hyperpolarizabilities with quantum-chemical fidelity. HotPP [26] follows a similar approach by passing Cartesian tensor embeddings to model vibrational and electronic response properties. Most recently, Falletta et al. proposed a unified equivariant framework in which response proper-ties, including forces, polarization, and static polarizability, emerge as exact derivatives of a learned 2potential, guaranteeing physical symmetry preservation [27]. Similarly, a recent SO (3) -equivariant local coordinate frame GNN proposed by Filling et al. [28] enables direct tensor regression but remains confined to predicting static molecular polarizability tensors from geometric structures on small-molecule datasets [29, 30, 31, 32]. Equivariant GNNs have also been applied to frequency-dependent dielectric tensors of crystals [33]. To the best of our knowledge, no existing equivariant model directly predicts frequency-dependent, complex-valued dynamic polarizability tensors from a molecular graph. We address this gap by extending the DetaNet architecture to incorporate both atomic coordinates and a sampled UV–vis spectrum. Although the model can be trained using atomic coordinates alone, adding spectral information substantially improves performance, and UV–vis spectra are comparatively inexpensive to obtain. This enables accurate, direct prediction of the full dynamic polarizability tensor across a range of frequencies, providing a fast, ML-based complement to TD-DFT. While contemporary frameworks focus on static properties of simpler structures, our model successfully scales to the larger, structurally complex molecules of the HOPV15 dataset. Furthermore, we validate its practical utility by passing these predicted polarizabilities into a realistic device-level optical modeling workflow, ultimately calculating macroscopic charge carrier generation rates for full organic photovoltaic solar cells. We generate reference data using TD-DFT for two benchmark datasets: a sampled subset of the QM9 database, which we denote as QM9SPol, and the HOPV15 dataset for more application-relevant molecules. QM9SPol contains small organic molecules to benchmark and validate our methodology, while HOPV15 consists of larger and more structurally complex molecules closer to real-world applications. We assess the model’s performance on both QM9SPol and HOPV15 using various metrics, including the mean squared error (MSE), R2 scores, and the earth mover’s distance (EMD). To further evaluate the applicability of our model for realistic device-level simulations, we con-duct a comprehensive optical analysis for a held-out subset of 35 application-relevant molecules from the HOPV15 database. Using both TD-DFT polarizabilities and our model predictions, we compute the corresponding molecular T-matrices and perform device-level optical simulations to obtain charge-carrier generation rates. The optical responses obtained from model-predicted po-larizabilities show agreement ( R2 = 0 .94 ) with those based on TD-DFT, demonstrating that our model serves as a promising alternative to TD-DFT for device-level optical simulations. This con-firms that beyond accurately predicting dynamic polarizabilities, our approach also maintains the physical fidelity required for downstream modeling while reducing computational cost. 
+
+# 2 Methods 
+
+# 2.1 Datasets and data preparation 
+
+In this study, we use two primary datasets. The QM9SPol dataset contains smaller organic molecules to benchmark and validate our methods, and the HOPV15 dataset contains larger or-ganic molecules to assess performance in more application-relevant cases. The quantity we aim to predict is the polarizability tensor α(ω). The tensor describes how a molecule’s electron cloud deforms in response to an external electric field oscillating at angular frequency ω. It is a complex 
+
+3 × 3 tensor that describes the excitation of electric dipoles in a corresponding molecule. In the sections below, we explain how we calculate it for the different datasets and how we use the tensor’s properties to train our model. 
+
+The QM9SPol dataset 
+
+The QM9SPol dataset (QM9 with UV–vis spectra and polarizabilities) is a sampled subset of the original QM9 dataset, containing 5 160 randomly selected molecules from QM9 [13, 14]. We re-optimize all geometries, and we calculate static and dynamic polarizabilities, as well as the 15 lowest singlet excitation energies and the corresponding oscillator strengths. We compute dynamic polarizabilities across the 1.55–6.2 eV range (800 nm to 200 nm), at equally spaced 61 energies, including the full complex electric–electric ( ee ), electric–magnetic ( em ), and magnetic–magnetic (mm ) tensor components. Broadened absorption spectra based on oscillator strengths and dy-namic polarizabilities can be related through the decadic absorption coefficient ε(˜ ω) in units of 3Lmol -1 cm -1 . The ε(˜ ω) calculated from oscillator strengths fj is: 
+
+ε(˜ ω) = e2NA
+
+40 ϵ0mec2ln (10) 
+
+> n
+
+X
+
+> j=1
+
+fj L(˜ ω; ˜ ωj ) (1) where e is the electron charge, ϵ0 is the vacuum permittivity, NA is the Avogadro constant, me is the mass of the electron, c is the speed of light, ˜ω is the photon energy at which the spectrum is evaluated, ˜ωj is the excitation energy of the j-th singlet transition, and L(˜ ω; ˜ ωj ) is a Lorentzian function: 
+
+L(˜ ω; ˜ ωj ) = 1
+
+π 
+
+> 12
+
+˜Γ(˜ ω − ˜ωj )2 + ( 12 ˜Γ) 2 (2) The ˜Γ is the full-width at half-maximum (FWHM). The same values of ε(˜ ω) in units of Lmol -1 cm -1 
+
+can be calculated from dynamic polarizabilities αee provided in atomic units (a.u.) as: 
+
+ε(˜ ω) = 10 a20NA
+
+ln (10) 4πω 
+
+3cau T r {Im (αee )} (3) where a0 is the Bohr radius and cau is the speed of light in vacuum in atomic units. This relationship formalizes the physical link between UV–vis absorption spectra and the dynamic polarizability tensor, and motivates the use of UV–vis spectra as an auxiliary input to the model, as introduced above. Finally, all dynamic polarizability tensors are interpolated to 241 energies covering the same energy range using the AAA algorithm [34, 35, 36] to produce more detailed spectral features for training without substantial additional computational cost. In this work, we only consider the ee 
+
+component for the linear absorption. This dataset serves as an initial benchmark for our approach, as its molecules are small and structurally simple, allowing us to develop and validate the model before moving to more complex systems. 
+
+The HOPV15 dataset 
+
+The HOPV15 dataset consists of 347 conjugated molecules and small polymers representative of acceptor materials in organic photovoltaic systems [15]. Relative to the QM9SPol dataset, the molecular structures in HOPV15 exhibit greater chemical and structural complexity. For each molecule, we apply the same electronic structure protocol used for QM9SPol to compute the static polarizability at zero frequency and the frequency-dependent polarizability tensor components ( ee ,
+
+em , and mm ), along with the 40 lowest singlet excitation energies and their associated oscilla-tor strengths. We use the same AAA interpolation procedure for both QM9SPol and HOPV15. HOPV15 is smaller than QM9SPol but more representative of realistic OPV molecules. Compre-hensive details of all quantum chemistry calculations and their respective computational costs are available in the Supporting Information. 
+
+Data preparation for ML training 
+
+For each molecule, we subtract the static polarizability tensor, denoted by α(0) ∈ R3×3, from the real part of every dynamic polarizability tensor. This centering step ensures that the model learns the relative spectral variations rather than absolute offsets, effectively removing molecule-specific baseline displacements. The real part of the dynamic polarizability tensor is thus pre-processed as: 
+
+eα′(ωf ) = α′(ωf ) − α(0) , f = 1 , . . . , F. (4) Here, F denotes the number of frequencies considered in the dynamic spectra, α(ω) denotes the frequency-dependent dynamic polarizability tensor, with α′(ω) representing its real part and α′′ (ω)
+
+its imaginary part. The static polarizability α(0) is equivalent to the dynamic polarizability evaluated at zero frequency. After separating and centering, the real and imaginary parts are stacked as: 
+
+eα′(ω1), . . . , eα′(ωF )
+
+| {z }
+
+> real part
+
+α′′ (ω1), . . . , α′′ (ωF )
+
+| {z }
+
+> imaginary part
+
+, α(·)(ωf ) ∈ R3×3. (5) 4After concatenation, we represent each sample as: 
+
+eα′(ω1: F ), α′′ (ω1: F )
+
+
+
+∈ R2F ×3×3. (6) For each molecule in both datasets, we generate the simulated UV–vis spectra by broadening the calculated discrete oscillator strengths using Lorentzian line shapes with a FWHM of 0.05 eV. The oscillator strength quantifies the transition probability from the electronic ground state to an excited singlet state, and together with the corresponding excitation energy, determines the contribution of each dipole transition to the absorption spectrum. We compute the UV–vis intensity at a given photon energy E using the following expression: 
+
+ILorentz (E) = X
+
+> n
+
+f0→n
+
+1 + (E − E0→n)/γ 2 , (7) where f0→n is the oscillator strength of the transition from the ground state to the n-th excited state, E0→n is the corresponding vertical excitation energy, and γ = FWHM /2 = 0 .025 eV is the Lorentzian half-width at half-maximum. ILorentz (E) is the resulting absorption intensity at energy 
+
+E, and the summation runs over all calculated singlet excited states. We apply the Lorentzian broadening directly to the oscillator strengths, and sample the resulting continuous spectra at the same photon energies used for the dynamic polarizability tensors. This ensures consistent input representation across both spectral modalities. We illustrate the construction of the UV–vis spectra in Figure 2. 
+
+Figure 2: Sampled UV–vis spectra generation and visualization. The solid black line shows the computed Lorentzian line shapes corresponding to the lowest singlet excitation energies and os-cillator strengths, with a FWHM of 0.05 eV. Red dots represent the UV–vis intensities sampled at the same frequencies as the dynamic polarizability tensors. The vertical gray bars indicate the positions and relative intensities of the raw oscillator strengths prior to broadening. To the right, the corresponding molecular structure is displayed. 
+
+# 2.2 Model architecture 
+
+Our approach is grounded in the DetaNet framework but incorporates extensions to process UV–vis spectra alongside atomistic information. The model takes as input the 3D molecular geometry, atomic numbers, and the UV–vis spectrum evaluated at the same frequencies as the dynamic polarizability tensors. We represent the overall architecture in Figure 3. Scalar features Sni and irreducible tensor features T n,m i,ℓ,p are processed separately. We visualize the features per atom in Figure 3. While we initialize tensor features to zero, we construct the initial scalar block S0 
+
+> i
+
+from a nuclear one-hot encoding O(Zi) and a handcrafted electronic descriptor Q(Zi), as shown in Figure 3 and as given by: 
+
+(S0 
+
+> i
+
+= Lemb 
+
+ LZ (O(Zi)) + LQ(Q(Zi))  ∥ U V ) (8) 5The symbol ∥ denotes feature-wise concatenation, where U V represents the sampled UV–vis spec-trum and L denotes learnable linear layers. Within the interaction block, the model first applies radial self-attention over neighboring atom pairs, weighted by their interatomic distance, to construct distance-dependent edge messages and encode geometric information via real spherical harmonics Yℓm (ˆ rij ). Tensor products ( ×), dot products ( ·), and standard additions ( +) are used throughout to combine features while maintaining equivariance. Atomwise self-attention modules then update each atom’s own aggregated scalar and tensorial features, refining the representation built from the preceding neighbor messages. The model maintains rotational and permutational equivariance throughout this process. After N iterations, the updated scalar and tensorial features are passed through two multi-layer perceptrons (MLP), ultimately producing the dynamic polarizability tensor at each frequency point in a single forward pass. At the output stage, the model assembles the frequency-resolved dynamic polarizability tensor via a summation operator ( Σ) and a property prediction head ( Φ), which combines learned features. (a) 
+
+(b) (c) (a) (b) (c) 
+
+Figure 3: Overview of the model architecture and key submodules. (a) Overview of the model architecture, from the molecular geometry and UV–vis spectrum on the input side, through the interaction block (dashed box), to the global embedding and the predicted dynamic polarizability tensor on the output side. (b) The scalar embedding block, combining atomic-number information with the sampled UV–vis spectrum into the initial scalar embedding S0. (c) Irreducible represen-tation structure used in the model, with colors indicating features of a given rotation degree ℓ and parity p.To handle second-order tensorial properties such as dynamic polarizabilities α(f ), the model uses a group-theoretical decomposition into scalar and traceless parts: 
+
+α(f ) Ff =1 = s(f ) 
+
+> b
+
+⊕  t(f )2,1 + s(f ) 
+
+> a
+
+Y (2 e)(ˆ ri) Ff =1 . (9) Here, s(f ) 
+
+> b
+
+represents the scalar (trace) component, while s(f ) 
+
+> a
+
+is a learnable scaling factor that modulates the non-local traceless contribution encoded by the spherical harmonics Y (2 e)(ˆ ri), of rotation degree ℓ = 2 and even parity ( p = 1 ). The term t(f )2,1 , likewise of degree ℓ = 2 and even 6parity, captures local contributions to the traceless tensor. By predicting the entire set {α(f )}
+
+simultaneously, the model captures the frequency-dependent structure of the dynamic polarizability tensor in a single forward pass, ensuring consistent and efficient learning of both local and global directional dependencies. Because all submodules, including tensor products and reduction steps from e3nn [37] (the Eu-clidean neural network library implementing equivariant operations on irreducible representations) are implemented in an equivariant manner, the model fully preserves physical symmetry con-straints throughout. Nonlinearities and biases are restricted to the scalar channels, ensuring that higher-order tensor features remain equivariant by design. 
+
+# 2.3 Post-polarizability prediction optical simulation pipeline 
+
+To compare model-predicted dynamic polarizabilities with their TD-DFT counterparts in a realistic device context, we integrate both into the same optical simulation workflow. For this purpose, we first convert the dynamic polarizabilities into molecular T-matrices [9, 10, 38], which describe light–matter interactions at the single-molecule level [11, 39]. We manually set predicted negative, diagonal imaginary dynamic polarizability values to zero prior to this step. These negative values occur only occasionally as prediction errors of the ML model; clipping them to zero corrects unphysical artifacts without affecting any TD-DFT-based results. We homogenize the resulting T-matrices using the treams framework to obtain the effective bulk T-matrix and corresponding permittivity of the photoactive layer [40]. Using these material properties, we carry out device-level optical simulations with a semi-analytical scattering-matrix (S-matrix) solver, assuming the solar cell is a stack of stratified isotropic me-dia [41]. The S-matrix is a linear operator connecting the incoming and outgoing waves of the stack [42]. It is constructed analytically for each layer from its permittivity ε and thickness d [43], and individual layers are successively combined via the Redheffer product [44, 45] to obtain the overall transmitted field E( x). From this field, we calculate the generation rate G of the stack as: 
+
+G = e 
+
+Z
+
+> x
+
+Z
+
+> λ
+
+Pabs (x) f (λ) d λ dx, (10) with e the elementary charge and factor f (λ) defined as f (λ) = Irr( λ) Pin  
+
+> Ain
+
+, where Irr is the irradiance at wavelength λ based on the standard AM 1.5 spectrum, Pin is the input power over the illuminated area Ain , and Pabs (x) is the spatially resolved absorption of the considered layers, which depends on the resulting field E( x).Running the entire pipeline described above for both TD-DFT and model-based polarizabilities allows a direct, device-level comparison of the two approaches within a realistic OPV workflow. 
+
+# 3 Results and discussion 
+
+# 3.1 Evaluation metrics of the model 
+
+Commonly used metrics for the prediction of molecular properties, such as the static polarizability, are the R2 score, MSE or root mean squared error (RMSE), and mean absolute error (MAE) [22, 25, 26, 46]. These are all pointwise metrics, calculated via a direct element-by-element comparison between predicted and reference values, averaged over all tensor components and frequency points. However, since our goal is to predict the full frequency-dependent polarizability tensor, pointwise metrics are insufficient. Therefore, we adopt the EMD, or 1-Wasserstein distance, which quantifies discrepancies in the overall spectral shape of each tensor component across frequencies, provid-ing a more meaningful evaluation for spectrum-level predictions. The EMD conceptualizes each spectrum as an area distributed across frequency. The distance measures the minimal total cost required to redistribute the predicted spectrum to match the target spectrum, with cost defined as the product of the total area moved and the distance it is moved. Unlike pointwise metrics, the EMD captures differences in the overall shape of the spectrum and is less sensitive to small shifts of sharp peaks, which can otherwise dominate error measures like the RMSE. For each matrix element i ∈ { 1, . . . , 18 } from the real and imaginary parts of dynamic polarizability, the distributions of predicted and reference values, denoted as μ(i) and ν(i), are compared using the 1-Wasserstein distance W1(μ(i), ν (i)). The overall EMD loss for every polarizability tensor across 7frequencies is then defined as: 
+
+LEMD = 118 
+
+> 18
+
+X
+
+> i=1
+
+min 
+
+> γ∈Γ( a,b )
+
+⟨γ, M(i)⟩F , (11) where M(i) is the ground-cost matrix of pairwise Euclidean distances computed between the pre-dicted and target values across all frequencies for component i. The notation ⟨· , ·⟩ F denotes the Frobenius inner product, which sums the element-wise products of the matrices. The transport plan γ satisfies the marginal constraints a = b = 1 
+
+> B
+
+, ensuring mass conservation. In practice, the optimal transport cost is computed using the network simplex algorithm implemented in the Python Optimal Transport (POT) library [47]. 
+
+# 3.2 Training results 
+
+Prior to training, we randomly partition both datasets into training and test sets using a 90/10 split. For QM9SPol, this results in 4644 molecules for the training set and 516 for the test set. For HOPV15, the split yields 312 molecules for training and 35 for the test set. We decompose the dynamic polarizability tensor, sampled at F = 61 frequency points, into its real and imaginary components and concatenate it to form a tensor of size 122 × 3 × 3. For HOPV15, which consists of photoactive molecules relevant to the target application, we train three separate models: one predicting 61 polarizability values, one fine-tuned from a model pre-trained on QM9SPol (also 61 values), and one predicting 241 polarizability values, obtained by expanding the original 61 sampled frequencies with additional points generated via the AAA algorithm. For the UV–vis spectra input, we choose to sample 61 points to match the frequencies used in the polarizability tensors. Although higher sampling densities are tested, only a slight performance gain is observed. We also evaluate models trained solely on atomic coordinates. However, these baselines consistently show higher error across both QM9SPol and HOPV15, motivating the inclusion of UV–vis spectra, which are comparatively inexpensive to obtain. We optimize model performance through Bayesian hyperparameter tuning, and apply a dropout rate of 20% to all hidden layers to prevent overfitting. We summarize the performance of the models across different experiments in Table 1. Although the EMD is the more relevant metric, we also include the RMSE and R2 scores to make further comparisons. For the QM9SPol dataset, the model effectively captures the overall shape of the frequency-dependent dynamic polarizability tensor, although it occasionally misses minor peak structures. These discrepancies may originate from the relatively limited size of the dataset, which could lead to overfitting, especially considering that DetaNet was originally trained on over 130 000 molecules to achieve accurate UV–vis spectrum predictions. Predicting the dynamic polarizability tensor across the 1.55–6.2 eV frequency range is a more demanding task and likely requires a substantially larger and more diverse dataset for optimal performance. We illustrate the model’s performance on QM9SPol in Figure 4. Fine-tuning from QM9SPol to HOPV15 does not offer an advantage over training the model on HOPV15 from scratch. Molecules in the HOPV15 dataset are larger, structurally more complex, and differ substantially in their physical properties from those in QM9SPol, limiting the effective-ness of knowledge transfer between the two datasets. On the HOPV15 dataset, the model effectively learns the structure and variation of the dynamic polarizability tensor across the frequency range. The models trained on 61 and 241 polarizabilities produce comparable results, with the 241-point model performing slightly better on RMSE and EMD, though with a marginally lower R2 score. The finer sampling grid improves the model’s ability to capture smaller peaks in the polarizability tensor. We show an overview of the best-performing 241-point model in Figure 5. 
+
+# 3.3 Integration of the model into optical device simulations 
+
+To understand how our model performs in a realistic device scenario, we apply it to an OPV solar cell stack. We consider 35 molecules of the HOPV dataset, which make up the test set. We introduce these molecules as acceptor molecules in the photoactive material of the solar cell. We then compare the charge-generation rates calculated with a computational pipeline described below, using the original TD-DFT-calculated dynamic polarizability tensors versus those using the predicted dynamic polarizability tensors. 82 4 6
+
+Frequency (eV)   
+
+> 200
+> 0200 400
+> -Real (a.u.)
+> 246
+
+Frequency (eV)   
+
+> 246
+
+Frequency (eV)   
+
+> Ground Truth Model Prediction
+> 246
+
+Frequency (eV)   
+
+> 0100 200 300 400 500
+> -Imag (a.u.)
+> 246
+
+Frequency (eV)   
+
+> 246
+
+Frequency (eV)       
+
+> Ground Truth Model Prediction
+> 2101234
+
+True value (×10 3 a.u.)       
+
+> 2
+> 1
+> 01234
+> Predicted value (×10 3 a.u.)  Dynamic polarizability
+> y=x
+> 020 40 60 80
+
+Epoch 
+
+> 0246810
+> Earth-mover distance (a.u.)  Train EMD Val EMD Train MSE Val MSE
+> 0500 1000 1500 2000 2500 3000
+> Mean squared error (a.u.)
+
+(a) (b) (c) (d) Figure 4: QM9SPol: (a) Real and (b) imaginary parts of the trace components of the dynamic polarizability tensor elements (61 polarizabilities) of a single molecule from the QM9SPol dataset, shown for the xx , yy and zz components (left to right in each row). Blue and yellow circles denote ground-truth (GT) values; black triangles show model predictions. (c) Point-wise comparison of predicted versus ground-truth values across the test set. (d) Training history: EMD (left axis) and MSE (right axis) for both training and validation splits over 80 epochs. 92 4 6
+
+Frequency (eV)   
+
+> 10
+> 5
+> 0510
+> -Real (×10 3 a.u.)
+> 246
+
+Frequency (eV)   
+
+> 246
+
+Frequency (eV)   
+
+> Ground Truth Model Prediction
+> 246
+
+Frequency (eV)   
+
+> 5
+> 0510 15
+> -Imag (×10 3 a.u.)
+> 246
+
+Frequency (eV)   
+
+> 246
+
+Frequency (eV)      
+
+> Ground Truth Model Prediction
+> 210123
+
+True value (×10 4 a.u.)       
+
+> 2
+> 1
+> 0123
+> Predicted value (×10 4 a.u.)  Dynamic polarizability
+> y=x
+> 020 40 60 80
+
+Epoch 
+
+> 050 100 150
+> Earth-mover distance (a.u.)  Train EMD Val EMD Train MSE Val MSE
+> 0100000 200000 300000 400000
+> Mean squared error (a.u.)
+
+(a) (b) (c) (d) Figure 5: HOPV15: (a) Real and (b) imaginary parts of the trace components of the dynamic polarizability tensor elements (241 polarizabilities) of a single molecule from the HOPV15 dataset, shown for the xx , yy and zz components (left to right in each row). Blue and yellow circles denote ground-truth values; black triangles show model predictions. (c) Point-wise comparison of predicted versus ground-truth values across the test set. (d) Training history: EMD (left axis) and MSE (right axis) for both training and validation splits over 80 epochs. 10 Table 1: Performance comparison of models trained on QM9SPol and HOPV15. The table indicates whether UV–vis spectra are included as input and the number of sampled frequency points used for each model. It also includes results from a fine-tuning experiment where a QM9SPol-pretrained model was adapted to HOPV15.                                      
+
+> Dataset (Training Regime) UV–vis Input Frequency points RMSE (a.u.) EMD (a.u.) R2
+> QM9SPol ✗61 48.7 8.5 0.55 QM9SPol ✓61 22.1 5.8 0.86
+> HOPV15 ✗61 586.6 120.0 0.30 HOPV15 ✓61 261.9 80.3 0.82
+> HOPV15 ✓241 231.6 71.7 0.79 QM9SPol →HOPV15 (fine-tuning) ✓61 332.6 91.7 0.75
+
+The OPV solar cell stack considered for this use case is depicted in Figure 5 of the SI. The sunlight enters the stack through a glass substrate with a thickness of 1 μm. The next layer is a transparent indium tin oxide (ITO) electrode of 150 nm thickness. We chose zinc oxide (ZnO) with a thickness of 30 nm as the electron transport layer. The next layer is the photoactive layer with a thickness of 200 nm . The hole transport layer is made of poly(3,4-ethylenedioxythiophene):poly(styrene sulfonate) (PEDOT:PSS) with 190 nm thickness. The PEDOT:PSS layer is interrupted by a semi-transparent back contact of silver nanowires, which is approximated by a silver (Ag) slab of 10 nm 
+
+thickness. We define the photoactive material as a 1:1 volume blend of PM6 and a HOPV molecule from the test set. Poly[(2,6-(4,8-bis(5-(2-ethylhexyl-3-fluoro)thiophen-2-yl)-benzo[1,2-b:4,5-b’]dithiophene))-alt-(5,5-(1’,3’-di-2-thienyl-5’,7’-bis(2-ethylhexyl)benzo[1’,2’-c:4’,5’-c’]dithiophene-4,8-dione)] (in short, 
+
+PM6 ) is a polymer, which primarily absorbs in the visible spectrum and acts as a donor polymer. The HOPV molecule, meanwhile, acts as the acceptor molecule. Further details are given in the Supporting Information. For each PM6:HOPV combination, we calculate the generation rate of the stack (Eq. 10) using the scattering-matrix pipeline described in Methods, which requires the permittivity values of the chosen layers, especially of the photoactive material blend. For each HOPV molecule, we convert dynamic polarizabilities obtained from model predictions and from TD-DFT calculations into molecular T-matrices and homogenize these (as described in the Methods section), yielding the effective permittivity εeff and permeability μeff of the photoactive material [39]. The permittivity values of the bulk HOPV material are then combined in a 1:1 volume ratio with the PM6 permittivity values, known from separate TD-DFT calculations. For the other layers of the solar cell stack, known permittivity values were used. Further theoretical details are given in the Supporting Information. Finally, we obtain one predicted generation rate GR pred (based on the predicted dynamic polar-izabilities of our model) and one ground-truth, original generation rate GR original (based on the dynamic polarizabilities directly calculated with TD-DFT) for every considered PM6:HOPV com-bination. To compare the two types of generation rate, we calculate general metrics such as the 
+
+R2 score and RMSE, as well as the relative error between GR pred and GR original (Figure 6). The overall metrics that were reached are an R2 score of 0.9367 and an RMSE of 0.3590 mA /cm 2,and the relative errors range from 0.014% to 6.457%, indicating that generation rates derived from predicted dynamic polarizabilities based on our model are reliable for downstream generation rate calculations in an OPV application. 
+
+# 4 Conclusion and outlook 
+
+In this work, we present an equivariant machine-learning framework to predict frequency-dependent dynamic polarizability tensors for complex organic molecules. By integrating molecule geometries with inexpensive UV–vis spectral data, our model captures the intricate spectral variations essential for optical modeling. The primary strength of this approach lies in its integration into a multi-scale simulation pipeline: by feeding model-predicted polarizabilities into an OPV device-level optical simulation, we obtained charge carrier generation rates in agreement with TD-DFT-based results (R2 = 0 .9367 ), directly demonstrating the practical utility of our approach beyond isolated po-11 10 11 12 13 14 15 16 17 
+
+> Original generation rate [mA/cm 2]
+> 10 11 12 13 14 15 16 17
+> Predicted generation rate [mA/cm 2]
+> 0.014 0.03 0.1 0.3 136.457
+> Relative error [%]
+
+Figure 6: Calculated generation rate GR pred plotted over GR original in units of [mA /cm 2]. The predicted generation rate GR pred is based on dynamic polarizabilities predicted by our machine-learning model. The original generation rate GR original is based on the original dynamic polar-izabilities calculated with TD-DFT. The colors of the dots indicate the relative error rate. The relative errors range from 0.014% to 6.457%. The dashed line marks y = x. Metrics over the 35 HOPV molecules: R2 = 0 .9367 , RMSE = 0.3590 mA /cm 2.larizability prediction. Ultimately, our approach provides a computationally efficient complement, or even an alternative, to expensive TD-DFT workflows. By enabling the rapid screening of pho-toactive materials directly within a device-level context, this framework paves the way for the accelerated discovery and optimization of next-generation organic solar cells. Moreover, because our model is differentiable with respect to the input molecular geometry, it supports gradient-based optimization workflows in which molecular geometries can be directly refined. This offers a scalable path toward the automated discovery of high-performance materials for organic photo-voltaics. Looking further ahead, this differentiable polarizability model is well suited to serve as one module within a fully differentiable digital twin of the OPV stack, unifying material-, device-, and system-level simulations into a single end-to-end optimizable pipeline, as outlined in previous work [12]. Embedding the present model into such a framework would allow gradients to prop-agate all the way from molecular structure to predicted energy yield, enabling fully automated, physics-informed optimization of photoactive materials for next-generation organic photovoltaics. 
+
+# Data availability 
+
+The datasets and trained model weights used in this work are available on Zenodo: https:// doi.org/10.5281/zenodo.23180873 . The quantum chemistry calculations are deposited at the following NOMAD repository: https://doi.org/10.17172/NOMAD.RG5M-AQT6 .
+
+# Code availability 
+
+The source code used in this work is available on the following GitHub repository: https:// github.com/aimat-lab/DynPolDetanet .
+
+# Author contributions 
+
+HM, MK, CR and PF contributed to the conceptualization. Formal analysis was performed by HM, MK, MLS and MKr. All authors contributed to the methodology, which was led by HM and MK. Investigation was performed by HM, MK, MLS and MKr. MKr performed the TD-DFT, UV–vis, T-matrix and polarizability calculations, and MLS performed the generation-rate 12 calculations. Software was developed by HM and MK. Visualization was performed by HM and MK. HM, MK, MLS and MKr wrote the original draft. CR and PF acquired the funding and reviewed and edited the manuscript. All authors reviewed and approved the final manuscript. 
+
+# Competing interests 
+
+All authors declare no financial or non-financial competing interests. 
+
+# Acknowledgment 
+
+H.M., M.L.S., C.R., and P.F. acknowledge financial support from the Helmholtz Project ’Solar-TAP’. M.K., P.F., and C.R. acknowledge support by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) under Germany’s Excellence Strategy via the Excellence Cluster 3D Matter Made to Order (EXC-2082/2-390761711) and from the Carl Zeiss Foundation via the CZF-Focus@HEiKA Program. M.K. and C.R. acknowledge funding by the Volkswagen Founda-tion. M.L.S. acknowledges the Karlsruhe School of Optics and Photonics (KSOP). M.K. and C.R. acknowledge support by the state of Baden–Württemberg through bwHPC and the German Re-search Foundation (DFG) through grant no. INST 40/575-1 FUGG (JUSTUS 2 cluster). The authors gratefully acknowledge the computing time provided on the high-performance computer HoreKa by the National High-Performance Computing Center at KIT (NHR@KIT). This center is jointly supported by the Federal Ministry of Education and Research and the Ministry of Science, Research and the Arts of Baden-Württemberg, as part of the National High-Performance Comput-ing (NHR) joint funding program ( https://www.nhr-verein.de/en/our-partners ). HoreKa is partly funded by the German Research Foundation (DFG). M.K. thanks Jan David Fischbach for the help with the AAA algorithm used to interpolate the calculated dynamic polarizability tensors. 
+
+# References 
+
+[1] Kai Zhang et al. “The rising promise of organic photodetectors in emerging technologies”. In: 
+
+Nature Reviews Materials (2025), p. 821. doi : 10.1038/s41578-025-00821-2 .[2] Martin A Green, Anita Ho-Baillie, and Henry J Snaith. “The emergence of perovskite solar cells”. In: Nature photonics 8.7 (2014), pp. 506–514. doi : https : / / doi . org / 10 . 1038 / nphoton.2014.134 .[3] Yuanhe Wang et al. “Flexible organic optoelectronic devices: Design, fabrication, and appli-cations”. In: APL Photonics 9.9 (2024), p. 090901. doi : 10.1063/5.0220555 .[4] Ghazi Aman Nowsherwan et al. “Advances in Organic Materials for Next-Generation Opto-electronics: Potential and Challenges”. In: Organics 5.4 (2024), pp. 520–560. doi : 10.3390/ org5040028 .[5] Oksana Ostroverkhova. “Organic Optoelectronic Materials: Mechanisms and Applications”. In: Chemical Reviews 116.22 (2016), pp. 13279–13412. doi : 10.1021/acs.chemrev.6b00127 .[6] Alexander Colsmann, Holger Röhm, and Christian Sprau. “Shining Light on Organic So-lar Cells”. In: Solar RRL 4.6 (2020), p. 2000015. doi : https : / / doi . org / 10 . 1002 / solr . 202000015 . eprint: https : / / onlinelibrary . wiley . com / doi / pdf / 10 . 1002 / solr.202000015 . url : https://onlinelibrary.wiley.com/doi/abs/10.1002/solr. 202000015 .[7] Pascal Friederich et al. “Rational in silico design of an organic semiconductor with improved electron mobility”. In: Advanced Materials 29.43 (2017), p. 1703505. [8] Jianchang Wu et al. “Inverse design workflow discovers hole-transport materials tailored for perovskite solar cells”. In: Science 386.6727 (2024), pp. 1256–1264. [9] P.C. Waterman. “Matrix formulation of electromagnetic scattering”. In: Proceedings of the IEEE 53.8 (1965), pp. 805–812. doi : 10.1109/PROC.1965.4058 .[10] Ivan Fernandez-Corbaton et al. “Computation of electromagnetic properties of molecular ensembles”. In: ChemPhysChem 21 (2020), pp. 878–887. doi : 10.1002/cphc.202000072 .13 [11] Benedikt Zerulla et al. “A Multi-Scale Approach for Modeling the Optical Response of Molec-ular Materials Inside Cavities”. In: Advanced Materials 34.21 (2022), p. 2200350. doi : https: //doi.org/10.1002/adma.202200350 . eprint: https://onlinelibrary.wiley.com/doi/ pdf/10.1002/adma.202200350 . url : https://onlinelibrary.wiley.com/doi/abs/10. 1002/adma.202200350 .[12] Marie Louise Schubert, Houssam Metni, et al. Towards a fully differentiable digital twin for solar cells . arXiv preprint arXiv:2512.02904. M. L. Schubert and H. Metni contributed equally. 2025. arXiv: 2512.02904 [physics.comp-ph] . url : https://arxiv.org/abs/ 2512.02904 .[13] Lars Ruddigkeit et al. “Enumeration of 166 Billion Organic Small Molecules in the Chemical Universe Database GDB-17”. In: Journal of Chemical Information and Modeling 52.11 (2012). PMID: 23088335, pp. 2864–2875. doi : 10.1021/ci300415d . eprint: https://doi.org/10. 1021/ci300415d . url : https://doi.org/10.1021/ci300415d .[14] Raghunathan Ramakrishnan et al. “Quantum chemistry structures and properties of 134 kilo molecules”. In: Scientific Data 1 (2014). doi : 10.1038/sdata.2014.22 .[15] Steven A Lopez et al. “The Harvard organic photovoltaic dataset”. en. In: Sci. Data 3.1 (Sept. 2016), p. 160086. doi : 10.1038/sdata.2016.86 .[16] Justin Gilmer et al. “Neural message passing for Quantum chemistry”. In: Proceedings of the 34th International Conference on Machine Learning - Volume 70 . ICML’17. Sydney, NSW, Australia: JMLR.org, 2017, pp. 1263–1272. url : https://proceedings.mlr.press/v70/ gilmer17a.html .[17] K. T. Schütt et al. “SchNet – A deep learning architecture for molecules and materials”. In: The Journal of Chemical Physics 148.24 (Mar. 2018), p. 241722. issn : 0021-9606. doi :
+
+10.1063/1.5019779 . url : https://doi.org/10.1063/1.5019779 .[18] Johannes Klicpera, Janek Groß, and Stephan Günnemann. “Directional Message Passing for Molecular Graphs”. In: CoRR abs/2003.03123 (2020). arXiv: 2003.03123 . url : https: //arxiv.org/abs/2003.03123 .[19] Nathaniel Thomas et al. Tensor field networks: Rotation- and translation-equivariant neural networks for 3D point clouds . arXiv preprint. 2018. eprint: 1802.08219 (cs.LG). url : https: //arxiv.org/abs/1802.08219 .[20] Fabian B. Fuchs et al. SE(3)-Transformers: 3D Roto-Translation Equivariant Attention Net-works . 2020. arXiv: 2006.10503 [cs.LG] . url : https://arxiv.org/abs/2006.10503 .[21] Victor Garcia Satorras, Emiel Hoogeboom, and Max Welling. E(n) Equivariant Graph Neural Networks . 2022. arXiv: 2102.09844 [cs.LG] . url : https://arxiv.org/abs/2102.09844 .[22] Kristof T. Schütt, Oliver T. Unke, and Michael Gastegger. “Equivariant message passing for the prediction of tensorial properties and molecular spectra”. In: CoRR abs/2102.03150 (2021). arXiv: 2102.03150 . url : https://arxiv.org/abs/2102.03150 .[23] Simon Batzner et al. “E(3)-equivariant graph neural networks for data-efficient and accurate interatomic potentials”. en. In: Nat. Commun. 13.1 (May 2022), p. 2453. doi : 10 . 1038 / s41467-022-29939-5 .[24] Albert Musaelian et al. “Learning local equivariant representations for large-scale atomistic dynamics”. en. In: Nat. Commun. 14.1 (Feb. 2023), p. 579. doi : 10 . 1038 / s41467 - 023 -36329-y .[25] Zihan Zou et al. “A deep learning model for predicting selected organic molecular spectra”. en. In: Nat. Comput. Sci. 3.11 (Nov. 2023), pp. 957–964. doi : 10.1038/s43588-023-00550-y .[26] Junjie Wang et al. “E(n)-Equivariant cartesian tensor message passing interatomic potential”. en. In: Nat. Commun. 15.1 (Sept. 2024), p. 7607. doi : 10.1038/s41467-024-51886-6 .[27] Stefano Falletta et al. “Unified differentiable learning of electric response”. en. In: Nat. Com-mun. 16.1 (Apr. 2025), p. 4031. doi : 10.1038/s41467-025-59304-1 .[28] Jean Philip Filling et al. Direct Molecular Polarizability Prediction with SO (3) Equivariant Local Frame GNNs . arXiv preprint arXiv:2511.07087. 2025. arXiv: 2511 . 07087 [cs.LG] .
+
+url : https://arxiv.org/abs/2511.07087 .[29] Nils Gönnheimer et al. MACE-MDP: A General Dipole and Polarizability Model for Organic Molecules and Materials . ChemRxiv preprint. 2026. doi : 10.26434/chemrxiv.15000716/v2 .[30] David M. Wilkins et al. “Accurate molecular polarizabilities with coupled cluster theory and machine learning”. In: Proceedings of the National Academy of Sciences 116.9 (2019), pp. 3401–3406. doi : 10.1073/pnas.1816132116 .14 [31] Yang Yang et al. “Quantum mechanical static dipole polarizabilities in the QM7b and Al-phaML showcase databases”. In: Scientific Data 6.1 (2019). PubMed ID: 31427579, p. 152. [32] Vu Ha Anh Nguyen and Alessandro Lunghi. “Predicting tensorial molecular properties with equivariant machine learning models”. In: Physical Review B 105 (2022), p. 165131. doi :
+
+10.1103/PhysRevB.105.165131 .[33] Ting-Wei Hsu et al. “Accurate prediction of tensorial spectra using equivariant graph neural network”. In: Nature Communications 17 (2026), p. 3330. doi : 10.1038/s41467-026-69159-9.[34] Yuji Nakatsukasa, Olivier Sète, and Lloyd N. Trefethen. “The AAA Algorithm for Rational Approximation”. In: SIAM Journal on Scientific Computing 40.3 (2018), A1494–A1522. doi :
+
+10.1137/16M1106122 .[35] Fridtjof Betz et al. “Efficient Rational Approximation of Optical Response Functions with the AAA Algorithm”. In: Laser & Photonics Reviews 18.11 (2024), p. 2400584. doi : https: //doi.org/10.1002/lpor.202400584 .[36] Jan David Fischbach et al. “A Framework to Compute Resonances Arising from Multiple Scattering”. In: Advanced Theory and Simulations 8.2 (2025), p. 2400989. doi : https:// doi.org/10.1002/adts.202400989 .[37] Mario Geiger and Tess Smidt. e3nn: Euclidean Neural Networks . 2022. arXiv: 2207.09453 [cs.LG] . url : https://arxiv.org/abs/2207.09453 .[38] Ivan Fernandez-Corbaton et al. “Computation of Electromagnetic Properties of Molecular Ensembles”. In: ChemPhysChem 21.9 (2020), pp. 878–887. doi : https : / / doi . org / 10 . 1002/cphc.202000072 . eprint: https://chemistry-europe.onlinelibrary.wiley.com/ doi/pdf/10.1002/cphc.202000072 . url : https://chemistry-europe.onlinelibrary. wiley.com/doi/abs/10.1002/cphc.202000072 .[39] Benedikt Zerulla et al. “A T-Matrix Based Approach to Homogenize Artificial Materials”. In: Advanced Optical Materials 11.3 (2023), p. 2201564. doi : https://doi.org/10.1002/ adom . 202201564 . eprint: https : / / onlinelibrary . wiley . com / doi / pdf / 10 . 1002 / adom.202201564 . url : https://onlinelibrary.wiley.com/doi/abs/10.1002/adom. 202201564 .[40] Dominik Beutel, Ivan Fernandez-Corbaton, and Carsten Rockstuhl. “treams – a T-matrix-based scattering code for nanophotonics”. In: Computer Physics Communications 297 (2024), p. 109076. issn : 0010-4655. doi : https://doi.org/10.1016/j.cpc.2023.109076 . url :
+
+https://www.sciencedirect.com/science/article/pii/S0010465523004216 .[41] Floris Laporte. SAX: S-Matrices with Autograd and XLA - a scatter parameter circuit sim-ulator and optimizer for the frequency domain based on JAX . Version 0.14.1. 2024. url :
+
+https://flaport.github.io/sax/ .[42] N. P. K. Cotter, T. W. Preist, and J. R. Sambles. “Scattering-matrix approach to multilayer diffraction”. In: J. Opt. Soc. Am. A 12.5 (May 1995), pp. 1097–1103. doi : 10.1364/JOSAA. 12.001097 . url : https://opg.optica.org/josaa/abstract.cfm?URI=josaa-12-5-1097 .[43] N. Stefanou, V. Yannopapas, and A. Modinos. “Heterostructures of photonic crystals: fre-quency bands and transmission coefficients”. In: Computer Physics Communications 113.1 (1998), pp. 49–77. issn : 0010-4655. doi : https : / / doi . org / 10 . 1016 / S0010 - 4655(98 ) 00060-5 . url : https://www.sciencedirect.com/science/article/pii/S0010465598000605 .[44] Miguel Alexandre et al. “SCATMM: Easy-to-Use Graphical User Interface for Light Propa-gation in Arbitrary Multilayers.” In: Journal of Open Research Software 12:11 (2024). doi :
+
+https://doi.org/10.5334/jors.511 .[45] RAYMOND REDHEFFER. “Inequalities for a Matrix Riccati Equation”. In: Journal of Mathematics and Mechanics 8.3 (1959), pp. 349–367. issn : 00959057, 19435274. url : http: //www.jstor.org/stable/24900576 (visited on 02/06/2026). [46] Andrea Grisafi et al. “Symmetry-adapted machine learning for tensorial properties of atom-istic systems”. In: Phys. Rev. Lett. 120.3 (Jan. 2018). doi : 10 . 1103 / PhysRevLett . 120 . 036002 .[47] Rémi Flamary et al. “POT: Python Optimal Transport”. In: Journal of Machine Learning Research 22.78 (2021), pp. 1–8. url : http://jmlr.org/papers/v22/20-451.html .15 Supporting information 
+
+# Theoretical background 
+
+Time-dependent density functional theory 
+
+Density Functional Theory (DFT) is a practical way to describe how atoms and molecules behave. An atom is a mostly empty space: almost all of its mass sits in the nucleus, yet its electrons decide how the atom reacts with its surroundings. In principle, one could predict the motions of the electrons by solving Schrödinger’s equation, but that task becomes impossibly hard as soon as many atoms are involved because every electron interacts with every other one [1]. DFT sidesteps this problem by focusing on the electron density, the probability of finding an electron at any point in space, instead of tracking each electron separately. Working with this density turns the many-body problem into a set of much simpler equations that computers can solve approximately, even for molecules containing hundreds or thousands of atoms, well beyond the reach of more accurate but far computationally expensive wavefunction-based methods such as coupled-cluster (CC) or configuration-interaction (CI) [1]. When a molecule is placed in a time-varying electric or magnetic field, its electron cloud adjusts accordingly. Time-Dependent Density Functional Theory provides a systematic way to predict that adjustment: it treats the external field as a small perturbation of the ground state calculated by DFT and, from the resulting linear response, extracts molecular properties such as the dynamic polarizability. 
+
+Static and dynamic polarizability 
+
+When a molecule is placed in an electric field, the positively charged nuclei and the negatively charged electrons are displaced in opposite directions, creating an induced dipole moment pe. The polarizability α is the proportionality factor between this dipole and the applied field [2]: 
+
+pe = α E. (12) For an isotropic, perfectly spherical molecule α is just a scalar, but real molecules are usually anisotropic, and the response depends on the field direction. In that case, α becomes a 3 × 3
+
+tensor. 
+
+α =
+
+
+
+αxx αxy αxz 
+
+αyx αyy αyz 
+
+αzx αzy αzz 
+
+ ,
+
+so that each Cartesian component of E can induce a dipole along any axis. 
+
+Static vs. dynamic If the external field is constant, the corresponding static polarizability is de-noted α(0) . When the field oscillates with an angular frequency ω, the electron cloud cannot follow instantaneously, and the response becomes frequency-dependent, giving the dynamic polarizability 
+
+α(ω). In general, 
+
+α(ω) = α′(ω) + i α′′ (ω),
+
+where the real part α′ describes the distortion of the charge cloud, while the imaginary part α′′ 
+
+quantifies the component associated with the absorption of electromagnetic energy when ω is close to an electronic resonance. 
+
+Computation of the polarizability tensors 
+
+When a molecule is illuminated by an electromagnetic field {E(ω), H(ω)}, the induced electric and magnetic dipole moments pe, pm vary linearly with the applied electric and magnetic fields: 
+
+pe(ω) = αee (ω)
+
+| {z } 
+
+> electric–electric
+
+E(ω) + αem (ω)
+
+| {z }
+
+> electric–magnetic
+
+H(ω), (13) 
+
+pm(ω) = αme (ω)
+
+| {z }
+
+> magnetic–electric
+
+E(ω) + αmm (ω)
+
+| {z }
+
+> magnetic–magnetic
+
+H(ω). (14) 16 Each ανν ′ (ω) is a 3 × 3 complex polarizability tensor that links a field component ν′ ∈ { e, m } to the induced dipole component ν ∈ { e, m } [3]. To obtain these tensors, one adds a small, time-dependent perturbation to the ground-state Kohn– Sham Hamiltonian and solves the resulting coupled-perturbed Kohn–Sham equations. While the frequency-dependent polarizability tensor ανν ′ (ω) is often introduced as a sum over transition dipole moments between the ground and excited states, it is more commonly calculated as the second derivative of the total molecular energy with respect to external perturbation [3]. Repeating the procedure independently for each frequency provides the full dynamic polarizability tensor required for subsequent optical simulations [3]. 
+
+# Integration of the model into organic photovoltaic device simulations 
+
+In this section, we provide a detailed description of the computational setup for all steps, starting with the molecular description of the single molecules, over the T-matrix construction and the prediction with the machine learning model, and finally to the calculation of the generation rates of the whole stacked organic photovoltaic device using both calculated and predicted dynamic po-larizabilities. This quantum-chemistry-to-device pipeline forms the basis for the fully differentiable digital twin of the OPV stack described in previous work [4]. All produced quantum chemistry outputs from TURBOMOLE are deposited in the NOMAD database and can be accessed via the following DOI: https://doi.org/10.17172/NOMAD.RG5M-AQT6 .
+
+Details of the quantum chemistry calculations of QM9SPol and HOPV15 sets 
+
+All quantum chemistry calculations in this work have been performed with the development version of the electronic structure program TURBOMOLE [5, 6] that is developed at our university, the Karlsruhe Institute of Technology. For the ground state properties we used DFT, and for the excited state properties we employed its time-dependent linear response variant, TD-DFT. 
+
+QM9SPol set A subset of 5160 molecules was randomly selected from the QM9 [7, 8] dataset containing over 134000 molecules with up to 9 heavy (not hydrogen) atoms. Atomic positions of all molecules were optimized using the gradient minimization technique to find stable ground state configurations using computationally cheap generalized-gradient approx-imation (GGA) PBE exchange-correlation (XC) energy functional [9, 10] with Karlsruhe atomic orbital (AO) split-valence basis set def2-SVP [11]. The minimum of the molecular structure on the potential energy surface was confirmed by performing vibrational frequency analysis. In order to further speed up all calculations, a resolution-of-identity (RI)[12], and multipole-accelerated RI-J[13] algorithms were employed. All subsequent calculations used previously found stable geometries and a single-point energy calculation (ridft) with a hybrid functional and a higher-quality basis set were used to obtain reliable results. For optical properties, a hybrid PBE0 XC functional [14, 15] in combination with the triple-ζ-quality AO basis set with added valence and polarization functions (def2-TZVP) [16, 17, 18, 19] was chosen. This combination of the XC functional and the basis set is known to produce an absorption spectrum of a large and diverse set of molecules with the smallest mean square error compared to many functionals, while still having acceptable computational complexity. To speed up the calculations and additionally reduce computational demand, a semi-numerical algorithm in ground (senex)[20] and excited (esenex)[21] state for the exchange part of the energy functional were also used alongside RI and RI-J options. Magnetic contributions were included to the calculation of dynamic polarizabilities with a step called "mpshift". Absorption spectra were obtained by calculating the discrete electronic transi-tions from the ground to the 15 lowest-lying excited states, and an overall spectrum was constructed by applying a Lorentzian line-shape with 0.05 eV as FWHM to each transition and summing up all broadened line-shapes. The broadened line-shapes are summed over the energy window from 
+
+1.5 eV to 13 .5 eV , and the spectrum is sampled at the same energies as the dynamic polarizability tensors (61 points for QM9SPol, 241 points for HOPV15). Subsequently, electric-electric ( ee ), electric-magnetic ( em ), and magnetic-magnetic ( mm ) static polarizabilities were calculated for all molecules. Finally, a complex ee , em , and mm dynamic polarizability tensors were calculated for an equally spaced 61 frequencies from 1.55 eV to 6.2 eV 
+
+(approximately 800 nm -200 nm in wavelength). The computational costs for the different calcula-tions are depicted in Table 1. We see that the most important quantum chemistry result for our 17 OPV simulations (the dynamic polarizability tensors) are computationally the most demanding part. Thus, to generate additional data for training the neural network, which can replace those expensive calculations, we applied the efficient AAA algorithm[22, 23, 24] allowing us to interpo-late the calculated 61 frequency to a total of 241 frequency spanning the same spectral window (1.55 eV - 6.2 eV ). This comes at virtually no additional computational cost, whilst improving the overall training of the neural network for dynamic polarizability predictions. 
+
+HOPV15 set A total of 347 organic molecules with characteristic absorption in the visible (Vis) and/or ultraviolet (UV) part of the electromagnetic spectrum were extracted from the Harvard Organic Photovoltaic database (HOPV) for further studies in the context of the multi-scale multi-domain simulations of the complete OPV device stack. For all 347 molecules, the same procedure for quantum chemistry calculations was used as for the molecules contained in the QM9SPol dataset, which is described above in Subsection. The only difference is that for obtaining the absorption spectra we calculated the 40 lowest-lying discrete electronic transitions from the ground to the excited states. 
+
+Computational cost of the quantum chemistry calculations The quantum chemistry cal-culations were performed on a single computing node of a supercomputer. A node has two Intel Xeon Platinum 8368 processors with 38 CPU-cores each (base frequency 2.4GHz, max. turbo fre-quency 3.4 GHz) and 256 GB RAM. To minimize parallelization inefficiencies and total CPU-hours needed to produce training data, all calculations were performed either with a single core or with 2 cores to fit within the maximum given wall-time. Table 1 below summarizes step-wise and total CPU-hours for all quantum chemistry calculations of the photoactive layer. Table 1: An overview of the computational cost of quantum chemistry calculations DFT XC funct. QM9SPol % of the HOPV15 % of the and basis set (CPU-hours) total time (CPU-hours) total time # of molecules: 5160 347 PBE optimization: 585.96 3.79 647.79 0.96 def2-SVP vib. frequencies: 277.28 1.80 1041.83 1.55 ridft: 209.99 1.36 496.51 0.74 mpshift: 129.36 0.84 225.99 0.34 PBE0 spectra 15 ex. st.: 507.16 3.28 0.0 0.0 def2-TZVP spectra 40 ex. st.: 0.0 0.0 5298.93 7.87 stat. polarizability: 148.36 0.96 339.23 0.50 
+
+dyn. polarizability: 13583.47 87.97 59299.35 88.05 
+
+Total CPU-hours: 15441.57 100.00 67349.63 100.00 CPU-hours/mol.: 2.99 194.09 All outputs of the DFT and TD-DFT calculations are deposited in the NOMAD database, under the following DOI: https://doi.org/10.17172/NOMAD.RG5M-AQT6 .Figure 1 shows the CPU time as a function of the number of Cartesian basis functions, which serves as a proxy for molecular size, for the HOPV15 dataset. The cost of computing dynamic polarizabilities clearly dominates, exceeding 800 CPU hours for the largest systems, while other properties such as static polarizability and SCF remain below 10 hours. In all five panels, two distinct bands of points are visible, hinting at two structural subsets of molecules whose electronic structure converges with systematically different effort; a closer inspection of molecular motifs is left for future work. 18 (a) Computing cost of HOPV15 SCF (ridft). (b) Computing cost of HOPV15 mpshift. 
+
+> (c) Computing cost of HOPV15 absorption spectrum.
+> (d) Computing cost of HOPV15 static polarizability.
+> (e) Computing cost of HOPV15 dynamic polarizability.
+
+Figure 1: CPU time (in hours) versus number of Cartesian basis functions for all properties evalu-ated in the HOPV15 dataset (347 molecules). Each point corresponds to a single molecule. Among the evaluated quantities, dynamic polarizability is by far the most computationally expensive. Re-produced from [25]. 
+
+Details of the quantum chemistry calculations of donor polymer PM6 
+
+To obtain the electronic ground-state structure of the PM6 polymer donor material, we considered two monomers as the molecular model. Structural molecular optimization was performed with the same hybrid PBE0 XC functional [14, 15] and the triple-ζ-quality basis set with additional valence and polarization functions (def2-TZVP) [16, 17, 18, 19] as above. Subsequent calculations of all optical properties, like the dynamic polarizabilities, used a coulomb-attenuated long-range-corrected hybrid cam-B3LYP functional [26] with the def2-TZVP basis set. This choice ensures a correct description of long-range effects and charge-transfer states of the polymer material. For PM6, the dynamic polarizabilities were evaluated in a wavelength range from 300 nm to 
+
+1200 nm , in increments of 2 nm . This is the equivalent of 1.033 eV to 4.133 eV . In addition, we 19 introduce a Lorentzian line-shape broadening factor of 0.1 eV . We construct the T-matrices from the dynamic polarizability tensors, as described below in the Dynamic polarizability to T-matrix 
+
+section. 
+
+Molecular model of PM6 and models of HOPV molecules 
+
+To understand the optical response of the photoactive bulk material, the optical responses on the molecular level are investigated. Since the morphological complexity of the photoactive material is high, we assume a simplified model. We treat the donor and the absorber molecules separately to calculated their optical properties, rather than directly modeling them as a mixture on the molecular level. This means that for the PM6:HOPV system, we define the structural properties of the molecular models separately and use those as the basis for all our further calculation steps. In a later step, we then mix the materials on a macroscopic level. The donor polymer PM6 is short for Poly[(2,6-(4,8-bis(5-(2-ethylhexyl-3-fluoro)thiophen-2-yl)-benzo[1,2-b:4,5-b’]dithiophene))-alt-(5,5-(1’,3’-di-2-thienyl-5’,7’-bis(2-ethylhexyl)benzo[1’,2’-c:4’,5’-c’]dithiophene-4,8-dione)]. We build a molecular representation of the polymer, consisting of two identical monomer molecules. The second monomer is connected to the first with a covalent C-C bond and rotated by 180 ◦ around the polymer chain. Overall, this structure has 314 atoms and has lattice constants of 3.98 nm , 0.44 nm , and 2.28 nm . The final, geometry optimized structure is visualized in Figure 2(a). For clarity, Figure 2(b) shows the individual monomer units highlighted in different colors. 
+
+Figure 2: (a) This subfigure shows the DFT optimized PM6 polymer model structure. White, gray, blue, red, yellow, and green balls represent H, C, N, O, S, and F atoms. (b) Again, this subfigure shows the PM6 polymer structure. This time, the two individual monomers are color-marked to visualize the two monomers. Reproduced from Ref. [4]. For each HOPV molecule, the exact atoms and their positions are known. With the help of the cavity volume constructed by the Gaussian Charge Model COSMO-GCM implicit solvation, we obtain a rough estimate of the volume of the single molecule in a dense packing within the possible crystal lattice. Thanks to reference molecules, where experimental values of volumes are known from the CIF database, we can determine an estimator for the correction factor of the calculated 20 volume of the single molecule from COSMO-GCM. This factor is calculated to be 9.6% on average. The data used to find the correction factor is presented in the Table 2. We observe that the factor still does not account for the total lattice, and a significant overlap of the unit cells might be present during the homogenization procedure due to molecules having one spatial extension much larger than the other dimension. This can yield nonphysical effective parameters due to the significant overlap of the Rayleigh spheres describing the molecule in scattering theory. Therefore, to mitigate such possibilities, we enlarged the lattice constants by an additional factor of 1.7.21 Table 2: Volume correction of HOPV15 molecules for density prediction based on COSMO-GCM. Mol.  CIF mass  calc. mass  CIF vol.  CIF dens.  COSMO vol.  COSMO dens.  ratio  COSMO vol. corr.  corr. dens.  corr. ratio kg/mol.  kg/mol.  Å3/mol.  g/cm 3 Å3/mol.  g/cm 3 COSMO/CIF  1.096  g/cm 3
+
+> 54  5.652E-25  5.652E-25  424.4  1.332  394.07  1.434  1.077  431.90  1.309  0.983 131  7.250E-25  7.249E-25  454.925  1.594  443.22  1.636  1.026  485.77  1.492  0.936 199  5.454E-25  5.454E-25  373.375  1.461  349.87  1.559  1.067  383.46  1.422  0.974 160 ∗ 1.417E-24  1.417E-24  1015.95  1.395  880.04  1.610  1.154  964.53  1.469  1.053 161 ∗ 8.574E-25  8.573E-25  472.15  1.816  428.85  1.999  1.101  470.02  1.824  1.004 220 ∗ 1.862E-25  1.862E-25  126.6525  1.470  123.99  1.502  1.021  135.89  1.370  0.932 243 ∗ 8.521E-25  8.520E-25  416.975  2.043  381.31  2.234  1.093  417.92  2.039  0.998 245 ∗ 5.630E-25  5.629E-25  290  1.941  266.50  2.112  1.088  292.09  1.927  0.993 267 ∗ 1.414E-24  1.425E-24  1040  1.359  932.61  1.528  1.124  1022.15  1.394  1.026 269 ∗ 1.561E-24  1.609E-24  1007.15  1.550  875.76  1.837  1.185  959.83  1.676  1.082 287 ∗ 1.104E-24  1.104E-24  746.495  1.479  671.92  1.643  1.111  736.43  1.499  1.014 308 ∗ 9.276E-25  9.275E-25  689.2  1.346  625.51  1.483  1.102  685.56  1.353  1.005
+> ∗ Molecules from the CIF database, which are structurally similar, but not exactly the same as the ones in the HOPV15 dataset.
+
+22 Dynamic polarizability to T-matrix 
+
+The transition matrix [27] describes light-matter interaction of a single object [28, 29]. The T-matrix is helpful to transition our knowledge from the microscopic, molecular level to the macro-scopic, bulk material level. The T-matrix can be defined in the helicity basis as 
+
+T =
+
+TNN TNM 
+
+TMN TMM 
+
+
+
+= ichZhk3h
+
+6π
+
+ C (αee ) C−1 C (−iαem /Z h) C−1
+
+C (i αme /c h) C−1 C (αmm /(chZh)) C−1
+
+
+
+, (15) with C a 3x3 matrix converting tensors from the Cartesian basis to the spherical basis, ch =1/√εhμh the speed of light in the surrounding medium, and Zh = pμh/ε h the wave impedance in the surrounding medium. ανν ′ are the 3x3 dipolar polarizability tensors, where subscript ee 
+
+denotes the electric-electric tensor, em the electric-magnetic tensor, me the magnetic-electric ten-sor, and mm the magnetic-magnetic tensor [30]. Among other quantum chemistry methods, the polarizability tensors ανν ′ of the molecular materials can be calculated with TD-DFT. They are frequency-dependent and are presented in Cartesian coordinates. 
+
+Figure 3: Illustration of the scattering process described with the T -matrix [27]: an incoming plane wave is expanded into vector-spherical waves with coefficients a, interacts with the object repre-sented by T, and emerges as a scattered field with coefficients c satisfying c = T a . Reproduced from [3]. Once we construct the T-matrix of a molecule, we can use it to embed the molecule in a photonic device of which we want to calculate the optical response with Maxwell simulations. The calculated and predicted T-matrices from quantum chemistry simulations and the neural network for the optical simulations can be provided on a reasonable request. 
+
+Homogenization 
+
+The homogenization approach, which we used here, is based on the effective T-matrix ( Teff ). The T-matrix Tmolecule of the individual molecular units is used to construct the collective response of the bulk materials. Under the assumption of plane wave illumination, Teff consolidates non-local effects into an effectively local description. It is defined as 
+
+Teff (k) = ( I − Tmolecule 
+
+X
+
+> R̸=0
+
+C(3) (−R)e ik·R)−1Tmolecule (16) with Tmolecule the T-matrix of the considered molecule, placed at lattice sites R, with k the total wave vector and C(3) (−R) matrices the electromagnetic coupling between the origin and the lattice sites R [29]. The lattice sum in equation 16 is computed with the help of the treams framework [31]. The effective material parameters, such as the permittivity εeff and the permeability μeff , can be derived from the dipolar part of Teff [29]. The reason behind this is the bijective link between the linear 6 × 6 local bi-anisotropic model, relating electric displacement D and magnetic flux density B to the electric field E and magnetic field H in the frequency domain, and the dipolar components of Teff .We calculate Teff (and thus also the effective material parameters) separately for PM6 and each HOPV molecule. The total effective permittivity of the photoactive material blend is calculated by weighting the effective permittivity values from PM6 and the HOPV molecule in a volume ratio of 1:1. 23 300 400 500 600 700 800 Wavelength [nm] 01234567Permittivity real( ) - simulation 
+
+> imag( ) - simulation
+> real( ) - experimental
+> imag( ) - experimental
+
+Figure 4: Permittivity values ε for PM6. Solid lines computed with our computational approach are named simulation . The simulation data are reproduced from Ref. [4]. The dotted lines are measured data for PM6, taken from Figure 4 of Ref. [32], and are named experimental .
+
+Permittivity values PM6 
+
+All the above steps were performed for the molecule PM6 as indicated in the sections before. Fig-ure 4 shows the real and imaginary parts of the permittivity values ε of PM6, which we calculated with our computational, TD-DFT-based methods. In addition, we plot corresponding experimen-tal values for comparison. They were measured by Ref. [32] (see experimental in Figure 4). We observe that the placement of the peaks on the wavelength scale matches between simulation and experiment, especially for the imaginary permittivity part. Furthermore, the order of magnitude of the peaks matches well between computed and measured values. We use the simulated permittivity values ε of PM6 for all further calculations. 
+
+Stack architecture 
+
+The considered solar cell stack is shown in Figure 5. Sunlight enters the stack through the glass substrate with a thickness of 1 μm. It is followed by: 150 nm ITO, 30 nm ZnO, 200 nm of photoactive material, 50 nm of PEDOT:PSS, 10 nm Ag and 140 nm PEDOT:PSS. All layers are assumed to be stratified isotropic media. The Ag layer is an approximation for a semi-transparent back contact of silver nanowires. The photoactive material is defined as a 1:1 blend ratio in volume of PM6 and one molecule of the HOPV test dataset. PM6 thereby acts as a donor polymer and the HOPV molecule as an acceptor polymer. 
+
+Generation rate and S-matrix calculation 
+
+As stated in the manuscript, the generation rate G is defined as 
+
+G = e 
+
+Z
+
+> x
+
+Z
+
+> λ
+
+Pabs (x) f (λ) d λ dx, (17) with e the elementary charge, Pabs (x) the spatially resolved absorption, and factor f (λ). f (λ) is defined as f (λ) = Irr( λ) Pin  
+
+> Ain
+
+, where Irr is the irradiance at wavelength λ (according to the standard AM 1.5 spectrum) and Pin is the power input per area Ain . Note that equation 17 assumes the internal quantum efficiency to be 100 %, implying that in the photoactive layer all absorbed photons are converted into free charge carriers. Furthermore, we assume normal incidence of the light for these considerations and a photoactive layer thickness of 200 nm . We evaluate the generation rates over a wavelength range between 300 nm to 800 nm .24 Figure 5: Device architecture of the considered organic solar cell. The stack thicknesses are not drawn to scale and measure 1 μm of glass, 150 nm of ITO, 30 nm of ZnO, 200 nm of photoactive material, 50 nm of PEDOT:PSS, a 10 nm layer of Ag, and finally 140 nm of PEDOT:PSS. The photoactive material is made of PM6 and a molecule from the HOPV dataset in a 1:1 blend ratio in volume. This figure is reproduced from Ref. [4]. The spatially resolved absorption Pabs (x) is given by the expression 
+
+Pabs (x) = −0.5ω |E( x)|2 Im( ε) (18) with ω the angular frequency 2πc λ , the field E( x) and the permittivity ε of the material at position 
+
+x. We can calculate the field E( x) via the S-matrix [33]. Given the permittivity ε and the thickness 
+
+d of a layer, we can analytically construct its S-matrix [34]. The S-matrix of the full structure is then obtained through the Redheffer product [35, 36]. This enables the analysis of the photon absorption both for an individual layer of the solar cell and for the entire stack. 
+
+Some examples of HOPV molecules 
+
+In this section, we give some examples of PM6:HOPV molecule combinations. The aim is to facilitate a better understanding of the resulting permittivity values ε of the different molecules and how they influence the overall permittivity of the photoactive material. 
+
+HOPV molecule number 3 For the HOPV molecule number 3, we observe a good agreement between the original permittivity values and the predicted ones. This is shown in Figure 6 for the imaginary parts of the permittivity values ε of the molecule alone. In this context, original means that we calculate the T-matrix via computationally expensive TD-DFT calculations. We then use this T-matrix to calculate the permittivity values ε as described above. The term predicted is used when the T-matrix is predicted by our ML-model. The predicted T-matrix is then used to find the permittivity values ε, according to the homogenization steps described in the previous sections. Next, we consider the photoactive material combination of PM6 and the HOPV molecule number 3, called PM6:HOPV3. The permittivity data for the original case and the predicted case are given in Figure 7. We recognize two distinct peaks - one corresponding to the PM6 molecule and one to the HOPV molecule number 3. 
+
+HOPV molecule number 12 Figure 8 shows the imaginary parts of the permittivity values ε
+
+in the original and the predicted case. Again, original refers to the case where the permittivity data stems from the TD-DFT calculated T-matrix, and predicted to the case where the T-matrix is predicted from our model. For this example, the agreement between the original permittivity values and the predicted values is not very good. Notice, that the magnitude of the permittivity values 
+
+ε is very small, meaning that this specific molecule does not absorb well in the given wavelength range. 25 Figure 6: Imaginary part of the permittivity ε of HOPV molecule number 3. The red points show the permittivity data for the original , TD-DFT-based, case. The orange points show the imaginary part of the permittivity values for the predicted T-matrix. We observe a clear similarity between the two cases. The left plot shows the results over the wavelength in nanometers, the right plot over the frequency in electron volts. The inserted figures show the model structure of this molecule. 300 400 500 600 700 800 Wavelength [nm] 0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 Permittivity 
+
+> PM6:HOPV3
+> imag( ) - original
+> real( ) - original
+> imag( ) - predicted
+> real( ) - predicted
+
+Figure 7: Permittivity values ε for the photoactive bulk material PM6:HOPV3. The blue tones correspond to the real part, the red tones show the imaginary part of ε. The darker color shades, red and blue, show the originally calculated data. The lighter color shades, orange and light blue, show the results of the predictive mode. 26 Figure 8: This figure shows the imaginary part of the permittivity ε of the HOPV molecule number 12. On the left, we show the permittivity ε over the wavelength. On the right, we show the permittivity ε over the energy. The values stemming from the original T-matrix calculation (in red) deviate clearly from the values from the predicted T-matrices (in orange). Overall, the magnitude of the values is rather small. The inserted figures show the model structure of the HOPV molecule number 12. In addition, we look at the permittivity values ε for the photoactive bulk material PM6:HOPV12, see Figure 9. In this case, we only observe one peak in the permittivity values ε. When taking Figure 4 into account, we notice that this peak corresponds to PM6 only. This means the HOPV molecule number 12 does not add any additional absorption peak, neither in the original nor in the predicted case. Therefore, despite the strong mismatch for the HOPV molecule 12 alone, the photoactive material does not exhibit particularly different results for original or predicted values. 27 300 400 500 600 700 800 Wavelength [nm] 0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 Permittivity 
+
+PM6:HOPV12 
+
+> imag( ) - original
+> real( ) - original
+> imag( ) - predicted
+> real( ) - predicted
+
+Figure 9: This figure shows the PM6:HOPV12 permittivity values ε. Once calculated in the 
+
+original , TD-DFT way (in darker colors) and once in the predicted ML-based way (in lighter colors). The blue tones indicated the real parts of ε and the orange tones the imaginary parts of 
+
+ε. The plot shows that PM6 is dominant over the HOPV molecule number 12. 28 References 
+
+[1] Neepa Maitra. Time-Dependent Density Functional Theory . https://www.youtube.com/ watch?v=ItWonHYm- ls . [Accessed 31-05-2025]. 2010. url : https://www.youtube.com/ watch?v=ItWonHYm-ls .[2] Delmar Larsen, Kelly Cox, and Dana Reussner. Polarizability . Feb. 2023. url : https:// chem.libretexts.org/Bookshelves/Physical_and_Theoretical_Chemistry_Textbook_ Maps / Supplemental _ Modules _ (Physical _ and _ Theoretical _ Chemistry ) /Physical _ Properties_of_Matter/Atomic_and_Molecular_Properties/Intermolecular_Forces/ Specific_Interactions/Polarizability .[3] Benedikt Alexander Raphael Zerulla. “Photonic Devices Made from Molecular Materials: A Multi-Scale Modeling Approach”. PhD thesis. Karlsruher Instituts für Technologie (KIT), 2024. doi : 10.5445/IR/1000171925 .[4] Marie Louise Schubert, Houssam Metni, et al. Towards a fully differentiable digital twin for solar cells . arXiv preprint arXiv:2512.02904. M. L. Schubert and H. Metni contributed equally. 2025. arXiv: 2512.02904 [physics.comp-ph] . url : https://arxiv.org/abs/ 2512.02904 .[5] TURBOMOLE V7.8 2023, a development of University of Karlsruhe and Forschungszentrum Karlsruhe GmbH, 1989-2007, TURBOMOLE GmbH, since 2007 . 2023. url : https://www. turbomole.org .[6] Yannick J. Franzke et al. “TURBOMOLE: Today and Tomorrow”. In: Journal of Chemical Theory and Computation 19.20 (2023), pp. 6859–6890. doi : 10.1021/acs.jctc.3c00347 .[7] Lars Ruddigkeit et al. “Enumeration of 166 Billion Organic Small Molecules in the Chemical Universe Database GDB-17”. In: Journal of Chemical Information and Modeling 52.11 (2012). PMID: 23088335, pp. 2864–2875. doi : 10.1021/ci300415d . eprint: https://doi.org/10. 1021/ci300415d . url : https://doi.org/10.1021/ci300415d .[8] Raghunathan Ramakrishnan et al. “Quantum chemistry structures and properties of 134 kilo molecules”. In: Scientific Data 1 (2014). doi : 10.1038/sdata.2014.22 .[9] John P. Perdew, Kieron Burke, and Matthias Ernzerhof. “Generalized Gradient Approx-imation Made Simple”. In: Phys. Rev. Lett. 77 (1996), pp. 3865–3868. doi : 10 . 1103 / PhysRevLett.77.3865 .[10] John P. Perdew, Kieron Burke, and Matthias Ernzerhof. “Generalized Gradient Approxi-mation Made Simple [Phys. Rev. Lett. 77, 3865 (1996)]”. In: Phys. Rev. Lett. 78 (1997), pp. 1396–1396. doi : 10.1103/PhysRevLett.78.1396 .[11] Florian Weigend and Reinhart Ahlrichs. “Balanced basis sets of split valence, triple zeta valence and quadruple zeta valence quality for H to Rn: Design and assessment of accuracy”. In: Phys. Chem. Chem. Phys. 7 (2005), p. 3297. doi : 10.1039/B508541A .[12] Reinhart Ahlrichs. “Efficient evaluation of three-center two-electron integrals over Gaussian functions”. In: Phys. Chem. Chem. Phys. 6 (2004), pp. 5119–5121. doi : 10.1039/B413539C .[13] Marek Sierka, Annika Hogekamp, and Reinhart Ahlrichs. “Fast evaluation of the Coulomb potential for electron densities using multipole accelerated resolution of identity approxima-tion”. In: J. Chem. Phys. 118 (2003), pp. 9136–9148. doi : 10.1063/1.1567253 .[14] Carlo Adamo and Vincenzo Barone. “Toward Reliable Density Functional Methods without Adjustable Parameters: The PBE0 Model”. In: The Journal of Chemical Physics 110.13 (1999), pp. 6158–6170. doi : 10.1063/1.478522 .[15] Matthias Ernzerhof and Gustavo E. Scuseria. “Assessment of the Perdew–Burke–Ernzerhof Exchange-Correlation Functional”. In: The Journal of Chemical Physics 110.11 (1999), pp. 5029– 5036. doi : 10.1063/1.478401 .[16] Florian Weigend and Reinhart Ahlrichs. “Balanced Basis Sets of Split Valence, Triple Zeta Valence and Quadruple Zeta Valence Quality for H to Rn: Design and Assessment of Accu-racy”. In: Phys. Chem. Chem. Phys. 7.18 (2005), pp. 3297–3305. doi : 10.1039/B508541A .[17] K Eichkorn et al. “Auxiliary Basis Sets to Approximate Coulomb Potentials (Chem. Phys. Letters 240 (1995) 283-290)”. In: Chemical Physics Letters 242.6 (1995), pp. 652–660. doi :
+
+10.1016/0009-2614(95)00838-U .[18] Karin Eichkorn et al. “Auxiliary Basis Sets for Main Row Atoms and Transition Metals and Their Use to Approximate Coulomb Potentials”. In: Theor Chem Acta 97.1 (1997), pp. 119– 124. doi : 10.1007/s002140050244 .[19] Florian Weigend. “Accurate Coulomb-fitting Basis Sets for H to Rn”. In: Phys. Chem. Chem. Phys. 8.9 (2006), pp. 1057–1065. doi : 10.1039/B515623H .29 [20] Philipp Plessow and Florian Weigend. “Seminumerical calculation of the Hartree–Fock ex-change matrix: Application to two-component procedures and efficient evaluation of local hybrid density functionals”. In: Journal of Computational Chemistry 33.7 (2012), pp. 810– 816. doi : https://doi.org/10.1002/jcc.22901 .[21] Christof Holzer. “An improved seminumerical Coulomb and exchange algorithm for properties and excited states in modern density functional theory”. In: J. Chem. Phys. 153.18 (2020), p. 184115. doi : 10.1063/5.0022755 .[22] Yuji Nakatsukasa, Olivier Sète, and Lloyd N. Trefethen. “The AAA Algorithm for Rational Approximation”. In: SIAM Journal on Scientific Computing 40.3 (2018), A1494–A1522. doi :
+
+10.1137/16M1106122 .[23] Fridtjof Betz et al. “Efficient Rational Approximation of Optical Response Functions with the AAA Algorithm”. In: Laser & Photonics Reviews 18.11 (2024), p. 2400584. doi : https: //doi.org/10.1002/lpor.202400584 .[24] Jan David Fischbach et al. “A Framework to Compute Resonances Arising from Multiple Scattering”. In: Advanced Theory and Simulations 8.2 (2025), p. 2400989. doi : https:// doi.org/10.1002/adts.202400989 .[25] Maria Kraus. “Predicting Dynamic Polarizability Tensors of Organic Molecules Using Equiv-ariant Graph Neural Networks”. Master’s thesis. Karlsruhe Institute of Technology (KIT), 2025. [26] Takeshi Yanai, David P Tew, and Nicholas C Handy. “A new hybrid exchange–correlation functional using the Coulomb-attenuating method (CAM-B3LYP)”. In: Chemical Physics Letters 393.1 (2004), pp. 51–57. issn : 0009-2614. doi : https : / / doi . org / 10 . 1016 / j . cplett.2004.06.011 .[27] P.C. Waterman. “Matrix formulation of electromagnetic scattering”. In: Proceedings of the IEEE 53.8 (1965), pp. 805–812. doi : 10.1109/PROC.1965.4058 .[28] Benedikt Zerulla et al. “A Multi-Scale Approach for Modeling the Optical Response of Molec-ular Materials Inside Cavities”. In: Advanced Materials 34.21 (2022), p. 2200350. doi : https: //doi.org/10.1002/adma.202200350 . eprint: https://onlinelibrary.wiley.com/doi/ pdf/10.1002/adma.202200350 . url : https://onlinelibrary.wiley.com/doi/abs/10. 1002/adma.202200350 .[29] Benedikt Zerulla et al. “A T-Matrix Based Approach to Homogenize Artificial Materials”. In: Advanced Optical Materials 11.3 (2023), p. 2201564. doi : https://doi.org/10.1002/ adom . 202201564 . eprint: https : / / onlinelibrary . wiley . com / doi / pdf / 10 . 1002 / adom.202201564 . url : https://onlinelibrary.wiley.com/doi/abs/10.1002/adom. 202201564 .[30] Ivan Fernandez-Corbaton et al. “Computation of electromagnetic properties of molecular ensembles”. In: ChemPhysChem 21 (2020), pp. 878–887. doi : 10.1002/cphc.202000072 .[31] Dominik Beutel, Ivan Fernandez-Corbaton, and Carsten Rockstuhl. “treams – a T-matrix-based scattering code for nanophotonics”. In: Computer Physics Communications 297 (2024), p. 109076. issn : 0010-4655. doi : https://doi.org/10.1016/j.cpc.2023.109076 . url :
+
+https://www.sciencedirect.com/science/article/pii/S0010465523004216 .[32] Mina Piralaee and Asghar Asgari. “The role of domain size and weight ratio of fullerene and non-fullerene acceptors on performance of PM6:Y6: PCBM ternary solar cell”. In: Optical and Quantum Electronics 55.9 (2023), p. 802. doi : 10.1007/s11082- 023- 05090- 3 . url :
+
+https://doi.org/10.1007/s11082-023-05090-3 .[33] N. P. K. Cotter, T. W. Preist, and J. R. Sambles. “Scattering-matrix approach to multilayer diffraction”. In: J. Opt. Soc. Am. A 12.5 (May 1995), pp. 1097–1103. doi : 10.1364/JOSAA. 12.001097 . url : https://opg.optica.org/josaa/abstract.cfm?URI=josaa-12-5-1097 .[34] N. Stefanou, V. Yannopapas, and A. Modinos. “Heterostructures of photonic crystals: fre-quency bands and transmission coefficients”. In: Computer Physics Communications 113.1 (1998), pp. 49–77. issn : 0010-4655. doi : https : / / doi . org / 10 . 1016 / S0010 - 4655(98 ) 00060-5 . url : https://www.sciencedirect.com/science/article/pii/S0010465598000605 .[35] Miguel Alexandre et al. “SCATMM: Easy-to-Use Graphical User Interface for Light Propa-gation in Arbitrary Multilayers.” In: Journal of Open Research Software 12:11 (2024). doi :
+
+https://doi.org/10.5334/jors.511 .[36] RAYMOND REDHEFFER. “Inequalities for a Matrix Riccati Equation”. In: Journal of Mathematics and Mechanics 8.3 (1959), pp. 349–367. issn : 00959057, 19435274. url : http: //www.jstor.org/stable/24900576 (visited on 02/06/2026). 30

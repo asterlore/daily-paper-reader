@@ -1,0 +1,616 @@
+Title: MFG: Multi-turn Feedback Guided Molecular Optimization
+
+URL Source: https://arxiv.org/pdf/2610.18851v1
+
+Published Time: Wed, 14 Oct 2026 05:11:07 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+# MFG: Multi-turn Feedback Guided Molecular Optimization 
+
+Trieu Nguyen 1, Frazier N. Baker 1, Ruoxi Gao 1, Daniel Adu-Ampratwum 4, Xia Ning 1,2,3,4 
+
+> 1
+
+Department of Computer Science and Engineering, The Ohio State University 
+
+> 2
+
+Department of Biomedical Informatics, The Ohio State University 
+
+> 3
+
+Translational Data Analytics Institute, The Ohio State University 
+
+> 4
+
+Division of Medicinal Chemistry and Pharmacognosy, The Ohio State University  
+
+> Correspondence: ning.104@osu.edu
+
+Abstract 
+
+Multi-objective molecular optimization is a crit-ical process in drug discovery that aims to modify a given molecule to simultaneously improve multiple properties while maintain-ing a similar overall structure. This process often requires iterative modifications guided by computational or experimental feedback. Recent large language model (LLM)-based methods have begun to explore this iterative approach; however, these methods are not explicitly trained to leverage such feedback, while existing approaches primarily focus on single-turn molecular optimization. To ad-dress this gap, we introduce Multi-turn Feed-back Guided (MFG) molecular optimization, a reinforcement learning framework that trains an LLM to progressively optimize molecules using feedback from previous turns. MFG introduces a feedback vector capturing both property improvements and source molecule similarity, alongside a feedback-aligned re-ward function that promotes progressive im-provement across turns. We apply MFG over GeLLM 3O, a state-of-the-art LLM model for multi-objective molecular optimization, eval-uate GeLLM 3O-MFG on ten multi-objective molecular optimization tasks. The results demonstrate that GeLLM 3O-MFG achieves the highest average similarity-constrained suc-cess rate (81.50%), outperforming the base model GeLLM 3O ( 70 .81% ). 
+
+1 Introduction 
+
+Multi-objective molecular optimization (MOMO) (Sun et al., 2022) is a critical process in drug dis-covery (Hughes et al., 2011) that aims to modify a given molecule to simultaneously improve multi-ple properties while maintaining a similar overall structure. Such improvements are necessary be-cause even promising molecules may suffer from poor solubility, insufficient selectivity, or toxicity that hinders their development into viable drugs. Achieving these improvements often requires iter-ative structural modifications to balance multiple, potentially competing molecular properties. By it-eratively reasoning on how to modify molecules, chemists can rely on not only their expert knowl-edge, but also computational (Nicolaou and Brown, 2013) or experimental feedback. Large language models (LLMs) have shown promise on similar it-erative tasks through multi-turn reasoning (Naveed et al., 2025), providing a promising mechanism to mimic this approach to MOMO. Recent efforts (Ye et al., 2025; Zuo et al., 2025) have used LLMs for MOMO. Several methods (Liu et al., 2023; Le et al., 2024) incorporated iterative feedback at inference-time, prompting LLMs to modify molecules over multiple turns while incor-porating feedback on the modified molecules of previous turns. However, these methods are not trained on how to leverage such feedback. Instead, they rely only on the LLMs’ general-purpose pre-training and basic reasoning capabilities. Other methods have used supervised finetuning methods (Dey et al., 2025) and reinforcement learning (RL) (Liu et al., 2025) to train models for MOMO. How-ever, training is limited to non-iterative, single-turn generation, with no specialized training on multi-turn feedback. Here, we introduce MFG, a Multi-turn Feedback 
+
+Guided framework for MOMO. MFG formulates MOMO as a multi-turn problem with feedback, using RL to train an LLM to iteratively optimize molecules by leveraging feedback from previous turns. MFG introduces a feedback vector that cap-tures both property improvements and similarity to the given source molecule at each turn, providing dynamically updated feedback to guide the LLM policy throughout the optimization process. MFG’s RL training is guided by a reward function that aligns with this feedback while also encouraging progressive improvement across turns. During in-ference, MFG can use its trained model to generate 1arXiv:2610.18851v1 [cs.AI] 13 Oct 2026 multiple candidate molecules at each turn and se-lect the best molecule for further turns, carefully balancing property improvement and similarity. To-gether, MFG serves as a powerful new framework for MOMO with feedback. To evaluate MFG, we instantiate GeLLM 3O-MFG, using GeLLM 3O, a state-of-the-art molecular optimization LLM, as the base model for MFG’s RL training. We compare GeLLM 3O-MFG against GeLLM 3O and other existing molecular optimization baselines on the 
+
+MuMOInstruct dataset (Dey et al., 2025), a bench-mark featuring diverse property combinations and both in-distribution and out-of-distribution MOMO tasks. Across all tasks, GeLLM 3O-MFG achieves the highest average similarity-constrained success rate (81.50%), outperforming the best baseline (BioMedGPT-Mol, 77 .81% ) and GeLLM 3O(70 .81% ). An ablation study shows that multi-turn feedback and RL training each contribute adistinct advantage to MFG. Additionally, a case study illustrates how GeLLM 3O-MFG adapts its optimization strategy based on feedback. GeLLM 3O-MFG is publicly available at https: //anonymous.4open.science/r/MFG-85BD/ .
+
+2 Related Work 
+
+RL for Molecular optimization Existing molec-ular optimization LLMs such as GeLLM 3O (Dey et al., 2025) have explored instruction tuning of general-purpose LLMs on large-scale MOMO tasks (see Appendix A.1 for a summary of more related work). However, this supervised learn-ing approach may limit model’s ability to explore chemical space beyond the distribution of train-ing examples. Recent works have leveraged RL to further align molecular optimization LLMs with desired molecule properties. For example, DrugIm-proverGPT (Liu et al., 2025) employed reward-based RL to explore molecule modifications for improving multiple molecule properties. However, the sparsity of high-reward molecules in chemical space can make effective exploration challenging. To address this challenge, RePO (Li et al., 2026) leveraged reference optimized molecules to provide LLMs with templates of successful optimization. Despite different designs of RL methods, existing works primarily optimize source molecules in a single turn, treating each optimization as an inde-pendent process. Our work considers a new setting in which molecules are iteratively optimized over multiple turns, and develops a novel multi-turn training framework for this setting. To the best of our knowledge, our work is the first to improve molecular optimization LLMs through multi-turn RL. 
+
+3 MFG Framework 
+
+3.1 Problem Formulation 
+
+Multi-objective molecular optimization (MOMO) seeks to modify a source molecule C0 into a struc-turally similar molecule C while improving m
+
+properties P = ( p1, p 2, · · · , p m). Existing LLM-based approaches commonly formulate this task as a single-turn problem, where an LLM directly generates C in a single response when prompted with C0 and P. However, this single-turn approach offers limited opportunity to adjust the optimiza-tion strategy. MOMO can be very challenging, as structural changes that improve one property may degrade another, and improvement patterns may not remain consistent across different C0.To address this challenge, we reformulate MOMO as a multi-turn problem with feedback, where an LLM iteratively generates optimized molecules for a given C0 and P, adjusting its strate-gies based on previous turn’s property change and similarity to C0. Under this formulation, we con-sider the LLM with parameters θ as a policy πθ
+
+that decides how to generate a molecule Ct at any turn t given C0, P, and the sequence of previous turns up to t − 1, denoted as τ 1: t−1. Each turn 
+
+τ t is defined as τ t = ( Ct, f t), where f t ∈ Rm+1 
+
+is a feedback vector measuring the quality of Ct,with the first m entries indicating degradation or improvement in each property objective p ∈ P ,and the final entry representing the similarity to C0.This provides πθ with valuable insight into each specific MOMO problem, allowing it to adjust its molecular optimization strategy through trial-and-error. An optimal πθ leverages this feedback across all turns to maximize the average improvement on the property set P and maintain strong similarity to C0.To obtain such a policy, we formulate the follow-ing optimization problem: 
+
+max 
+
+> πθ
+
+Et,C t∼πθ (·| C0,P,τ 1: t−1) [R(Ct)] , (1) where t ∈ { 1, . . . , T } is the number of turns up to maximum T and R(Ct) is a reward function specifically designed for MOMO (defined in Sec-2$$\mathop{C_0}$$ $$\mathop{\mathcal{P}}$$            
+
+> $$\tau_{1:t}=\tau_{1:t-1}\cup\{(\mathop{C_t},\mathop{\mathbf{f}_t})\}$$
+> $$\mathop{C_1}$$ ••• $$\mathop{C_{t-1}}$$ LLM \(\pi_\theta\)
+> $$\mathop{C_t}$$
+> update \(\pi_\theta\)
+> Training Inference Training & Inference
+> $$\mathop{\mathbf{f}_1}$$ $$\mathop{\mathbf{f}_{t-1}}$$
+> \(t<T?\)
+> $$\operatorname{Advance}(\{\mathop{C_t}\})$$
+> $$\mathop{C_T}$$
+> no
+> $$\mathop{\mathbf{f}_t}$$
+> yes
+> ••• GRPO
+> $$\mathop{R}$$ $$\mathop{R}$$
+> Candidates at turn \(t: \{\mathop{C_t}\}\)
+> \(\mathop{p}\) \(\textsf{Sim}\) \(\textsf{B}\) \(\textsf{D}\)
+> \(\textsf{P}\)
+> ... Figure 1: Overall figure of Multi-turn Feedback Guided (MFG) MOMO.
+
+tion 3.2.2). This formulation distributes the op-timization of multiple property objectives across turns, with reward signals guiding progressive im-provement throughout the process. An overview of MFG is illustrated in Figure 1. 
+
+3.2 MFG Training 
+
+MFG trains πθ to leverage feedback for multi-turn MOMO by maximizing an expected reward R(Ct)
+
+(Section 3.2.2). Specifically, we use group-relative policy optimization (GRPO) (Shao et al., 2024) to train πθ by sampling multiple candidate molecules 
+
+Ct at each turn t conditioned on C0, P, and τ1: t−1,and updating πθ based on their relative rewards. To optimize the expectation over t in Eq. 1, MFG samples t ∼ Uniform(1 , T ) during training, en-suring that πθ is trained to leverage feedback at every turn in multi-turn MOMO. MFG employs on-policy training, where the previous turns τ1: t−1
+
+are generated using the same πθ that generates Ct.However, MFG treats τ1: t−1 as fixed condition-ing context rather than optimizing its generation based on R(Ct). Together, these design choices allow πθ to learn effective feedback-guided molec-ular optimization strategies by comparing candi-date molecules generated under the same condi-tioning context. As πθ is updated during training, the conditioning of previous turns τ1: t−1, which are generated on-policy and used as conditioning context, also reflect the policy’s changing output distribution. 
+
+3.2.1 Candidate Advancement Criterion 
+
+To encourage progressive improvements across turns, MFG defines a candidate selection criterion 
+
+Advance( ·) with two purposes: (1) during training, identifying the best molecule from previous turns as a reference for progressive improvement; and (2) during inference, selecting a promising molecule to carry forward, along with its feedback, to guide subsequent optimization. Specifically, Advance( ·)
+
+is a hierarchical selection criterion that balances im-provements across multiple target properties with structural similarity to C0 through prioritized com-parisons. It prioritizes molecules satisfying a pre-defined similarity threshold δ to C0, followed by molecules that improve all target properties. When no candidate improves all properties, those improv-ing more properties are preferred, preventing large gains in one property from outweighing broader improvements. Together, Advance( ·) prioritizes the breadth of property improvements over their magnitude while preserving structural similarity (see Appendix A.2 for details). 
+
+3.2.2 Reward Function 
+
+MFG defines a reward function 
+
+R(Ct | C0, P, C ∗
+
+> t−1
+
+) that encourages prop-erty improvement, structural similarity to C0,and progressive improvements over the best molecule from the previous turns. The goal is to prioritize structural similarity as a prerequisite for rewarding property improvements, while encouraging the model to progressively generate better molecules across turns. Specifically, R(Ct)
+
+(with conditioning omitted for simplicity) is defined as: 
+
+R(Ct) = 
+
+(
+
+s − 2, if s ≤ δ, Rbase (Ct) + Rbest (Ct), otherwise ,
+
+(2) where s = Sim( Ct, C 0) denotes the Tanimoto (Ba-jusz et al., 2015) similarity between Ct and C0.As shown in Eq 2, when s ≤ δ, R(Ct) assigns a similarity-dependent penalty, without accounting for property improvements . This prevents large property gains from compensating for excessive structural deviations. Moreover, this penalty com-plements our algorithm choice, GRPO, which up-dates the policy based on relative rewards among candidates in a group. Even when all candidates 3within a group breach the similarity threshold, those with higher similarity to C0 receive higher rewards, providing a learning signal that encour-ages the model to generate more structurally similar molecules. For molecules that meet the similarity threshold, we introduce Rbase (·) to incentivize both property improvements and similarity to C0, and is defined as follows: 
+
+Rbase (Ct) = λ(Ct) ( G(Ct) + S(Ct)) . (3) Here, G(·) and S(·) measure the average property improvement on P and the similarity to C0, re-spectively, each normalized by the corresponding value of the reference optimized molecule (details in Section 4.2). The normalization addresses differ-ences in the numerical scales of different properties and encourages πθ to generate molecules outper-forming the reference molecule. λ(Ct) ∈ [1 , 2) 
+
+amplifies the reward only when Ct improves all target properties over C0, with a larger bonus for higher structural similarity. Unlike G(·), which measures average property improvement, λ(·) en-courages simultaneous improvement across com-peting properties rather than large gains in a few at the expense of others. Details of G(·), S(·), and 
+
+λ(·) are provided in Appendix A.3. In addition to evaluating Ct with respect to 
+
+C0, Rbest (·) in Eq 2 compares Ct with the best molecule C∗ 
+
+> t−1
+
+from the previous t − 1 turns, iden-tified using Advance( ·) described in Section 3.2.1. 
+
+Rbest (·) is defined as follows: 
+
+Rbest (Ct) = Rbase (Ct) − Rbase (C∗
+
+> t−1
+
+) 
+
+> +
+
+, (4) where [·]+ = max( ·, 0) denotes the positive-part operator. This sub-reward provides a bonus when 
+
+Ct achieves a higher base reward than C∗
+
+> t−1
+
+, en-couraging progressive improvement across turns. 
+
+3.3 MFG Inference 
+
+At inference time, MFG performs iterative molec-ular optimization using the trained policy πθ, con-ditioned on the source molecule C0, target prop-erty set P, initially empty set of previous turns 
+
+τ . At each turn t, MFG samples N candidates and applies the selection criterion Advance( ·)
+
+introduced in Section 3.2.1 to obtain Ct =Advance( {C1 
+
+> t
+
+, . . . , C Nt }). The selected molecule and its feedback vector ft, capturing property changes and structural similarity relative to C0,form the updated τ1: t = τ1: t−1 ∪ { (Ct, ft)}. This process repeats until turn T , with each selected molecule and its feedback incorporated into the conditioning context for the next turn. The final optimized molecule CT is then selected from all 
+
+T × N generated candidates according to the crite-ria described in Section 4.3. Unlike the final output selection, Advance( ·)
+
+contributes to feedback construction during infer-ence by determining which intermediate molecule and its associated feedback are carried forward to subsequent turns. This selection aims to carry for-ward a promising intermediate molecule that pro-vides a meaningful direction for subsequent opti-mization, allowing future turns to build on partial progress. Thus, Advance( ·) supports feedback-guided MOMO by limiting the propagation of unfa-vorable candidates and retaining informative feed-back that helps the model adapt across turns. 
+
+4 Experimental Settings 
+
+4.1 GeLLM 3O-MFG 
+
+We use MFG to train GeLLM 3O-MFG, a multi-turn MOMO model based on GeLLM 3O-P(6) Llama ,a state-of-the-art single-turn MOMO model. GeLLM 3O-P(6) Llama is particularly suitable for training with MFG because its previous training on single-turn MOMO has allowed it to acquire sub-stantial knowledge of structure-property relation-ships. Implementation details of GeLLM 3O-MFG are provided in Appendix A.4. 
+
+4.2 Dataset 
+
+GeLLM 3O-MFG is trained and evaluated using the MuMOInstruct benchmark dataset following the training/testing split established by GeLLM 3O. 
+
+MuMOInstruct includes multi-property optimiza-tion tasks on combinations of six target properties: blood-brain barrier permeability ( B), dopamine re-ceptor D2 binding affinity ( D), human intestinal absorption ( H), mutagenicity ( M), penalized logP, a measure of lipophilicity ( P), and quantitative esti-mate of drug-likeness ( Q). The optimization objec-tive is to increase the values of B, D, H, P, and Q,while decreasing that of M. Each task consists of a set of source molecules, paired with their corre-sponding reference optimized molecules that we use for reward normalization in Eq 3. Specifically, the property improvements achieved by the ref-erence optimized molecule relative to the source molecule are used to normalize G(·), while its struc-tural similarity to the source molecule is used to 4normalize S(·) (details in Appendix A.3). The evaluation set consists of five in-distribution (IND) tasks ( BDP , BDQ , BPQ , DPQ , and BDPQ ) and five out-of-distribution (OOD) tasks ( MPQ , BDMQ , BHMQ ,
+
+BMPQ , and HMPQ ). IND tasks evaluate the model’s optimization capability on property combinations seen during training, while OOD tasks assess its zero-shot generalization to unseen property combi-nations. 
+
+4.3 Evaluation Metrics 
+
+Following GeLLM 3O, we evaluate optimization performance using three complementary metrics: 
+
+(1) Success Rate (SR α), which is the propor-tion of source molecules successfully optimized to improve all property objectives while main-taining Tanimoto similarity of at least α to the source molecule; (2) Similarity (Sim ) that is the average Tanimoto similarity between the opti-mized molecules and their corresponding source molecules; and (3) Relative Improvement (RI )measuring the average relative change across the target properties with respect to the source molecules (Appendix A.5). Higher SR α, Sim and 
+
+RI are desirable, indicating better overall optimiza-tion performance. For each source molecule C0,we select the optimized molecule C as the candi-date with the highest RI among those that improve all target properties and satisfy the similarity thresh-old α. If no such candidate exists, the optimization is considered unsuccessful. 
+
+4.4 Baselines 
+
+We evaluate GeLLM 3O-MFG against the base model GeLLM 3O-P(6) Llama , and two categories of LLMs with different levels of chemistry-specific training: general-purpose LLMs and LLMs for chemistry which are trained on large-scale chemistry instruction tasks. We use GeLLM 3O-P(6) Llama to directly assess the im-provement introduced by MFG while keeping the underlying model architecture fixed. In terms of general-purpose LLMs, we select two of the largest and most capable open-weight models available to us at the time of evaluation, Qwen3.5-9B (Qwen Team, 2026) and Ministral-3-8B (Liu et al., 2026). They serve as references for molecular opti-mization without adaptation to the chemistry do-main. We choose LlaSMol (Yu et al., 2024) and BioMedGPT-Mol (Zuo et al., 2025) as LLMs for chemistry baselines due to their reported strong performance on MOMO tasks. For fair compar-ison, all baselines use identical inputs, inference settings (Section 4.5), and output processing proce-dures, with model and prompt details provided in Appendix A.6. 
+
+4.5 Inference Settings 
+
+We evaluate all methods under both single-turn and multi-turn settings, denoted as ST and MT, respec-tively. For baselines originally designed for ST optimization, we extend them to the MT setting by applying iterative inference with the same feedback vector and selection criterion as MFG. This allows us to separate the contribution of MFG inference from MFG training. Following the evaluation protocol of GeLLM 3O, we generate a maximum of 20 molecules through-out the optimization process for each source molecule. For T -turn optimization, we generate an equal number of candidates at each turn. To en-sure a comprehensive evaluation, we independently evaluate each method with T ∈ { 1, 2, 3, 4} turns. We report the results corresponding to the highest 
+
+SR across the evaluated values of T for each task. The full results for each value of T are provided in Appendix A.7. 
+
+5 Results 
+
+5.1 Performance on MOMO tasks 5.1.1 Overall comparison with baselines 
+
+Tables 1 and 2 present a comprehensive comparison between GeLLM 3O-MFG and all the baselines on IND and OOD MOMO tasks, respectively. Overall, GeLLM 3O-MFG achieves the highest SR0.5 on 6 of the 10 tasks and highest RI on 9 tasks. Specif-ically, it achieves higher average SR0.5 (81 .50% 
+
+vs. 77 .81% ) and RI (2.63 vs. 2.08 ) than the strongest baseline, BioMedGPT-Mol. Given that the inference settings are consistent across all meth-ods, the superior performance of GeLLM 3O-MFG can be attributed to MFG’s training design, rather than the inference strategy alone. GeLLM 3O-MFG also maintains an average Sim of 0.60 , matching GeLLM 3O ( 0.60 ) and BioMedGPT-Mol ( 0.60 ), in-dicating that stronger property optimization does not compromise average structural similarity. This further indicates that the similarity-sensitive reward assist the optimization process in preserving de-sired molecular structures. 5Table 1: Overall Performance on IND Tasks 
+
+Model Setting BDP BDQ BPQ DPQ BDPQ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑
+
+General-purpose LLMs 
+
+Qwen3.5-9B ST 32.80 0.76 0.98 18.80 0.73 0.54 90.40 0.75 0.58 15.60 0.72 0.51 11.00 0.75 0.54 MT 36.40 0.72 0.95 21.60 0.70 0.60 90.40 0.75 0.58 19.80 0.69 0.36 12.20 0.76 0.51 Ministral-3-8B ST 27.60 0.71 0.74 24.00 0.67 0.45 64.80 0.68 0.52 12.80 0.68 0.28 8.60 0.72 0.56 MT 37.60 0.68 0.70 24.60 0.66 0.69 66.00 0.65 0.65 13.60 0.68 0.36 11.60 0.70 0.47 
+
+LLMs for Chemistry 
+
+LlaSMol ST 5.00 0.65 0.66 1.60 0.56 0.79 27.40 0.65 0.66 4.40 0.66 0.37 2.40 0.73 0.42 MT 6.60 0.62 0.96 1.60 0.56 0.79 30.00 0.62 0.72 5.00 0.63 0.37 3.60 0.64 0.48 BioMedGPT-Mol ST 69.20 0.62 2.82 79.00 0.62 4.40 97.20 0.61 1.23 47.80 0.63 1.58 38.00 0.62 2.03 MT 74.20 0.58 3.36 79.00 0.62 4.40 97.20 0.61 1.23 47.80 0.63 1.58 43.00 0.59 1.88 
+
+GeLLM 3O
+
+GeLLM 3O ST 66.00 0.62 2.77 65.00 0.64 3.88 84.40 0.60 1.28 43.80 0.61 1.84 39.00 0.60 2.26 MT 66.00 0.62 2.77 71.40 0.60 4.37 84.40 0.60 1.28 43.80 0.61 1.84 39.00 0.60 2.26 GeLLM 3O-MFG ST 83.20 0.62 3.62 73.00 0.63 4.30 89.20 0.62 1.25 48.40 0.63 1.97 44.00 0.61 2.50 MT 84.20 0.61 4.24 86.20 0.61 5.32 91.20 0.60 1.32 54.60 0.60 2.49 53.40 0.59 3.19 
+
+ST denotes the original single-turn setting and MT denotes the multi-turn setting. ↑ denotes that a higher value of the metric is desirable. For each metric, the best performance is in bold and the second-best performance is underlined. 
+
+Table 2: Overall Performance on OOD Tasks 
+
+Model Setting MPQ BDMQ BHMQ BMPQ HMPQ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑
+
+General-purpose LLMs 
+
+Qwen3.5-9B ST 75.80 0.69 0.41 17.00 0.76 0.41 72.03 0.73 1.03 75.39 0.71 0.47 81.25 0.73 0.54 MT 75.80 0.69 0.41 23.40 0.71 0.43 77.12 0.69 1.03 75.39 0.71 0.47 81.25 0.69 0.68 Ministral-3-8B ST 47.80 0.65 0.37 15.40 0.66 0.52 51.69 0.66 1.07 47.12 0.65 0.47 34.38 0.67 0.59 MT 49.60 0.64 0.39 23.20 0.64 0.76 57.63 0.63 1.03 56.54 0.65 0.49 40.62 0.63 0.69 
+
+LLMs for Chemistry 
+
+LlaSMol ST 17.40 0.61 0.38 0.20 0.67 0.0 15.25 0.62 1.78 15.71 0.61 0.51 31.25 0.63 0.69 MT 18.20 0.60 0.41 0.80 0.58 0.68 20.34 0.63 1.02 18.32 0.64 0.50 31.25 0.63 0.69 BioMedGPT-Mol ST 94.40 0.60 0.74 65.60 0.61 2.48 88.98 0.62 2.25 91.10 0.60 0.87 91.67 0.62 1.14 MT 94.40 0.60 0.74 65.60 0.61 2.48 91.53 0.59 2.53 91.62 0.60 0.92 93.75 0.59 1.64 GeLLM 3O
+
+GeLLM 3O ST 83.40 0.60 0.76 64.40 0.62 2.66 82.20 0.60 2.81 84.82 0.59 0.96 87.50 0.59 1.51 MT 83.40 0.60 0.76 65.60 0.59 3.06 82.20 0.60 2.81 84.82 0.59 0.96 87.50 0.59 1.51 GeLLM 3O-MFG ST 88.40 0.60 0.78 80.20 0.62 2.77 80.51 0.60 2.74 86.91 0.62 0.92 88.54 0.60 1.37 MT 88.40 0.60 0.78 83.60 0.61 3.50 90.68 0.57 2.87 89.01 0.60 0.99 93.75 0.58 1.62 The metrics, notations and formatting have the same meanings as those in Table 1. 
+
+5.1.2 Comparison with GeLLM 3O
+
+As shown in Tables 1 and 2, GeLLM 3O-MFG con-sistently outperforms its base model, GeLLM 3O, across all IND and OOD tasks. Under the MT setting, GeLLM 3O-MFG outperforms GeLLM 3Oacross all IND and OOD tasks, achieving an aver-age increase of 10 .69% in SR0.5 and 0.47 in RI .Moreover, the gap between ST and MT perfor-mance is substantially larger for GeLLM 3O-MFG than for GeLLM 3O. Moving from ST to MT in-creases GeLLM 3O-MFG’s average SR0.5 by 5.27% (compared with only 0.76 for GeLLM 3O) and im-proves RI on 9 tasks (compared with only 2 for GeLLM 3O), while decreasing average Sim by only 0.02. As both models share the same backbone and are evaluated under identical inference settings, the larger gains from ST to MT setting suggest that MFG’s training better equips GeLLM 3O-MFG to leverage intermediate molecules and their feed-back to guide subsequent optimization. These find-ings are also consistent with MFG’s reward design, which promotes progressive improvement over pre-viously generated molecules. 
+
+5.1.3 Comparison with other LLM baselines 
+
+Compared with LlaSMol, GeLLM 3O-MFG achieves vastly higher SR0.5 and RI across all tasks. Under MT, LlaSMol averages 13 .57% and 0.66 for 
+
+SR0.5 and RI , whereas GeLLM 3O-MFG achieves 
+
+81 .50% and 2.63 , respectively. This performance 6Table 3: Ablation Study                                                                                                                                                                                                                                                                                                   
+
+> Model Setting BDP BDQ BPQ DPQ BDPQ SR ↑
+> 0.5Sim ↑RI ↑SR ↑
+> 0.5Sim ↑RI ↑SR ↑
+> 0.5Sim ↑RI ↑SR ↑
+> 0.5Sim ↑RI ↑SR ↑
+> 0.5Sim ↑RI ↑
+> GeLLM 3O-RL ST 79.00 0.61 3.67 70.60 0.63 4.94 90.60 0.60 1.31 47.20 0.62 2.00 41.80 0.62 2.28 MT 79.40 0.58 4.18 80.60 0.59 5.67 90.60 0.60 1.31 47.20 0.62 2.00 49.20 0.59 3.14 GeLLM 3O-MFG ST 83.20 0.62 3.62 73.00 0.63 4.30 89.20 0.62 1.25 48.40 0.63 1.97 44.00 0.61 2.50 MT 84.20 0.61 4.24 86.20 0.61 5.32 91.20 0.60 1.32 54.60 0.60 2.49 53.40 0.59 3.19
+> SR ↑
+> 0.6Sim ↑RI ↑SR ↑
+> 0.6Sim ↑RI ↑SR ↑
+> 0.6Sim ↑RI ↑SR ↑
+> 0.6Sim ↑RI ↑SR ↑
+> 0.6Sim ↑RI ↑
+> GeLLM 3O-RL ST 64.60 0.67 2.96 59.60 0.67 4.03 79.60 0.67 1.06 32.80 0.67 1.58 28.00 0.69 1.25 MT 64.60 0.67 3.17 64.00 0.67 4.34 79.60 0.67 1.08 32.80 0.67 1.93 30.20 0.69 1.90 GeLLM 3O-MFG ST 68.60 0.67 2.90 61.20 0.67 3.65 78.60 0.67 1.03 35.60 0.68 1.43 29.60 0.68 1.65 MT 69.20 0.67 3.43 69.40 0.67 4.56 78.60 0.67 1.09 37.60 0.68 1.80 32.40 0.68 2.00
+> Model Setting MPQ BDMQ BHMQ BMPQ HMPQ SR ↑
+> 0.5Sim ↑RI ↑SR ↑
+> 0.5Sim ↑RI ↑SR ↑
+> 0.5Sim ↑RI ↑SR ↑
+> 0.5Sim ↑RI ↑SR ↑
+> 0.5Sim ↑RI ↑
+> GeLLM 3O-RL ST 88.80 0.59 0.83 69.80 0.62 3.01 88.14 0.59 2.87 90.05 0.61 0.99 92.71 0.59 1.44 MT 88.80 0.59 0.83 81.60 0.59 3.77 88.98 0.58 3.12 90.05 0.61 0.99 95.83 0.56 1.75
+> GeLLM 3O-MFG ST 88.40 0.60 0.78 80.20 0.62 2.77 80.51 0.60 2.74 86.91 0.62 0.92 88.54 0.60 1.37 MT 88.40 0.60 0.78 83.60 0.61 3.50 90.68 0.57 2.87 89.01 0.60 0.99 93.75 0.58 1.62
+> SR ↑
+> 0.6Sim ↑RI ↑SR ↑
+> 0.6Sim ↑RI ↑SR ↑
+> 0.6Sim ↑RI ↑SR ↑
+> 0.6Sim ↑RI ↑SR ↑
+> 0.6Sim ↑RI ↑
+> GeLLM 3O-RL ST 71.20 0.66 0.72 58.00 0.66 2.15 68.64 0.67 2.25 71.20 0.67 0.83 72.92 0.65 1.25
+> MT 71.20 0.66 0.73 62.60 0.66 2.69 68.64 0.67 2.28 71.20 0.67 0.90 72.92 0.65 1.25
+> GeLLM 3O-MFG ST 75.20 0.66 0.67 68.80 0.67 1.97 63.56 0.68 2.36 71.20 0.68 0.78 71.88 0.67 1.13 MT 75.20 0.66 0.74 68.80 0.67 2.64 68.64 0.68 2.36 72.77 0.68 0.86 71.88 0.67 1.14
+
+The metrics, notations and formatting have the same meanings as those in Table 1. 
+
+gap suggests that training on a broad collection of chemistry tasks alone may not develop strong molecular optimization capabilities or the ability to leverage property feedback and adapt optimization strategies accordingly. GeLLM 3O-MFG also substantially outperforms the general-purpose LLM baselines, achieving an average SR0.5 of 81 .50% under MT set-ting compared with 51 .34% for Qwen3.5-9B, the strongest general-purpose LLM baseline. Moreover, GeLLM 3O-MFG consistently achieves higher RI across all tasks, despite maintaining slightly lower but still substantial similarity to the source molecules. These results reinforce the im-portance of chemistry-specific or even task-specific training for developing strong MOMO capabilities. 
+
+5.2 Ablation Study 
+
+To investigate the contribution of MT feedback-guided training beyond single-turn RL training, we compare GeLLM 3O-MFG with GeLLM 3O-RL. Both models are initialized from GeLLM 3O and trained using GRPO under identical settings. How-ever, GeLLM 3O-RL uses ST training ( T = 1 ) with-out intermediate feedback. Because there are no intermediate molecules in this setting, we only maximize Rbase (·) (Eq. 3) during GeLLM 3O-RL’s training. To better study the differences between GeLLM 3O-MFG and GeLLM 3O-RL in terms of similarity-constrained optimization, we evaluate 
+
+SR under two different similarity thresholds: 0.5 and 0.6, denoted as SR0.5 and SR0.6 , respectively. 
+
+5.2.1 Overall comparison of GeLLM 3O-MFG and GeLLM 3O-RL 
+
+As shown in Table 3, ST RL training alone leads to notable improvements in MOMO performance. Un-der ST inference, GeLLM 3O-RL achieves a higher average SR0.5 than the base model GeLLM 3O(75 .87% vs. 70 .05% ). Given that both models share the same backbone and inference setting, these results highlight the effectiveness of our re-ward function in guiding RL training. Specifically, as GeLLM 3O-RL was trained with ST setting, it indicates that the Rbase component can provide a strong learning signal for MOMO. Building on this improvement, GeLLM 3O-MFG further outperforms GeLLM 3O-RL under MT in-ference, achieving higher average SR0.5 (81 .50% 
+
+vs. 79 .23% ) and SR0.6 (64 .45% vs. 61 .78% ). Moreover, moving from ST to MT increases SR0.5 
+
+and SR0.6 by approximately 5.27 and 2.03% for GeLLM 3O-MFG, compared with smaller gains of 
+
+3.36 and 1.12 for GeLLM 3O-RL, respectively. As both models were trained with GRPO and follow identical inference setting, these larger gains high-7Source Molecule,            
+
+> \(\textsf{B}\) =0.22, \(\textsf{D}\) =0.03, \(\textsf{P}\) =-1.00, \(\textsf{Q}\) =0.06
+> \(\textsf{Sim}\) =0.55,
+> \(\textsf{B}\) =0.60, \(\textsf{D}\) =0.05, \(\textsf{P}\) =0.14, \(\textsf{Q}\) =0.30
+> \(\textsf{Sim}=0.43\) ,
+> \(\textsf{B}\) =0.84, \(\textsf{D}\) =0.67, \(\textsf{P}\) =0.41, \(\textsf{Q}\) =0.38
+> (a) (b) (c)
+
+Figure 2: An optimization case on BDPQ with T = 2 . (a) The source molecule. (b) The best optimized molecule at turn t = 1 . (c) The best optimized molecule at turn t = 2 . The modified fragments are highlighted. 
+
+light the additional benefits of MFG’s multi-turn training, which incorporates intermediate feedback and the Rbest reward component to encourage pro-gressive improvements. Together, these findings suggest that while Rbase provides a useful founda-tion for RL-based molecular optimization, MFG’s multi-turn training design further enhances the model’s ability to leverage feedback and progres-sively refine molecules across turns. 
+
+5.2.2 Performance under different similarity thresholds 
+
+The advantage of MFG becomes more pronounced under a more stringent similarity threshold α = 0 .6
+
+as demonstrated in Table 3. In the ST setting, GeLLM 3O-MFG improves over GeLLM 3O-RL by only 0.37% on average at SR0.5 , but by 1.77% at 
+
+SR0.6 . Under the MT setting, the corresponding advantage increases from approximately 2.28% 
+
+at SR0.5 to 2.67% at SR0.6 . Both models use 
+
+S(·) (Eq. 3) in their reward function to encour-age structural similarity, thus the larger perfor-mance gains under stricter similarity constraints suggest that MFG’s multi-turn training enables the GeLLM 3O-MFG to better leverage intermediate feedback to adjust its optimization strategies. The higher success rates also reflect GeLLM 3O-MFG’s ability to better balance property improvement and structural similarity preservation. 
+
+5.3 Case Study 
+
+Figure 2 shows a successful two-turn optimization by GeLLM 3O-MFG on four properties: B, D, P,and Q. In this optimization, the first turn substan-tially improves B, P, and Q, while the second turn focuses on improving D. The source molecule (Fig-ure 2a) contains multiple polyphenolic esters that contribute to low lipophilicity and high molecu-lar weight, both of which reduce B and Q. In the first turn, GeLLM 3O-MFG reduces polarity by hy-drolyzing one phenolic ester and replacing another with a 1,1,1-trifluoropropyl ester. These modi-fications also reduce the molecular weight from 718 to 461, which improves Q by aligning bet-ter with molecular weight guidelines for drug-like molecules, such as Lipinski’s Rule of Five (Lip-inski et al., 2001). However, the changes intro-duced in this turn change very little to improve the molecule’s predicted DRD2 activity, increasing from 0.03 to 0.05. Based on this feedback, GeLLM 3O-MFG pri-oritizes D in the second turn, replacing the free dihydrobenzofuran carboxylic acid with a 4,4-difluoropiperidinyl group and hydrolyzing the 1,1,1-trifluoropropyl ester. This produces a sub-stantial improvement on D, while also further im-proving B, P, and Q. The improvement on D may be driven in part by the introduction of a cyclic amine, which helps the molecule better resemble patterns in established drugs targeting DRD2. Taken to-gether, this multi-turn optimization example illus-trates how GeLLM 3O-MFG shifts priorities across turns based on feedback, resulting in higher-quality candidate molecules after multiple turns. 
+
+6 Conclusion 
+
+In this work, we introduce MFG for molecu-lar optimization, a multi-turn RL framework that trains LLMs to iteratively optimize molecules us-ing previously generated candidates and their prop-erty feedback. By training a SOTA molecular optimization LLM, GeLLM 3O, with MFG, we develop GeLLM 3O-MFG. Across 10 MOMO tasks, GeLLM 3O-MFG outperforms GeLLM 3Oand achieves competitive performance against ex-isting baselines, improving molecular properties while preserving structural similarity. Extensive analyses demonstrate MFG’s effectiveness in lever-aging multi-turn feedback for progressive molecu-lar optimization. Together, these findings highlight the advantages of MFG in training LLMs to adapt their molecular optimization strategies across turns. 8Acknowledgments 
+
+This project was made possible, in part, by sup-port from the National Science Foundation grant no. IIS-2435819 (X.N.), the National Library of Medicine grant no. 1R01LM014385 (X.N.), and the Sanofi iDEA-TECH Awards North America (X.N.). Any opinions, findings, conclusions or rec-ommendations expressed in this paper are those of the authors and do not necessarily reflect the views of the funding agency. The authors would like to thank Benjamin Burns for their proofreading of the manuscript. 
+
+Limitations 
+
+Despite the strong performance of MFG in multi-objective molecular optimization, several limi-tations remain. (1) Our experiments are con-ducted on MuMOInstruct , which includes MOMO tasks involving six target properties. Although GeLLM 3O-MFG demonstrates strong generaliza-tion to out-of-distribution (OOD) tasks with unseen property combinations, its effectiveness on addi-tional property objectives remains unexplored. (2) MFG relies on property oracles to provide inter-mediate property feedback and compute rewards for generated molecules. The reliability of this feedback depends on the accuracy of the property oracles, and the improvements observed in our eval-uations have not been experimentally validated. (3) During training, the reward function uses the target molecule provided by MuMOInstruct to normalize property improvements and structural similarity. This requirement may limit the applicability of the current training framework to datasets without cor-responding target molecules. (4) We apply MFG to GeLLM 3O to develop GeLLM 3O-MFG. Although the results demonstrate the effectiveness of MFG on this model, further evaluations on other molecu-lar optimization LLMs are needed to establish the generalizability of our framework. 
+
+Ethical considerations 
+
+MFG for molecular optimization aims to improve multiple property objectives through iterative gen-eration guided by intermediate property feedback. Although our framework is developed for molecu-lar optimization rather than harmful applications, its ability to generate and optimize candidate molecules may also be used to produce potentially unsafe compounds. Moreover, improvements in target property objectives and structural similarity to the source molecule do not necessarily indicate that the generated molecules are safe for practi-cal use. We therefore emphasize that molecules generated by MFG should undergo careful safety evaluation by expert chemists before being con-sidered for synthesis or experimental testing. Any practical application of the framework and its gen-erated molecules should also adhere to relevant safety regulations, ethical guidelines, and estab-lished professional practices. 
+
+References                              
+
+> Dávid Bajusz, Anita Rácz, and Károly Héberger. 2015. Why is tanimoto index an appropriate choice for fingerprint-based similarity calculations? Journal of cheminformatics , 7(1):20. Ziqi Chen, Martin Renqiang Min, Srinivasan Parthasarathy, and Xia Ning. 2021. A deep gen-erative model for molecule optimization via one fragment modification. Nature machine intelligence ,3(12):1040–1049. Vishal Dey, Xiao Hu, and Xia Ning. 2025. GeLLM³O: Generalizing large language models for multi-property molecule optimization. In Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) ,pages 25192–25221, Vienna, Austria. Association for Computational Linguistics. Tianfan Fu, Cao Xiao, Xinhao Li, Lucas M Glass, and Jimeng Sun. 2021. Mimosa: Multi-constraint molecule sampling for molecule optimization. In
+> Proceedings of the AAAI Conference on Artificial Intelligence , volume 35, pages 125–133. JP Hughes, S Rees, SB Kalindjian, and KL Philpott. 2011. Principles of early drug discovery. British Journal of Pharmacology , 162(6):1239–1249. Ross Irwin, Spyridon Dimitriadis, Jiazhen He, and Esben Jannik Bjerrum. 2022. Chemformer: apre-trained transformer for computational chem-istry. Machine Learning: Science and Technology ,3(1):015022. Khiem Le, Ting Hua, and Nitesh V Chawla. 2024. Agentdrug: Utilizing large language models in an agentic workflow for zero-shot molecular editing.
+> arXiv preprint arXiv:2410.13147 .Xuan Li, Zongze Li, Jiangchao Yao, Yu Rong, Lu Zhang, Bo Han, and 1 others. 2026. Reference-guided policy optimization for molecular optimiza-tion via llm reasoning. In International Conference on Learning Representations , volume 2026, pages 65266–65297. Christopher A Lipinski, Franco Lombardo, Beryl W Dominy, and Paul J Feeney. 2001. Experimental and
+
+9computational approaches to estimate solubility and permeability in drug discovery and development set-tings1pii of original article: S0169-409x(96)00423-1. the article was originally published in advanced drug delivery reviews 23 (1997) 3–25.1. Advanced Drug Delivery Reviews , 46(1):3–26. Special issue dedi-cated to Dr. Eric Tomlinson, Advanced Drug Deliv-ery Reviews, A Selection of the Most Highly Cited Articles, 1991-1998. Alexander H Liu, Kartik Khandelwal, Sandeep Sub-ramanian, Victor Jouault, Abhinav Rastogi, Adrien Sadé, Alan Jeffares, Albert Jiang, Alexandre Cahill, Alexandre Gavaudan, and 1 others. 2026. Ministral 3. arXiv preprint arXiv:2601.08584 .Shengchao Liu, Jiongxiao Wang, Yijin Yang, Cheng-peng Wang, Ling Liu, Hongyu Guo, and Chaowei Xiao. 2023. Chatgpt-powered conversational drug editing using retrieval and domain feedback. arXiv preprint arXiv:2305.18090 .Xuefeng Liu, Songhao Jiang, Siyu Chen, Zhuoran Yang, Yuxin Chen, Ian Foster, and Rick Stevens. 2025. Drugimprovergpt: A large language model for drug optimization with fine-tuning via structured policy optimization. arXiv preprint arXiv:2502.07237 .Humza Naveed, Asad Ullah Khan, Shi Qiu, Muhammad Saqib, Saeed Anwar, Muhammad Usman, Naveed Akhtar, Nick Barnes, and Ajmal Mian. 2025. A com-prehensive overview of large language models. ACM Transactions on Intelligent Systems and Technology ,16(5):1–72. Christos A. Nicolaou and Nathan Brown. 2013. Multi-objective optimization methods in drug design. Drug Discovery Today: Technologies , 10(3):e427–e435. Qwen Team. 2026. Qwen3.5: Towards native multi-modal agents. Zhihong Shao, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Xiao Bi, Haowei Zhang, Mingchuan Zhang, YK Li, and 1 others. 2024. Deepseekmath: Pushing the limits of mathematical reasoning in open language models. arXiv preprint arXiv:2402.03300 .Duxin Sun, Wei Gao, Hongxiang Hu, and Simon Zhou. 2022. Why 90 Acta Pharmaceutica Sinica B, 12(7):3049–3062. Zhenxing Wu, Odin Zhang, Xiaorui Wang, Li-Ni Fu, Huifeng Zhao, Ji-Ke Wang, Hongyan Du, Dejun Jiang, Yafeng Deng, Dongsheng Cao, Chang-Yu Hsieh, and Tingjun Hou. 2024. Leveraging language model for advanced multiproperty molecular opti-mization via prompt engineering. Nature Machine Intelligence , 6:1359 – 1369. Geyan Ye, Xibao Cai, Houtim Lai, Xing Wang, Junhong Huang, Longyue Wang, Wei Liu, and Xiangxiang Zeng. 2025. Drugassist: A large language model for molecule optimization. Briefings in Bioinformatics ,26(1):bbae693. Botao Yu, Frazier N Baker, Ziqi Chen, Xia Ning, and Huan Sun. 2024. Llasmol: Advancing large language models for chemistry with a large-scale, comprehen-sive, high-quality instruction tuning dataset. arXiv preprint arXiv:2402.09391 .Chenyang Zuo, Siqi Fan, and Zaiqing Nie. 2025. Biomedgpt-mol: Multi-task learning for molecu-lar understanding and generation. arXiv preprint arXiv:2512.04629 .
+
+10 A Appendix 
+
+A.1 Related Work Molecular optimization Computational meth-ods for molecular optimization has been ex-plored through a variety of paradigms, including molecule string translation and graph-based gener-ation. Chemformer (Irwin et al., 2022) and Prompt-MolOpt (Wu et al., 2024) used transformer models to translate input molecule strings into optimized molecules. Modof (Chen et al., 2021) and MI-MOSA (Fu et al., 2021) instead formulated molec-ular optimization as a graph modification problem and designed graph neural network-based meth-ods to edit substructures. However, these methods are developed for specific objectives and may have limited generalizability across diverse optimization tasks. More recently, LLMs have shown the poten-tial for molecular optimization by treating molecule string as a chemical language. For example, Chat-Drug (Liu et al., 2023) and Re 2DF (Le et al., 2024) designed inference-time methods to iteratively re-fine molecules based on LLM dialogue with ex-ternal domain feedback. DrugAssist (Ye et al., 2025) and GeLLM 3O (Dey et al., 2025) further instruction-tuned general-purpose LLMs specifi-cally for molecular optimization. BioMedGPT-Mol (Zuo et al., 2025) incorporated molecular optimiza-tion as one of multiple chemical tasks in a founda-tion chemical language model. Building on these ideas, our work finetunes a molecular optimization LLM via reinforcement learning (RL) so that it can be applied multiple times to generate progressively improved molecules. 
+
+A.2 Selection Criterion 
+
+Advance( ·) ranks the intermediate candidates ac-cording to the criterion in Table A.1, listed in de-scending order of priority. Each criterion is con-sidered only when higher-priority criteria cannot identify a unique candidate.                  
+
+> Table A.1: Selection criteria of Advance( ·)
+> in descending order of priority.
+> Priority Selection Criterion 1Chemical validity 2Similarity to C0≥δ
+> 3Improvement on all properties in P
+> 4Number of improved properties 5Similarity to C0≥δh
+> 6Relative property improvement 7Similarity to C0
+
+A.3 Reward Function Definition of G(·). For each source molecule C0,we use the reference molecule Cref provided by 
+
+MuMOInstruct to normalize the improvement in each property p ∈ P :
+
+G(Ct | p) = clip 
+
+ dp∆yp(Ct, C 0)
+
+dp∆yp(Ctarget , C 0) , −κ, κ 
+
+
+
+,
+
+(5) where ∆yp(A, B ) = yp(A) − yp(B) denotes the difference in property p between molecules A and 
+
+B, dp ∈ {− 1, 1} specifies the desired optimization direction, and κ is the clipping threshold. We compute the average normalized improve-ment across all property objectives: 
+
+G(Ct) = 1
+
+|P| 
+
+X
+
+> p∈
+
+PG(Ct | p). (6) By using Cref for normalization, property improve-ments are scaled to balance the contributions of different property objectives. 
+
+Definition of S(·). We similarly normalize the structural similarity Cref :
+
+S(Ct) = 
+
+
+
+1, Sim( Ct, C 0) ≥ δh,
+
+Sim( Ct, C 0)Sim( Cref , C 0) , otherwise ,
+
+(7) where Sim( A, B ) ∈ [0 , 1] denotes the Tanimoto similarity between molecules A and B. The threshold-based design encourages structural simi-larity while preventing it from dominating the opti-mization objective. 
+
+Definition of λ(·). The scaling factor λt pro-vides an additional bonus when Ct improves all target properties over C0, as indicated by A(Ct) = 
+
+I [dp∆yp(Ct, C 0) > 0, ∀p ∈ P ]. We then define 
+
+λ(Ct) = 1 + A(Ct) Sim( Ct, C 0). (8) Thus, λ(·) > 1 only when Ct simultaneously im-proves all properties, with a larger λ(·) for higher similarity. 
+
+Validity Penalties. An output is considered in-valid if it does not contain exactly one tagged SMILES string, fails RDKit parsing or kekuliza-tion, or duplicates the source molecule or any pre-viously generated molecule. We assign a reward of −2 when Ct is invalid. For valid molecules, we set the minimum reward to −1 to prevent them 11 from receiving penalties comparable to those for invalid generations, despite suboptimal property improvements. 
+
+A.4 Implementation Details Training We use a group size of four for GRPO per prompt. For groups with uninformative re-wards, we apply dynamic resampling with up to three attempts. We set the upper clipping parame-ter to 0.28 , the KL coefficient to 0.1, and the max-imum completion length to 96 tokens. Training uses fused AdamW with β1 = 0 .9, β2 = 0 .95 , ϵ =10 −8, weight decay of 0.1, and gradient clipping at 
+
+1.0. For the training data, we sample 100 source molecules for each tasks in MuMOInstruct , exclud-ing the 5 OOD tasks. Training GeLLM 3O-MFG took approximately 36 hours using two NVIDIA A100 GPUs. For parameter-efficient training, we use LoRA with rank 16, scaling parameter 32, and dropout 0.05. We apply LoRA to the attention and Feed-Forward Network (FFN) projection layers in every Transformer block, while keeping all pretrained model parameters frozen. Training of GeLLM 3O-RL follows the same setup as GeLLM 3O-MFG, but excludes generated context, feedback, and the reward bonus (Eq. 4). In terms of hyperparameters in reward function, κ in Eq. 5 is set to 1.25 , δh in Eq. 7 is 0.6 and δ in Eq. 2 is 
+
+0.4.
+
+Inference As we discussed in Section 4.5, N is set to 20 /T . Candidate selection criterion uses the same δ and δh values as training. 
+
+A.5 Evaluation Metrics Definition of RI . Following GeLLM 3O, RI is de-fined as follows, 
+
+RI = 1
+
+|P| 
+
+X
+
+> p∈
+
+P
+
+RI p, (9) where RI p is the relative improvement on property 
+
+p and is defined as follows, 
+
+RI p = dp
+
+yp(M ) − yp(S)
+
+yp(S) . (10) 
+
+dp is the direction coefficient and is set to +1 when property p is optimized to increase and to −1 oth-erwise. 
+
+A.6 Prompt and Feedback Templates 
+
+All models receive the same initial prompt specify-ing the source molecule and target property objec-tives. The initial prompt follows the format:           
+
+> Your task is to modify the given molecule to adjust specific molecular properties while keeping structural changes as minimal as possible. Your response should only contain avalid SMILES representation of the modified molecule enclosed with <SMILES> </SMILES> tag.
+> %%% Input: <SMILES>[source molecule]</SMILES> %%% Adjust: [property objectives]
+
+In the MT setting, each valid generation is fol-lowed by feedback on its structural similarity to the source molecule and improvements in each target property, as described in Section 3.1. The feedback is structured as follows: 
+
+> - Similarity to input molecule: [value] ([band]) - [property]: [source] -> [candidate] ([change], [status]; [direction])
+
+Here, we categorize structural similarity into four bands: very high for similarity at least 0.6, high 
+
+for [0 .5, 0.6) , moderate for [0 .4, 0.5) , and low be-low 0.4. The feedback is also tailored based on whether a best molecule has been identified in previous turns. If no best molecule exists, the model is in-structed to improve properties that have not yet improved while preserving previously achieved im-provements and structural similarity to C0. Other-wise, the best molecule C∗ 
+
+> t
+
+is directly provided in the prompt as a tagged SMILES string, guiding the model to further improve upon C∗ 
+
+> t
+
+.For invalid generations, we provide corrective feedback specifying the reason for failure. This allows the model to identify generation errors and refine its molecular generation strategy in subse-quent turns. 
+
+A.7 Additional Analysis of Experimental Results 
+
+Tables A.2 and A.3 provide detailed performance results across different numbers of T , illustrating variations in the optimal T across tasks and mod-els. Overall, GeLLM 3O-MFG has a higher aver-age optimal T across the 10 tasks (2.70), com-pared with GeLLM 3O (1.30) and GeLLM 3O-RL (1.80). This suggests that MFG trains GeLLM 3Oto effectively adapt its optimization strategies across turns, allowing improvements to accumu-late over successive turns. From T = 1 to 12 Table A.2: Overall Performance on IND Tasks Across Turn Settings 
+
+Model T BDP BDQ BPQ DPQ BDPQ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑
+
+General-purpose LLMs 
+
+Qwen3.5-9B 1 32.80 0.76 0.98 18.80 0.73 0.54 90.40 0.75 0.58 15.60 0.72 0.51 11.00 0.75 0.54 2 36.40 0.72 0.95 21.60 0.70 0.60 88.60 0.71 0.65 19.80 0.69 0.36 12.20 0.76 0.51 3 35.40 0.71 0.97 19.80 0.70 0.44 81.80 0.71 0.61 16.60 0.70 0.35 11.60 0.72 0.51 4 34.60 0.70 1.04 19.80 0.71 0.51 75.80 0.71 0.62 15.40 0.69 0.33 11.80 0.71 0.60 Ministral-3-8B 1 27.60 0.71 0.74 24.00 0.67 0.45 64.80 0.68 0.52 12.80 0.68 0.28 8.60 0.72 0.56 2 33.60 0.68 0.81 24.60 0.66 0.69 66.00 0.65 0.65 13.60 0.68 0.36 11.60 0.70 0.47 3 36.60 0.67 0.84 23.75 0.67 0.62 60.60 0.65 0.63 12.00 0.67 0.35 11.20 0.68 0.53 4 37.60 0.68 0.70 23.40 0.66 0.65 57.40 0.65 0.63 12.00 0.67 0.32 11.00 0.68 0.56 
+
+LLMs for Chemistry 
+
+LlaSMol 1 5.00 0.65 0.66 1.60 0.56 0.79 27.40 0.65 0.66 4.40 0.66 0.37 2.40 0.73 0.42 2 6.40 0.64 0.81 0.80 0.54 0.66 30.00 0.62 0.72 5.00 0.63 0.37 3.60 0.67 0.42 3 6.40 0.62 1.04 0.80 0.53 0.68 28.78 0.63 0.65 5.00 0.63 0.37 3.60 0.64 0.48 4 6.60 0.62 0.96 0.80 0.53 0.67 25.60 0.63 0.66 3.80 0.67 0.28 2.60 0.65 0.48 BioMedGPT-Mol 1 69.20 0.62 2.82 79.00 0.62 4.40 97.20 0.61 1.23 47.80 0.63 1.58 38.00 0.62 2.03 2 73.80 0.59 3.10 63.80 0.59 4.20 96.60 0.59 1.26 43.80 0.61 2.07 43.00 0.59 1.88 3 74.20 0.58 3.36 60.40 0.60 4.31 95.40 0.59 1.25 41.80 0.61 2.05 42.00 0.59 1.91 4 73.60 0.58 3.28 58.40 0.59 4.46 94.80 0.58 1.24 41.40 0.60 2.04 42.00 0.59 2.06 
+
+GeLLM 3O
+
+GeLLM 3O1 66.00 0.62 2.77 65.00 0.64 3.88 84.40 0.60 1.28 43.80 0.61 1.84 39.00 0.60 2.26 2 63.60 0.59 3.10 71.40 0.60 4.18 76.40 0.58 1.28 41.00 0.58 2.20 37.20 0.58 3.00 3 62.60 0.57 3.37 71.40 0.60 4.37 75.60 0.58 1.26 42.60 0.58 2.20 34.60 0.57 3.29 
+
+4 61.20 0.57 3.21 70.80 0.59 4.39 75.00 0.58 1.23 40.60 0.57 2.47 33.40 0.57 3.22 GeLLM 3O-RL 1 79.00 0.61 3.67 70.60 0.63 4.94 90.60 0.60 1.31 47.20 0.62 2.00 41.80 0.62 2.28 2 79.40 0.58 4.18 79.40 0.60 5.88 89.00 0.58 1.35 46.80 0.59 2.77 49.20 0.59 3.14 3 78.80 0.57 4.34 80.40 0.58 5.87 88.40 0.57 1.36 44.80 0.58 2.89 48.40 0.58 3.09 4 77.40 0.57 4.30 80.60 0.59 5.67 87.40 0.57 1.36 44.40 0.58 2.68 47.20 0.58 3.07 GeLLM 3O-MFG 1 83.20 0.62 3.62 73.00 0.63 4.30 89.20 0.62 1.25 48.40 0.63 1.97 44.00 0.61 2.50 2 84.20 0.61 4.24 85.60 0.61 5.22 91.20 0.60 1.32 54.20 0.61 2.55 51.40 0.59 2.84 3 83.20 0.61 3.90 84.60 0.61 5.40 89.60 0.59 1.34 54.40 0.60 2.47 53.40 0.59 3.19 4 83.00 0.61 3.92 86.20 0.61 5.32 89.40 0.60 1.32 54.60 0.60 2.49 51.80 0.59 3.16 The results with optimal T for each model and task is highlighted in yellow. Other metrics, notations, and formatting follow Table 1. 
+
+T = 4 , the average SR of GeLLM 3O decreases from 70 .05% to 61 .64% , while GeLLM 3O-RL im-proves slightly from 75 .87% to 75 .94% . In con-trast, GeLLM 3O-MFG shows a more pronounced improvement from 76 .24% to 79 .89% , demonstrat-ing greater benefits from additional optimization turns. These results suggest that MFG trains the model to better leverage multi-turn feedback for progressive molecular optimization, with a task-dependent optimal T .
+
+A.8 Artifact Sources and Licenses 
+
+Table A.4 summarizes the sources, licenses, and accessibility of the models, datasets, and implemen-tation used in our experiments. We report the li-censes specified by the respective artifact providers. For artifacts without an explicitly stated license, we indicate this accordingly. 13 Table A.3: Overall Performance on OOD Tasks Across Turn Settings 
+
+Model T MPQ BDMQ BHMQ BMPQ HMPQ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑ SR ↑ 
+
+> 0.5
+
+Sim ↑ RI ↑
+
+General-purpose LLMs 
+
+Qwen3.5-9B 1 75.80 0.69 0.41 17.00 0.76 0.41 72.03 0.73 1.03 75.39 0.71 0.47 81.25 0.73 0.54 2 68.00 0.66 0.46 23.40 0.71 0.43 77.12 0.69 1.03 73.82 0.67 0.54 81.25 0.69 0.68 3 63.20 0.66 0.43 21.20 0.69 0.41 73.73 0.69 1.03 62.83 0.66 0.55 72.92 0.68 0.73 4 60.20 0.66 0.45 21.40 0.69 0.42 70.34 0.70 0.98 59.16 0.67 0.52 70.83 0.67 0.74 Ministral-3-8B 1 47.80 0.65 0.37 15.40 0.66 0.52 51.69 0.66 1.07 47.12 0.65 0.47 34.38 0.67 0.59 2 49.60 0.64 0.39 23.20 0.64 0.76 57.63 0.63 1.03 56.54 0.65 0.49 40.62 0.63 0.69 3 43.00 0.63 0.38 18.60 0.65 0.62 46.61 0.63 0.81 52.36 0.66 0.44 40.62 0.64 0.58 4 42.40 0.63 0.38 16.00 0.65 0.69 38.98 0.63 0.89 50.26 0.65 0.43 35.42 0.66 0.54 
+
+LLMs for Chemistry 
+
+LlaSMol 1 17.40 0.61 0.38 0.20 0.67 0.00 15.25 0.62 1.78 15.71 0.61 0.51 31.25 0.63 0.69 2 18.20 0.60 0.41 0.60 0.59 0.33 20.34 0.63 1.02 18.32 0.64 0.50 25.00 0.61 0.65 3 17.00 0.60 0.39 0.80 0.58 0.68 15.25 0.63 1.38 16.23 0.63 0.49 29.17 0.62 0.70 4 15.80 0.61 0.36 0.60 0.63 0.55 12.71 0.60 1.14 13.61 0.63 0.51 21.88 0.61 0.71 BioMedGPT-Mol 1 94.40 0.60 0.74 65.60 0.61 2.48 88.98 0.62 2.25 91.10 0.60 0.87 91.67 0.62 1.14 2 81.00 0.59 0.81 57.20 0.60 2.64 91.53 0.59 2.53 91.62 0.60 0.92 93.75 0.59 1.64 3 79.00 0.59 0.80 54.60 0.59 2.65 89.83 0.58 2.60 88.48 0.60 0.94 86.46 0.58 1.42 4 78.20 0.59 0.80 52.20 0.59 2.79 87.29 0.59 2.42 84.82 0.59 0.92 86.46 0.58 1.47 
+
+GeLLM 3O
+
+GeLLM 3O1 83.40 0.60 0.76 64.40 0.62 2.66 82.20 0.60 2.81 84.82 0.59 0.96 87.50 0.59 1.51 2 76.20 0.58 0.76 65.60 0.59 3.06 66.10 0.57 3.33 70.16 0.58 1.03 73.96 0.57 1.69 3 74.40 0.58 0.75 62.80 0.58 3.12 63.56 0.56 3.37 67.02 0.57 1.04 68.75 0.56 1.41 4 74.40 0.58 0.74 61.00 0.58 3.26 62.71 0.56 3.21 66.49 0.58 0.98 70.83 0.56 1.38 GeLLM 3O-RL 1 88.80 0.59 0.83 69.80 0.62 3.01 88.14 0.59 2.87 90.05 0.61 0.99 92.71 0.59 1.44 2 82.40 0.58 0.88 81.60 0.59 3.77 88.98 0.58 3.12 87.43 0.57 1.11 95.83 0.56 1.75 
+
+3 80.00 0.58 0.87 81.20 0.58 3.87 87.29 0.57 2.95 84.82 0.56 1.12 94.79 0.55 1.73 4 78.80 0.58 0.87 79.60 0.58 3.85 86.44 0.57 2.95 83.77 0.56 1.09 93.75 0.55 1.70 GeLLM 3O-MFG 1 88.40 0.60 0.78 80.20 0.62 2.77 80.51 0.60 2.74 86.91 0.62 0.92 88.54 0.60 1.37 2 87.20 0.60 0.83 83.60 0.61 3.50 87.29 0.59 2.78 89.01 0.60 0.99 90.62 0.58 1.70 3 85.00 0.59 0.84 80.80 0.61 3.60 88.14 0.58 2.85 86.91 0.59 1.02 93.75 0.58 1.62 4 85.00 0.59 0.84 81.20 0.61 3.69 90.68 0.57 2.87 85.34 0.59 1.04 91.67 0.58 1.42 The results with optimal T for each model and task is highlighted in yellow. Other metrics, notations, and formatting follow Table 1. 
+
+Table A.4: Licenses and sources of artifacts used in our study. 
+
+Artifact Source License Type Accessibility 
+
+MuMOInstruct https://huggingface.co/datasets/NingLab/ MuMOInstruct 
+
+CC BY 4.0 Dataset Llama-3.1-8B-Instruct https://huggingface.co/meta-llama/Llama -3.1-8B-Instruct 
+
+Llama 3.1 Community License Checkpoint GeLLM 3O-P(6) Llama https://huggingface.co/NingLab/GeLLMO-P 6-Llama 
+
+CC BY-NC 4.0 Checkpoint Qwen3.5-9B https://huggingface.co/Qwen/Qwen3.5-9B Apache 2.0 Checkpoint Ministral-3-8B-Instruct-2512-BF16 
+
+https://huggingface.co/mistralai/Minis tral-3-8B-Instruct-2512-BF16 
+
+Apache 2.0 Checkpoint LlaSMol-Mistral-7B https://huggingface.co/osunlp/LlaSMol-M istral-7B 
+
+CC BY 4.0 LoRA Adapter BioMedGPT-Mol https://huggingface.co/PharMolix/BioMe dGPT-Mol 
+
+Not specified Checkpoint 
+
+14
