@@ -161,6 +161,11 @@ jobs:
           fi
           if [ -n "$FETCH_DAYS" ]; then
             ARGS+=(--fetch-days "$FETCH_DAYS")
+            # Manual backfills must use the full requested date window, not
+            # archive/crawl_state.json or archive/arxiv_seen.json from prior runs.
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "$FETCH_DAYS" -le 30 ]; then
+              ARGS+=(--fetch-ignore-seen)
+            fi
           fi
           if [ -n "$FETCH_MODE" ]; then
             ARGS+=(--fetch-mode "$FETCH_MODE")
