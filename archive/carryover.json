@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-10-16T07:10:11.100759+00:00",
-  "updated_date": "20261007-20261016",
+  "generated_at": "2026-11-08T05:50:34.319683+00:00",
+  "updated_date": "20261030-20261108",
   "carryover_days": 9,
   "tag_states": {
     "demo": {
@@ -153,6 +153,11 @@
     },
     "AIDD": {
       "updated_date": "20261007-20261016",
+      "carryover_days": 9,
+      "items": []
+    },
+    "virtual-cell": {
+      "updated_date": "20261030-20261108",
       "carryover_days": 9,
       "items": []
     }
