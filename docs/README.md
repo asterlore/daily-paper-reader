@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-10-30 ~ 2026-11-08</span>
+      <span class="dpr-home-dashboard-kicker">2026-11-08</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 7 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 0 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
-    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>5 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>3</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>4</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>2 次</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>0</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-11-08 10:00:47 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-11-08 22:42:50 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>单细胞扰动预测成焦点：本期扫读7篇、精读3篇，两篇9分领跑。</p>
-<p>最值得看的是CytoWave的“以扰动为中心”预训练思路，以及低秩解码瓶颈对基础模型扰动预测可靠性的约束结论。</p>
-<p>普通读者可先精读这两篇9分文章，重点看评测设计与瓶颈分析，而不只看模型规模。</p>
+<p>今日无新推荐，系统未产出可展示论文。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -80,12 +78,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">3 篇</strong>
+    <strong class="dpr-home-dashboard-count">0 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="CytoWave: Perturbation-Centric Pretraining for Single-Cell Response Prediction">CytoWave: Perturbation-Centric Pretraining for Single-Cell Response Prediction</span></li><li><span class="dpr-home-dashboard-paper-title" title="A low-rank decoder bottleneck bounds reliability in foundation-model perturbation prediction">A low-rank decoder bottleneck bounds reliability in foundation-model perturbation prediction</span></li><li><span class="dpr-home-dashboard-paper-title" title="CellCanon: An Agentic Cellular World Model for Prediction, Explanation, and Observation-Driven Updating">CellCanon: An Agentic Cellular World Model for Prediction, Explanation, and Observation-Driven Updating</span></li></ul>
+<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">virtual-cell <strong>3</strong></span></div>
+
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -93,12 +91,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">4 篇</strong>
+    <strong class="dpr-home-dashboard-count">0 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="scAnyOmics: Foundation-Model Distillation for Any-to-Any Completion of Multi-omics Virtual Cells">scAnyOmics: Foundation-Model Distillation for Any-to-Any Completion of Multi-omics Virtual Cells</span></li><li><span class="dpr-home-dashboard-paper-title" title="Attribution-based diagnostics for single-cell foundation models">Attribution-based diagnostics for single-cell foundation models</span></li><li><span class="dpr-home-dashboard-paper-title" title="Learning developmental dynamics from lineage context">Learning developmental dynamics from lineage context</span></li></ul>
+<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">virtual-cell <strong>4</strong></span></div>
+
 </section>
 </div>
 
