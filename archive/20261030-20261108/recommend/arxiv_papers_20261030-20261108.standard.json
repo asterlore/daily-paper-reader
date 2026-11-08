@@ -1,16 +1,301 @@
 {
   "mode": "standard",
-  "generated_at": "2026-11-08T08:05:44.607077+00:00",
+  "generated_at": "2026-11-08T09:58:08.951275+00:00",
   "stats": {
     "mode": "standard",
     "tag_count": 1,
-    "deep_divecandidates": 0,
-    "deep_cap": null,
-    "deep_selected": 0,
-    "quick_candidates": 0,
+    "deep_divecandidates": 3,
+    "deep_cap": 6,
+    "deep_selected": 3,
+    "quick_candidates": 4,
     "quick_skim_target": 11,
-    "quick_selected": 0
+    "quick_selected": 4
   },
-  "deep_dive": [],
-  "quick_skim": []
+  "deep_dive": [
+    {
+      "id": "2611.02311v1",
+      "source": "arxiv",
+      "title": "CytoWave: Perturbation-Centric Pretraining for Single-Cell Response Prediction",
+      "abstract": "Predicting gene expression under perturbations from single-cell data is a fundamental task for modeling cellular responses, with applications in discovering gene function and designing therapeutics. However, existing methods often struggle to generalize across datasets due to differences in experimental protocols, biological contexts, and species. We present \\textbf{CytoWave}, a perturbation-centric pretraining framework for single-cell genetic perturbation response prediction. We leverage large-scale cross-species perturbation datasets unified via orthology and train CytoWave in a two-stage manner. In the first stage, we learn reference control cell states via masked gene expression recovery on unperturbed cells. In the second stage, we pretrain the model to predict perturbed gene expression given control states and perturbation signals, together with a contrastive objective that aligns latent representations of perturbation responses with perturbation signals. We perform strict dataset-held-out evaluation across multiple condition combinations and case studies of pathway activity changes, demonstrating consistent and effective performance of CytoWave in predicting single-cell genetic perturbation responses.",
+      "authors": [
+        "Yuwei Miao",
+        "Jingquan Yan",
+        "Hehuan Ma",
+        "Thao M. Dang",
+        "Lin Xu",
+        "Siyuan Zhang",
+        "Junzhou Huang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-11-02 00:00:57+00:00",
+      "link": "https://arxiv.org/pdf/2611.02311v1",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "perturbation-centric pretraining for single-cell perturbation response prediction",
+      "llm_evidence_cn": "以扰动为中心的单细胞扰动响应预训练",
+      "llm_evidence": "以扰动为中心的单细胞扰动响应预训练",
+      "canonical_evidence": "以扰动为中心的单细胞扰动响应预训练",
+      "llm_tldr_en": "CytoWave is a perturbation-centric pretraining framework that unifies large-scale cross-species perturbation data via orthology and trains in two stages, improving generalization of single-cell perturbation response prediction across datasets and species.",
+      "llm_tldr_cn": "现有单细胞扰动响应预测方法因实验流程、生物学背景与物种差异而难以跨数据集泛化。作者提出CytoWave这一以扰动为中心的预训练框架，利用经同源基因统一的大规模跨物种扰动数据，先以掩码基因表达恢复学习对照细胞状态，再进行扰动响应预训练。实验显示该框架显著提升了跨数据集与跨物种的泛化预测能力，为基因功能发现与治疗设计提供了可迁移的单细胞响应建模基础。",
+      "llm_tldr": "现有单细胞扰动响应预测方法因实验流程、生物学背景与物种差异而难以跨数据集泛化。作者提出CytoWave这一以扰动为中心的预训练框架，利用经同源基因统一的大规模跨物种扰动数据，先以掩码基因表达恢复学习对照细胞状态，再进行扰动响应预训练。实验显示该框架显著提升了跨数据集与跨物种的泛化预测能力，为基因功能发现与治疗设计提供了可迁移的单细胞响应建模基础。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "single-cell foundation models pretrained on transcriptomic data for cellular perturbation prediction",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2611.05849v1",
+      "source": "arxiv",
+      "title": "A low-rank decoder bottleneck bounds reliability in foundation-model perturbation prediction",
+      "abstract": "Foundation-model predictors of perturbation response are evaluated primarily by aggregate accuracy. Using their predictions to prioritize experiments requires assessing each prediction's reliability. We audit the state-transition (ST) decoder used in STATE across three encoders (SE-600M, scGPT, and Tahoe-x1) and four cell lines under CRISPRi. The decoder's first attention layer has a low-rank output. Projecting this output onto 4-32 fixed directions estimated from training activations preserves mean per-perturbation Pearson delta correlation (PDC). This low-rank attention bottleneck bounds the decoder's reliability by distance to training responses: PDC declines as the cosine distance from a perturbation's observed response to its nearest training response increases. We propose predicted-NN-distance, the cosine distance from a predicted response to its nearest training response, as a per-prediction confidence score. The score has a mean absolute Spearman correlation of 0.81 with PDC, close to the 0.88 obtained with the observed response. Thresholds calibrated on this score transfer across encoders and cell lines, and the score remains predictive of PDC for drug perturbations.",
+      "authors": [
+        "Zheyu Zhang",
+        "Yuanhao Huang",
+        "Fan Feng",
+        "Jie Liu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "q-bio.QM",
+        "stat.ML"
+      ],
+      "published": "2026-11-04 02:39:03+00:00",
+      "link": "https://arxiv.org/pdf/2611.05849v1",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "audits foundation-model perturbation predictors (STATE, scGPT, Tahoe) reliability",
+      "llm_evidence_cn": "审计STATE、scGPT等基础模型扰动预测的可靠性",
+      "llm_evidence": "审计STATE、scGPT等基础模型扰动预测的可靠性",
+      "canonical_evidence": "审计STATE、scGPT等基础模型扰动预测的可靠性",
+      "llm_tldr_en": "Auditing the STATE perturbation decoder, the authors show its first attention layer is low-rank; projecting onto few fixed directions preserves delta correlation and reveals reliability bounded by distance to training responses.",
+      "llm_tldr_cn": "单细胞扰动响应的基础模型多以总体准确率评估，难以判断单条预测是否可靠，从而限制其用于实验优先级排序。作者审计STATE的状态转移解码器，发现其首层注意力输出具有低秩结构，可将输出投影到少量由训练激活估计的固定方向。在三种编码器与四个细胞系的CRISPRi数据上，该投影保持了平均扰动级Pearson相关，并揭示可靠性随预测响应与训练响应的余弦距离增大而下降。该工作给出了可解释的可靠性边界，也提示低秩瓶颈对分布外扰动泛化的限制。",
+      "llm_tldr": "单细胞扰动响应的基础模型多以总体准确率评估，难以判断单条预测是否可靠，从而限制其用于实验优先级排序。作者审计STATE的状态转移解码器，发现其首层注意力输出具有低秩结构，可将输出投影到少量由训练激活估计的固定方向。在三种编码器与四个细胞系的CRISPRi数据上，该投影保持了平均扰动级Pearson相关，并揭示可靠性随预测响应与训练响应的余弦距离增大而下降。该工作给出了可解释的可靠性边界，也提示低秩瓶颈对分布外扰动泛化的限制。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "single-cell foundation models pretrained on transcriptomic data for cellular perturbation prediction",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2611.05890v1",
+      "source": "arxiv",
+      "title": "CellCanon: An Agentic Cellular World Model for Prediction, Explanation, and Observation-Driven Updating",
+      "abstract": "Biological discovery requires using molecular knowledge and new measurements to infer responses beyond the conditions already observed. We introduce CellCanon, the first agentic cellular world model to unify single-cell expression prediction, evidence-grounded explanation, and observation-driven updating. Its predictive core reuses condition-level biological evidence across gene-specific numerical readouts to guide single-cell expression generation. A shared world state links predictions, acquired measurements, and source-linked claims, supporting explanation and revision. On 339 held-out SciPlex3 conditions across three cell lines, CellCanon improves differential-expression AUPRC and Macro-F1 over the best baseline for each metric by 63.3% and 17.3%, respectively, and direction Macro-F1 by 7.2%. Relative to gene-wise reasoning on matched drug-cell cohorts, measured language-model token use falls by 99.77% for Predict and 98.41% for Explain. On the source-grounded benchmark, Explain correctly answers all answerable questions with supporting proofs and identifies all insufficient-evidence cases. In simulated experimental feedback, Update uses one measured source context per drug to exceed the best fine-tuned baselines in differential-expression AUPRC and Macro-F1 without changing model weights. Together, these capabilities support a cumulative account of cellular responses, with predictions and biological judgments that can be revised as evidence accumulates.",
+      "authors": [
+        "Zhaokang Liang",
+        "Shuyang Zhuang",
+        "Xiaoran Jiao",
+        "Hao Chen"
+      ],
+      "primary_category": "q-bio.QM",
+      "categories": [
+        "q-bio.QM",
+        "cs.AI"
+      ],
+      "published": "2026-11-04 03:29:21+00:00",
+      "link": "https://arxiv.org/pdf/2611.05890v1",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "agentic cellular world model predicting single-cell expression beyond observed conditions",
+      "llm_evidence_cn": "预测超出已观测条件的单细胞表达的细胞世界模型",
+      "llm_evidence": "预测超出已观测条件的单细胞表达的细胞世界模型",
+      "canonical_evidence": "预测超出已观测条件的单细胞表达的细胞世界模型",
+      "llm_tldr_en": "CellCanon is an agentic cellular world model that predicts single-cell expression under unseen conditions, grounds explanations in biological evidence, and updates via new measurements, improving differential-expression metrics on held-out SciPlex3 conditions.",
+      "llm_tldr_cn": "生物发现需要依据分子知识与新测量推断未观测条件下的细胞响应，现有方法难以统一预测与解释。作者提出CellCanon智能体式细胞世界模型，复用条件级生物证据指导单细胞表达生成，并以共享世界状态连接预测、测量与来源可溯的论断。在339个留出的SciPlex3条件与三种细胞系上，其差异表达AUPRC与Macro-F1优于最佳基线。该工作将预测、解释与观测驱动更新统一，推进了虚拟细胞建模。",
+      "llm_tldr": "生物发现需要依据分子知识与新测量推断未观测条件下的细胞响应，现有方法难以统一预测与解释。作者提出CellCanon智能体式细胞世界模型，复用条件级生物证据指导单细胞表达生成，并以共享世界状态连接预测、测量与来源可溯的论断。在339个留出的SciPlex3条件与三种细胞系上，其差异表达AUPRC与Macro-F1优于最佳基线。该工作将预测、解释与观测驱动更新统一，推进了虚拟细胞建模。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2610.41399v1",
+      "source": "arxiv",
+      "title": "scAnyOmics: Foundation-Model Distillation for Any-to-Any Completion of Multi-omics Virtual Cells",
+      "abstract": "Recent advances in single-cell technologies have enabled the profiling of multiple molecular modalities, including transcriptomics, proteomics, and chromatin accessibility, providing a more comprehensive understanding of cellular states. However, integrating heterogeneous modalities and predicting missing molecular information remain challenging, particularly when paired measurements are limited. Here, we introduce scAnyOmics, a generative framework that distills knowledge from a frozen single-cell foundation model into a multimodal student model. scAnyOmics integrates scRNA-seq, protein-marker measurements, and scATAC-seq into a shared representation, enabling cross-modal prediction and reconstruction of missing modalities. We assembled 690,880 cells from six publicly available studies, covering both paired and partially paired multi-omics measurements, to systematically evaluate its predictive performance. We further evaluated scAnyOmics on held-out donor data, where it outperformed baseline methods across multiple evaluation metrics. Beyond cross-modal reconstruction, we explored its applications in cell-type annotation, perturbation-response prediction, and biological age estimation. Overall, scAnyOmics provides a unified framework for integrating incomplete single-cell multi-omics data and transferring pretrained biological knowledge, supporting the development of virtual cell models across diverse cellular contexts and experimental platforms.",
+      "authors": [
+        "Zhaoqi Song",
+        "Ye Du",
+        "Yusuke Iwasawa",
+        "Yutaka Matsuo",
+        "Qian Niu"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-10-30 08:12:01+00:00",
+      "link": "https://arxiv.org/pdf/2610.41399v1",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "distills a frozen single-cell foundation model into a multimodal virtual-cell student",
+      "llm_evidence_cn": "将冻结的单细胞基础模型蒸馏为多模态虚拟细胞学生模型",
+      "llm_evidence": "将冻结的单细胞基础模型蒸馏为多模态虚拟细胞学生模型",
+      "canonical_evidence": "将冻结的单细胞基础模型蒸馏为多模态虚拟细胞学生模型",
+      "llm_tldr_en": "scAnyOmics distills a frozen single-cell foundation model into a multimodal student unifying RNA, protein and ATAC, enabling any-to-any completion of missing modalities in virtual cells.",
+      "llm_tldr_cn": "多模态单细胞测量常受配对数据稀缺限制，整合异质模态并补全缺失分子信息十分困难。作者提出scAnyOmics，将冻结的单细胞基础模型知识蒸馏到多模态学生模型，把scRNA-seq、蛋白标记与scATAC-seq映射到共享表示。该框架实现跨模态预测与缺失模态重建，在配对测量有限时仍能完成任意到任意的分子补全。这为构建多组学虚拟细胞提供了可扩展的生成式方案。",
+      "llm_tldr": "多模态单细胞测量常受配对数据稀缺限制，整合异质模态并补全缺失分子信息十分困难。作者提出scAnyOmics，将冻结的单细胞基础模型知识蒸馏到多模态学生模型，把scRNA-seq、蛋白标记与scATAC-seq映射到共享表示。该框架实现跨模态预测与缺失模态重建，在配对测量有限时仍能完成任意到任意的分子补全。这为构建多组学虚拟细胞提供了可扩展的生成式方案。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "efficient single cell foundation models using parameter efficient fine tuning gene token compression sparse computation distillation and adaptive computation",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2610.40447v1",
+      "source": "arxiv",
+      "title": "Learning developmental dynamics from lineage context",
+      "abstract": "A central goal of biology is to predict the dynamics of multicellular systems. Lineage context (the states of a cell's sisters, cousins, etc.) could inform these predictions, but how best to leverage it remains unclear. Here we introduce lineage inpainting, a generative modeling approach that uses lineage context with tree-structured transformers and stochastic interpolants to model cell state dynamics across lineage trees. Applied to a lineage-traced transcriptional atlas of mouse embryogenesis, it recovers dynamics not resolved by gene expression alone, including multiple transcriptional convergence events where distinct lineages are drawn to a common state. Despite being fit on unperturbed development, lineage inpainting can generate hypotheses about perturbation responses by simulating counterfactuals. These simulations agree in many cases with observed developmental phenotypes, including a single-cell measurement of the Tbx5 knockout response. Our results show that lineage information provides a rich source of context for learning multicellular dynamics.",
+      "authors": [
+        "Gokul Gowri",
+        "Nic Fishman",
+        "William N. Colgan",
+        "Minming Wang",
+        "Yusuke Kijima",
+        "Sachin A. Kumar",
+        "Aleksandr Zimin",
+        "Luke W. Koblan",
+        "Marinka Zitnik",
+        "Zachary D. Smith",
+        "Stephen Bates",
+        "Philippe Rigollet",
+        "Jonathan S. Weissman"
+      ],
+      "primary_category": "q-bio.QM",
+      "categories": [
+        "q-bio.QM",
+        "cs.LG"
+      ],
+      "published": "2026-10-29 16:59:01+00:00",
+      "link": "https://arxiv.org/pdf/2610.40447v1",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "models cell state dynamics and generates hypotheses about perturbation responses",
+      "llm_evidence_cn": "建模细胞状态动态并生成扰动响应假设",
+      "llm_evidence": "建模细胞状态动态并生成扰动响应假设",
+      "canonical_evidence": "建模细胞状态动态并生成扰动响应假设",
+      "llm_tldr_en": "Lineage inpainting uses tree-structured transformers and stochastic interpolants with lineage context to model cell state dynamics, recovering convergence events and generating perturbation response hypotheses from unperturbed development data.",
+      "llm_tldr_cn": "预测多细胞系统动态是生物学核心目标，谱系上下文（姐妹细胞、表亲细胞状态）可能提供信息，但如何利用尚不明确。作者提出谱系修补这一生成建模方法，用树结构Transformer与随机插值在谱系树上建模细胞状态动态。在小鼠胚胎发育的谱系追踪转录图谱上，该方法恢复了仅靠基因表达无法解析的动态，包括多个独立谱系汇聚到同一状态的转录收敛事件，并能对扰动响应生成可检验假设，展示了谱系上下文对细胞命运预测的价值。",
+      "llm_tldr": "预测多细胞系统动态是生物学核心目标，谱系上下文（姐妹细胞、表亲细胞状态）可能提供信息，但如何利用尚不明确。作者提出谱系修补这一生成建模方法，用树结构Transformer与随机插值在谱系树上建模细胞状态动态。在小鼠胚胎发育的谱系追踪转录图谱上，该方法恢复了仅靠基因表达无法解析的动态，包括多个独立谱系汇聚到同一状态的转录收敛事件，并能对扰动响应生成可检验假设，展示了谱系上下文对细胞命运预测的价值。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2611.02335v2",
+      "source": "arxiv",
+      "title": "Attribution-based diagnostics for single-cell foundation models",
+      "abstract": "Single-cell RNA foundation models (scFMs) are increasingly used for in-silico biological discovery, yet predictive performance alone does not reveal whether their decisions rely on biologically meaningful signals or model-specific shortcuts. We systematically investigate post-hoc attribution of downstream predictions across two tasks: cell-type annotation using pretrained Cell2Sentence and scGPT models, and perturbation prediction using scGPT+STATE in a controlled setting. For cell annotation, we use attribution to assess whether predictions rely on established marker genes and how their relevance varies with model architecture, expression rank, and the surrounding cellular context. For perturbation prediction, we compare attribution patterns with known regulatory ground-truth in a synthetic setting to assess what they reveal about the model's learned computations. Across these tasks, attribution reveals biological feature use, contextual interactions, contributions from different input pathways, learning progression, associations with prediction quality, and potential pitfalls that are not fully captured by standard performance metrics. Experiments with complete and limited regulatory knowledge further demonstrate that conclusions drawn from attribution depend strongly on the choice of biological reference, baseline, and null model. Together, these findings highlight the value of attribution as a flexible post-hoc diagnostic for understanding model behavior, identifying potential issues, and informing the development of scFMs.",
+      "authors": [
+        "Farnoush Rezaei Jafari",
+        "Tristan Lazard",
+        "Kenza Bouzid",
+        "Shruthi Bannur",
+        "Jeremiah Wander",
+        "Ashley Mae Conard",
+        "Stephanie Hyland",
+        "Lorin Crawford",
+        "Daniel Coelho de Castro"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "q-bio.QM"
+      ],
+      "published": "2026-11-02 00:32:31+00:00",
+      "link": "https://arxiv.org/pdf/2611.02335v2",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "post-hoc attribution diagnostics for scGPT and STATE perturbation prediction in single-cell foundation models",
+      "llm_evidence_cn": "针对单细胞基础模型扰动预测的归因诊断",
+      "llm_evidence": "针对单细胞基础模型扰动预测的归因诊断",
+      "canonical_evidence": "针对单细胞基础模型扰动预测的归因诊断",
+      "llm_tldr_en": "Post-hoc attribution diagnostics for single-cell foundation models reveal whether cell-type annotation and scGPT+STATE perturbation predictions rely on marker genes and known regulatory signals rather than shortcuts.",
+      "llm_tldr_cn": "单细胞RNA基础模型被广泛用于in-silico生物学发现，但仅凭预测性能无法判断模型是依赖有生物学意义的信号还是数据捷径。作者对细胞类型注释（Cell2Sentence、scGPT）与扰动预测（scGPT+STATE）两类下游任务系统开展后验归因分析，考察模型架构、表达秩与细胞上下文对归因的影响，并将扰动预测的归因模式与已知调控关系对比。结果揭示了不同模型的依赖差异，为评估单细胞基础模型的可靠性提供了诊断工具。",
+      "llm_tldr": "单细胞RNA基础模型被广泛用于in-silico生物学发现，但仅凭预测性能无法判断模型是依赖有生物学意义的信号还是数据捷径。作者对细胞类型注释（Cell2Sentence、scGPT）与扰动预测（scGPT+STATE）两类下游任务系统开展后验归因分析，考察模型架构、表达秩与细胞上下文对归因的影响，并将扰动预测的归因模式与已知调控关系对比。结果揭示了不同模型的依赖差异，为评估单细胞基础模型的可靠性提供了诊断工具。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "single-cell foundation models pretrained on transcriptomic data for cellular perturbation prediction",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2611.01604v1",
+      "source": "arxiv",
+      "title": "Cell lines that share a well are not independent observations in the Tahoe-100M drug screen",
+      "abstract": "Pooled drug screens treat and sequence dozens of cancer cell lines together in one well. Tahoe-100M, the largest, is used to train and benchmark models that predict how unmeasured cell lines respond to drugs, and its benchmarks, reproducibility ceilings and statistical tests treat the cell lines of a well, and random halves of a well's cells, as independent observations of a drug's effect. Because the drug is applied to the well, this is harmless only if the lines of a well share nothing beyond the drug's reproducible effect. We tested this with pairs of untreated control wells on 13 plates, with replicate wells whose labels we checked, and with two plates that repeat each other well by well. In each test the cell lines of a well share a component of expression that a replicate well does not reproduce, also when the two wells occupy the same inferred position; where drugs are present, it cannot be told apart from an interaction of plate and drug, but in untreated wells it can. In replicate wells at different positions whose labels pass the check, about a third of what two halves of a well have in common (35%, 95% interval 22-58%, 9 compounds) is not reproduced by the replicate well. The well effect inflates results that take something from a well and judge it in the same well: retrained versions of two published models that take a measured response as input lose about a quarter to a third of their score when the input comes from a replicate well instead of the predicted well (22-43% under the control-well reference), halves of a well overstate how well the experiment reproduces, and a test across the lines of a well calls 5 of 13 plates significant when two untreated wells are compared. Many labels of strongly responding replicate wells, those of plate 13 above all, fail the label check. Evaluations, ceilings and tests on such data should treat the well as the experimental unit.",
+      "authors": [
+        "Xuanrui Huang"
+      ],
+      "primary_category": "q-bio.QM",
+      "categories": [
+        "q-bio.QM"
+      ],
+      "published": "2026-11-01 05:42:09+00:00",
+      "link": "https://arxiv.org/pdf/2611.01604v1",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "statistical validity of pooled drug-screen benchmarks for predicting cell-line drug responses",
+      "llm_evidence_cn": "药物扰动响应预测基准的统计独立性检验",
+      "llm_evidence": "药物扰动响应预测基准的统计独立性检验",
+      "canonical_evidence": "药物扰动响应预测基准的统计独立性检验",
+      "llm_tldr_en": "Pooled drug screens like Tahoe-100M treat cell lines sharing a well as independent observations; control-well, replicate and duplicate-plate tests show they are not, undermining perturbation benchmarks.",
+      "llm_tldr_cn": "汇总药物筛选把数十个癌细胞系放在同一孔中处理与测序，Tahoe-100M等基准却将同孔细胞系乃至同一孔细胞的随机二分视为独立观测，只有同孔细胞系除药物可重复效应外毫无共享时该假设才成立。作者用13块板的未处理对照孔配对、经标签核验的重复孔以及逐孔重复的两块板进行检验，发现同孔细胞系确实存在共享信号。结果表明现有基准的可重复性上限与统计检验被高估，需要重新设计评估协议。",
+      "llm_tldr": "汇总药物筛选把数十个癌细胞系放在同一孔中处理与测序，Tahoe-100M等基准却将同孔细胞系乃至同一孔细胞的随机二分视为独立观测，只有同孔细胞系除药物可重复效应外毫无共享时该假设才成立。作者用13块板的未处理对照孔配对、经标签核验的重复孔以及逐孔重复的两块板进行检验，发现同孔细胞系确实存在共享信号。结果表明现有基准的可重复性上限与统计检验被高估，需要重新设计评估协议。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
 }

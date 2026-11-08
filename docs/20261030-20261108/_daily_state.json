@@ -1,8 +1,121 @@
 {
   "date": "20261030-20261108",
   "date_label": "2026-10-30 ~ 2026-11-08",
-  "generated_at": "2026-11-08 08:05:45 UTC",
+  "generated_at": "2026-11-08 10:00:47 UTC",
   "recommend_exists": true,
-  "run_count": 4,
-  "papers": []
+  "run_count": 5,
+  "papers": [
+    {
+      "paper_id": "2611.02311v1",
+      "route": "20261030-20261108/2611.02311v1-cytowave-perturbation-centric-pretraining-for-single-cell-response-prediction",
+      "title": "CytoWave: Perturbation-Centric Pretraining for Single-Cell Response Prediction",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "以扰动为中心的单细胞扰动响应预训练",
+      "first_seen_at": "2026-11-08 10:00:47 UTC",
+      "updated_at": "2026-11-08 10:00:47 UTC"
+    },
+    {
+      "paper_id": "2611.05849v1",
+      "route": "20261030-20261108/2611.05849v1-a-low-rank-decoder-bottleneck-bounds-reliability-in-foundation-model-perturbation-prediction",
+      "title": "A low-rank decoder bottleneck bounds reliability in foundation-model perturbation prediction",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "审计STATE、scGPT等基础模型扰动预测的可靠性",
+      "first_seen_at": "2026-11-08 10:00:47 UTC",
+      "updated_at": "2026-11-08 10:00:47 UTC"
+    },
+    {
+      "paper_id": "2611.05890v1",
+      "route": "20261030-20261108/2611.05890v1-cellcanon-an-agentic-cellular-world-model-for-prediction-explanation-and-observation-driven-updating",
+      "title": "CellCanon: An Agentic Cellular World Model for Prediction, Explanation, and Observation-Driven Updating",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "预测超出已观测条件的单细胞表达的细胞世界模型",
+      "first_seen_at": "2026-11-08 10:00:47 UTC",
+      "updated_at": "2026-11-08 10:00:47 UTC"
+    },
+    {
+      "paper_id": "2610.41399v1",
+      "route": "20261030-20261108/2610.41399v1-scanyomics-foundation-model-distillation-for-any-to-any-completion-of-multi-omics-virtual-cells",
+      "title": "scAnyOmics: Foundation-Model Distillation for Any-to-Any Completion of Multi-omics Virtual Cells",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "将冻结的单细胞基础模型蒸馏为多模态虚拟细胞学生模型",
+      "first_seen_at": "2026-11-08 10:00:47 UTC",
+      "updated_at": "2026-11-08 10:00:47 UTC"
+    },
+    {
+      "paper_id": "2611.02335v2",
+      "route": "20261030-20261108/2611.02335v2-attribution-based-diagnostics-for-single-cell-foundation-models",
+      "title": "Attribution-based diagnostics for single-cell foundation models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "针对单细胞基础模型扰动预测的归因诊断",
+      "first_seen_at": "2026-11-08 10:00:47 UTC",
+      "updated_at": "2026-11-08 10:00:47 UTC"
+    },
+    {
+      "paper_id": "2610.40447v1",
+      "route": "20261030-20261108/2610.40447v1-learning-developmental-dynamics-from-lineage-context",
+      "title": "Learning developmental dynamics from lineage context",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "建模细胞状态动态并生成扰动响应假设",
+      "first_seen_at": "2026-11-08 10:00:47 UTC",
+      "updated_at": "2026-11-08 10:00:47 UTC"
+    },
+    {
+      "paper_id": "2611.01604v1",
+      "route": "20261030-20261108/2611.01604v1-cell-lines-that-share-a-well-are-not-independent-observations-in-the-tahoe-100m-drug-screen",
+      "title": "Cell lines that share a well are not independent observations in the Tahoe-100M drug screen",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "药物扰动响应预测基准的统计独立性检验",
+      "first_seen_at": "2026-11-08 10:00:47 UTC",
+      "updated_at": "2026-11-08 10:00:47 UTC"
+    }
+  ]
 }
