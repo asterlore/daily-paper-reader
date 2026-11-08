@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-08T07:21:06.779859+00:00",
+  "generated_at": "2026-11-08T07:50:33.925746+00:00",
   "updated_date": "20261030-20261108",
   "carryover_days": 9,
   "tag_states": {
@@ -157,7 +157,7 @@
       "items": []
     },
     "virtual-cell": {
-      "updated_date": "20261010-20261108",
+      "updated_date": "20261030-20261108",
       "carryover_days": 9,
       "items": []
     }
