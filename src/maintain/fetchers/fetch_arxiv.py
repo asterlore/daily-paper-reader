@@ -33,6 +33,22 @@ CATEGORIES_TO_FETCH = [
     "cs", "math", "stat", "q-bio", "q-fin", "eess", "econ",
     "physics", "cond-mat", "hep-ph", "hep-th", "gr-qc", "astro-ph",
 ]
+
+
+def resolve_categories_to_fetch() -> list[str]:
+    """DPR_ARXIV_CATEGORIES accepts comma-separated arXiv categories.
+
+    Empty/unset keeps the upstream default so other entry points remain compatible.
+    Example: cs.AI,cs.LG,q-bio.GN,q-bio.MN,q-bio.QM
+    """
+    raw = str(os.getenv("DPR_ARXIV_CATEGORIES") or "").strip()
+    if not raw:
+        return list(CATEGORIES_TO_FETCH)
+    categories = list(dict.fromkeys(x.strip() for x in raw.split(",") if x.strip()))
+    invalid = [x for x in categories if not re.fullmatch(r"[A-Za-z][A-Za-z0-9.\-]*", x)]
+    if not categories or invalid:
+        raise ValueError(f"Invalid DPR_ARXIV_CATEGORIES entries: {invalid or raw}")
+    return categories
 RANGE_TOKEN_RE = re.compile(r"^\d{8}-\d{8}$")
 
 
@@ -307,7 +323,8 @@ def fetch_category_in_windows(
         group_start(f"Fetch category: {category} (window {idx}/{len(windows)} {start_str}..{end_str})")
         log(f"🚀 Fetching category: {category} | window {idx}/{len(windows)} ...")
 
-        query = f"cat:{category}* AND submittedDate:[{start_str} TO {end_str}]"
+        cat_expr = f"cat:{category}" if "." in category else f"cat:{category}*"
+        query = f"{cat_expr} AND submittedDate:[{start_str} TO {end_str}]"
         search = arxiv.Search(
             query=query,
             max_results=None,
@@ -520,8 +537,10 @@ def fetch_all_domains_metadata_robust(
         num_retries=5
     )
 
-    # 2. 遍历分类进行抓取
-    for category in CATEGORIES_TO_FETCH:
+    # 2. 遍历分类进行抓取（允许通过 GitHub Actions Variable 缩小范围）
+    categories = resolve_categories_to_fetch()
+    log(f"[INFO] arXiv fetch categories: {', '.join(categories)}")
+    for category in categories:
         cat_max = fetch_category_in_windows(
             client=client,
             category=category,
