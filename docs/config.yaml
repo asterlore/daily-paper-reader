@@ -5,9 +5,9 @@ arxiv_paper_setting:
   mode: standard
   days_window: 9
   docs_dir: docs
-  prefer_supabase_read: true
+  prefer_supabase_read: false
 supabase:
-  enabled: true
+  enabled: false
   url: https://lyucdwgefyfbmaiopjbk.supabase.co
   anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
   papers_table: arxiv_papers
@@ -31,7 +31,7 @@ subscriptions:
     enabled: true
     paper_sources:
     - arxiv
-    - biorxiv
+
     keywords:
     - keyword: machine learning
       keyword_cn: 机器学习
@@ -159,7 +159,7 @@ subscriptions:
     enabled: true
     paper_sources:
     - arxiv
-    - biorxiv
+
     keywords:
     - keyword: AI drug discovery
       keyword_cn: AI药物发现
@@ -287,7 +287,7 @@ subscriptions:
     enabled: true
     paper_sources:
     - arxiv
-    - biorxiv
+
     keywords:
     - keyword: single-cell foundation model
       keyword_cn: 单细胞基础模型
@@ -422,7 +422,7 @@ source_backends:
     sync_success_value: success
     schema: public
     kind: supabase
-    enabled: true
+    enabled: false
     url: https://lyucdwgefyfbmaiopjbk.supabase.co
     anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
   biorxiv:
@@ -434,7 +434,7 @@ source_backends:
     bm25_rpc: match_biorxiv_papers_bm25
     schema: public
     kind: supabase
-    enabled: true
+    enabled: false
     url: https://lyucdwgefyfbmaiopjbk.supabase.co
     anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
     sync_table: ''
