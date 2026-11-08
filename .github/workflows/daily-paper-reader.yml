@@ -42,6 +42,9 @@ jobs:
     env:
       DPR_MODELS_REMOTE_ONLY: "1"
       DPR_EMBED_ALLOW_LOCAL_FALLBACK: "0"
+      # Limit official arXiv API fetching to relevant AI/AIDD categories.
+      # Override with repository variable DPR_ARXIV_CATEGORIES when needed.
+      DPR_ARXIV_CATEGORIES: ${{ vars.DPR_ARXIV_CATEGORIES || 'cs.AI,cs.LG,q-bio.GN,q-bio.MN,q-bio.QM' }}
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
       DEEPSEEK_BASE_URL: ${{ secrets.DEEPSEEK_BASE_URL }}
       DEEPSEEK_MODEL: ${{ secrets.DEEPSEEK_MODEL }}
