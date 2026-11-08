@@ -1,5 +1,8 @@
 * <a class="dpr-sidebar-root-link" href="#/">首页</a>
 * <a class="dpr-sidebar-root-link dpr-sidebar-noactive-link" href="javascript:void(0)" data-dpr-hash="#/tutorial/README">使用教程</a>
+
+* Conference Papers
+  * CVPR 2026 <!--dpr-conference:cvpr-2026-->
 * Daily Papers
   * 2026-10-07 ~ 2026-10-16 <!--dpr-date:20261007-20261016-->
     * 精读区
