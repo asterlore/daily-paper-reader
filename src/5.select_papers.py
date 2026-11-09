@@ -1050,6 +1050,11 @@ def main() -> None:
         help="comma separated modes (standard,extend,spark,skims). default: config arxiv_paper_setting.mode",
     )
     parser.add_argument(
+        "--historical-backfill",
+        action="store_true",
+        help="历史日期检索：不排除先前推荐论文、不读写全局carryover。",
+    )
+    parser.add_argument(
         "--carryover-only",
         action="store_true",
         help="只使用 archive/carryover.json 作为候选集（忽略输入文件与 seen_ids 过滤）。",
@@ -1135,7 +1140,7 @@ def main() -> None:
 
     archive_root = os.path.join(ROOT_DIR, "archive")
     today_date = parse_date_str(TODAY_STR)
-    if args.carryover_only or ignore_seen_ids:
+    if args.historical_backfill or args.carryover_only or ignore_seen_ids:
         seen_ids = set()
         if ignore_seen_ids:
             log("[INFO] skims/backfill 模式：已关闭历史 seen_ids 过滤（输出数量更完整）。")
@@ -1143,12 +1148,16 @@ def main() -> None:
         seen_ids = collect_seen_ids(archive_root, TODAY_STR, active_tags=active_carryover_tags)
     log_substep("5.3", "加载 carryover 并构建候选集", "START")
     try:
-        carryover_items, _delta = load_recent_carryover(
-            CARRYOVER_PATH,
-            today_date,
-            carryover_days,
-            active_tags=active_carryover_tags,
-        )
+        if args.historical_backfill:
+            carryover_items = []
+            log("[INFO] 历史日期检索：忽略历史 seen_ids 与 carryover，避免影响历史召回")
+        else:
+            carryover_items, _delta = load_recent_carryover(
+                CARRYOVER_PATH,
+                today_date,
+                carryover_days,
+                active_tags=active_carryover_tags,
+            )
         if args.carryover_only:
             candidate_by_key: Dict[str, Dict[str, Any]] = {}
             for item in carryover_items:
@@ -1196,14 +1205,15 @@ def main() -> None:
             }
             save_json(empty, output_path)
 
-        carryover_payload = build_carryover_payload(
-            load_carryover_payload(CARRYOVER_PATH),
-            [],
-            active_tags=active_carryover_tags,
-            carryover_days=carryover_days,
-            updated_date=TODAY_STR,
-        )
-        save_json(carryover_payload, CARRYOVER_PATH)
+        if not args.historical_backfill:
+            carryover_payload = build_carryover_payload(
+                load_carryover_payload(CARRYOVER_PATH),
+                [],
+                active_tags=active_carryover_tags,
+                carryover_days=carryover_days,
+                updated_date=TODAY_STR,
+            )
+            save_json(carryover_payload, CARRYOVER_PATH)
         group_end()
         return
 
@@ -1245,8 +1255,8 @@ def main() -> None:
     log_substep("5.4", "按模式生成推荐结果", "END")
 
     log_substep("5.5", "写入 carryover 状态", "START")
-    if args.preserve_carryover:
-        log("[INFO] preserve-carryover=true：跳过写入 carryover.json")
+    if args.preserve_carryover or args.historical_backfill:
+        log("[INFO] 历史回溯或 preserve-carryover：不修改全局 carryover.json")
     else:
         carryover_out = build_carryover_out(candidates, recommended_ids, carryover_days)
         carryover_payload = build_carryover_payload(
