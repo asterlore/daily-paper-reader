@@ -417,13 +417,31 @@ def fetch_all_domains_metadata_robust(
     chunk_days: int = 7,
     disable_supabase_read: bool = False,
     include_embedding_fields: bool = False,
+    start_date: str = "",
+    end_date: str = "",
 ) -> None:
     config = load_config()
 
-    # 1. 计算时间窗口（优先使用上次抓取时间）
-    end_date = datetime.now(timezone.utc)
-    if days is None:
-        days = resolve_days_window(1)
+    # 历史模式完全按 UTC 日期抓取，且不触碰日常去重和增量状态。
+    historical_range = bool(start_date or end_date)
+    if historical_range:
+        if not (start_date and end_date):
+            raise ValueError("--start-date 与 --end-date 必须同时提供")
+        start_day = datetime.strptime(start_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        end_day = datetime.strptime(end_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        if end_day < start_day or end_day.date() > datetime.now(timezone.utc).date():
+            raise ValueError("历史日期区间无效")
+        days = (end_day - start_day).days + 1
+        if days > 30:
+            raise ValueError("历史直抓最多30天")
+        end_date_dt = end_day + timedelta(days=1) - timedelta(minutes=1)
+        end_date = end_date_dt
+        disable_supabase_read = True
+        ignore_seen = True
+    else:
+        end_date = datetime.now(timezone.utc)
+        if days is None:
+            days = resolve_days_window(1)
 
     # 0) 优先走 Supabase 公共库（无状态模式）
     # 规则：
@@ -488,7 +506,12 @@ def fetch_all_domains_metadata_robust(
             group_end()
 
     # ignore_seen 语义：完全按 days_window 回溯，不使用 last_crawl_at / latest_published_at 作为起点
-    if ignore_seen:
+    if historical_range:
+        seen_ids, latest_published_at = set(), None
+        start_date = start_day
+        source_desc = f"historical_utc_range={start_day.date()}..{end_day.date()}"
+        log(f"[INFO] 历史区间独立抓取：{start_day.date()} 至 {end_day.date()}（含首尾，不修改日常增量状态）")
+    elif ignore_seen:
         log(
             "🧹 [Global Ingest] ignore_seen=true：将忽略 arxiv_seen（不跳过已见论文，不使用 latest_published_at），"
             "并忽略 crawl_state（不使用 last_crawl_at），改为严格按 days_window 回溯。",
@@ -511,7 +534,8 @@ def fetch_all_domains_metadata_robust(
                 source_desc = f"days_window={days}"
 
     # 兜底：无论来源如何，都不早于 (now - days_window)
-    start_date = max(start_date, end_date - timedelta(days=days))
+    if not historical_range:
+        start_date = max(start_date, end_date - timedelta(days=days))
 
     # 安全兜底
     if start_date >= end_date:
@@ -575,17 +599,22 @@ def fetch_all_domains_metadata_robust(
     log(f"💾 File saved to: {output_file}")
     if total_count <= 0:
         log("⚠️ No papers found. Check your date range or network.")
-    if max_published_new:
-        save_seen_state(seen_ids, max_published_new)
+    if not historical_range:
+        if max_published_new:
+            save_seen_state(seen_ids, max_published_new)
+        else:
+            save_seen_state(seen_ids, latest_published_at)
+        save_last_crawl_at(end_date)
     else:
-        save_seen_state(seen_ids, latest_published_at)
-    save_last_crawl_at(end_date)
+        log("[INFO] 历史检索：未修改 archive/arxiv_seen.json 或 archive/crawl_state.json")
     group_end()
 
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="抓取 arXiv 多领域论文元数据（按提交时间窗口）。")
+    parser.add_argument("--start-date", type=str, default="", help="历史起始 UTC 日期 YYYY-MM-DD")
+    parser.add_argument("--end-date", type=str, default="", help="历史结束 UTC 日期 YYYY-MM-DD（含）")
     parser.add_argument(
         "--days",
         type=int,
@@ -629,4 +658,6 @@ if __name__ == "__main__":
         chunk_days=int(args.chunk_days or 7),
         disable_supabase_read=bool(args.disable_supabase_read),
         include_embedding_fields=bool(args.include_embedding_fields),
+        start_date=args.start_date,
+        end_date=args.end_date,
     )
