@@ -13,6 +13,14 @@ on:
         description: "回溯1–365天；31天以上进行arXiv专题评审，结果在原Sidebar阅读（DeepSeek按实际用量计费）"
         required: false
         default: "10"
+      start_date:
+        description: "历史开始 UTC 日期 YYYY-MM-DD（与 end_date 同时填写）"
+        required: false
+        default: ""
+      end_date:
+        description: "历史结束 UTC 日期 YYYY-MM-DD（含当日，最多30天）"
+        required: false
+        default: ""
       fetch_mode:
         description: "1–30天：auto/standard/skims；31–365天固定为arXiv专题回溯"
         required: false
@@ -92,16 +100,42 @@ jobs:
         id: window
         env:
           REQUESTED_DAYS: ${{ github.event.inputs.fetch_days }}
+          START_DATE: ${{ github.event.inputs.start_date }}
+          END_DATE: ${{ github.event.inputs.end_date }}
         run: |
           python - <<'PY'
           import os
+          import re
+          from datetime import datetime, timezone
           raw = os.environ.get('REQUESTED_DAYS', '').strip()
           days = int(raw) if raw else 10
           if not 1 <= days <= 365:
               raise SystemExit('fetch_days 必须在 1–365 天之间')
+          start = os.environ.get('START_DATE', '').strip()
+          end = os.environ.get('END_DATE', '').strip()
+          if bool(start) != bool(end):
+              raise SystemExit('start_date 和 end_date 必须同时填写或同时留空')
+          historical = bool(start)
+          if historical:
+              if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', start) or not re.fullmatch(r'\d{4}-\d{2}-\d{2}', end):
+                  raise SystemExit('历史日期格式必须为 YYYY-MM-DD')
+              try:
+                  first = datetime.strptime(start, '%Y-%m-%d').date()
+                  last = datetime.strptime(end, '%Y-%m-%d').date()
+              except ValueError as exc:
+                  raise SystemExit(f'无效历史日期: {exc}')
+              if first > last:
+                  raise SystemExit('开始日期不能晚于结束日期')
+              if last > datetime.now(timezone.utc).date():
+                  raise SystemExit('历史结束日期不能晚于 UTC 今天')
+              days = (last - first).days + 1
+              if days > 30:
+                  raise SystemExit('历史区间单次最多30天；请分多次运行')
+              print(f'Historical arXiv: {start}..{end} ({days} inclusive days)')
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
               output.write(f'long_range={str(days > 30).lower()}\n')
               output.write(f'days={days}\n')
+              output.write(f'historical={str(historical).lower()}\n')
           PY
 
       - name: Cache Python deps
@@ -149,6 +183,8 @@ jobs:
           echo "Running main script..."
           RUN_ENRICH="${{ github.event.inputs.run_enrich }}"
           FETCH_DAYS="${{ github.event.inputs.fetch_days }}"
+          START_DATE="${{ github.event.inputs.start_date }}"
+          END_DATE="${{ github.event.inputs.end_date }}"
           FETCH_MODE="${{ github.event.inputs.fetch_mode }}"
           PROFILE_TAG="${{ github.event.inputs.profile_tag }}"
           RERANKER_PROFILE_INPUT="${{ github.event.inputs.reranker_profile }}"
@@ -166,6 +202,9 @@ jobs:
             if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "$FETCH_DAYS" -le 30 ]; then
               ARGS+=(--fetch-ignore-seen)
             fi
+          fi
+          if [ -n "$START_DATE" ] && [ -n "$END_DATE" ]; then
+            ARGS+=(--start-date "$START_DATE" --end-date "$END_DATE")
           fi
           if [ -n "$FETCH_MODE" ]; then
             ARGS+=(--fetch-mode "$FETCH_MODE")

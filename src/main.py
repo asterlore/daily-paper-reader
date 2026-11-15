@@ -530,6 +530,16 @@ def main() -> None:
         help="Pass --ignore-seen to Step1 (fetch arxiv), ignoring archive/arxiv_seen.json.",
     )
     parser.add_argument(
+        "--start-date",
+        default="",
+        help="历史检索开始日 YYYY-MM-DD（UTC，需与 --end-date 一起填写）。",
+    )
+    parser.add_argument(
+        "--end-date",
+        default="",
+        help="历史检索结束日 YYYY-MM-DD（UTC，含结束当天；单次最多30天）。",
+    )
+    parser.add_argument(
         "--fetch-days",
         type=int,
         default=None,
@@ -569,10 +579,36 @@ def main() -> None:
     if args.fetch_days is not None and not 1 <= args.fetch_days <= 365:
         parser.error('--fetch-days 必须在 1–365 天之间')
 
+    # 历史区间优先于“最近N天”，并且只运行本地arXiv检索链路。
+    historical_range = bool(args.start_date or args.end_date)
+    if historical_range:
+        if not (args.start_date and args.end_date):
+            parser.error('--start-date 和 --end-date 必须同时填写')
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", args.start_date) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", args.end_date):
+            parser.error('日期格式必须为 YYYY-MM-DD')
+        try:
+            start_day = datetime.strptime(args.start_date, "%Y-%m-%d").date()
+            end_day = datetime.strptime(args.end_date, "%Y-%m-%d").date()
+        except ValueError as exc:
+            parser.error(f'日期无效：{exc}')
+        if end_day < start_day:
+            parser.error('历史检索的结束日期不能早于开始日期')
+        if end_day > datetime.now(timezone.utc).date():
+            parser.error('历史检索的结束日期不能晚于当前 UTC 日期')
+        days = (end_day - start_day).days + 1
+        if days > 30:
+            parser.error('arXiv 直抓历史区间单次最多30天，请分多次运行')
+        if args.skip_fetch is True:
+            parser.error('指定历史日期时不能使用 --skip-fetch')
+        args.fetch_days = days
+        print(f'[INFO] Historical arXiv range: {args.start_date} ~ {args.end_date}, inclusive_days={days}', flush=True)
+
     python = sys.executable
 
-    sidebar_date_label = resolve_sidebar_date_label(args.fetch_days)
-    run_date_token = resolve_run_date_token(args.fetch_days)
+    sidebar_date_label = (f"{args.start_date} ~ {args.end_date}" if historical_range
+                          else resolve_sidebar_date_label(args.fetch_days))
+    run_date_token = (f"{args.start_date.replace('-', '')}-{args.end_date.replace('-', '')}"
+                      if historical_range else resolve_run_date_token(args.fetch_days))
     os.environ["DPR_RUN_DATE"] = run_date_token
     print(f"[INFO] DPR_RUN_DATE={run_date_token}", flush=True)
     profile_tag = str(args.profile_tag or os.getenv("DPR_FILTER_PROFILE_TAG") or "").strip()
@@ -658,7 +694,9 @@ def main() -> None:
                 python,
                 os.path.join(SRC_DIR, "maintain", "fetchers", "fetch_arxiv.py"),
                 *(["--days", str(args.fetch_days)] if args.fetch_days is not None else []),
-                *(["--ignore-seen"] if args.fetch_ignore_seen else []),
+                *(["--ignore-seen"] if args.fetch_ignore_seen or historical_range else []),
+                *(["--start-date", args.start_date, "--end-date", args.end_date,
+                   "--disable-supabase-read"] if historical_range else []),
             ],
         )
     if trace_ids:
@@ -706,6 +744,7 @@ def main() -> None:
             python,
             os.path.join(SRC_DIR, "5.select_papers.py"),
             *(["--modes", "skims"] if use_skims_mode else []),
+            *(["--historical-backfill"] if historical_range else []),
         ],
     )
     if trace_ids:
