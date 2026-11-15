@@ -1,0 +1,121 @@
+{
+  "date": "20261020-20261029",
+  "date_label": "2026-10-20 ~ 2026-10-29",
+  "generated_at": "2026-11-15 08:15:55 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2611.05410v2",
+      "route": "20261020-20261029/2611.05410v2-rethinking-one-gene-one-token-transcriptome-aware-tokenization-for-single-cell-foundation-models",
+      "title": "Rethinking One Gene, One Token: Transcriptome-Aware Tokenization for Single-Cell Foundation Models",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "转录组感知分词通过基因集合共享压缩token，提升单细胞基础模型效率",
+      "first_seen_at": "2026-11-15 08:15:55 UTC",
+      "updated_at": "2026-11-15 08:15:55 UTC"
+    },
+    {
+      "paper_id": "2610.32962v2",
+      "route": "20261020-20261029/2610.32962v2-shared-clones-make-random-cell-halves-look-reproducible-in-pooled-screens",
+      "title": "Shared clones make random cell halves look reproducible in pooled screens",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "用于训练与评估扰动模型的单细胞扰动筛选可重复性",
+      "first_seen_at": "2026-11-15 08:15:55 UTC",
+      "updated_at": "2026-11-15 08:15:55 UTC"
+    },
+    {
+      "paper_id": "2610.35508v1",
+      "route": "20261020-20261029/2610.35508v1-escaping-cells-dilute-crispr-screen-responses-unequally-across-cell-types",
+      "title": "Escaping cells dilute CRISPR screen responses unequally across cell types",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "量化CRISPR逃逸比例对扰动响应的稀释及其跨细胞类型差异，影响跨细胞类型迁移模型",
+      "first_seen_at": "2026-11-15 08:15:55 UTC",
+      "updated_at": "2026-11-15 08:15:55 UTC"
+    },
+    {
+      "paper_id": "2610.28200v2",
+      "route": "20261020-20261029/2610.28200v2-parameter-efficient-adaptation-of-time-series-foundation-models-for-electrical-load-forecasting",
+      "title": "Parameter-Efficient Adaptation of Time Series Foundation Models for Electrical Load Forecasting",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "基础模型上LoRA与全量微调对比并含分布外评估",
+      "first_seen_at": "2026-11-15 08:15:55 UTC",
+      "updated_at": "2026-11-15 08:15:55 UTC"
+    },
+    {
+      "paper_id": "2610.29134v1",
+      "route": "20261020-20261029/2610.29134v1-normtune-norm-guided-parameter-efficient-fine-tuning-for-reasoning-intensive-tasks",
+      "title": "NormTune: Norm-Guided Parameter-Efficient Fine-Tuning for Reasoning-Intensive Tasks",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "通用参数高效微调方法，可迁移用于单细胞基础模型的高效适配",
+      "first_seen_at": "2026-11-15 08:15:55 UTC",
+      "updated_at": "2026-11-15 08:15:55 UTC"
+    },
+    {
+      "paper_id": "2610.36994v1",
+      "route": "20261020-20261029/2610.36994v1-callm-continual-adaptation-of-llms-via-non-parametric-adapter-routing",
+      "title": "CaLLM: Continual Adaptation of LLMs via Non-Parametric Adapter Routing",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "轻量适配器加原型路由实现参数高效持续适配",
+      "first_seen_at": "2026-11-15 08:15:55 UTC",
+      "updated_at": "2026-11-15 08:15:55 UTC"
+    },
+    {
+      "paper_id": "2610.40447v1",
+      "route": "20261020-20261029/2610.40447v1-learning-developmental-dynamics-from-lineage-context",
+      "title": "Learning developmental dynamics from lineage context",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "生成式细胞状态动态并可推断扰动响应",
+      "first_seen_at": "2026-11-15 08:15:55 UTC",
+      "updated_at": "2026-11-15 08:15:55 UTC"
+    }
+  ]
+}

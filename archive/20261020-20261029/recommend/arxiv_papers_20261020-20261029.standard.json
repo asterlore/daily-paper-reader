@@ -1,0 +1,294 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-11-15T08:12:46.015400+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 2,
+    "deep_cap": 6,
+    "deep_selected": 2,
+    "quick_candidates": 5,
+    "quick_skim_target": 11,
+    "quick_selected": 5
+  },
+  "deep_dive": [
+    {
+      "id": "2611.05410v2",
+      "source": "arxiv",
+      "title": "Rethinking One Gene, One Token: Transcriptome-Aware Tokenization for Single-Cell Foundation Models",
+      "abstract": "Single-cell foundation models typically treat each gene as a token, which is both costly and wasteful. A cell can express thousands of genes, so one token per gene makes self-attention expensive, yet many of these genes are detected at low levels and carry too little signal to deserve a token of their own. Genes that are expressed together could instead share a token, leaving separate tokens for genes that stand out. We introduce scTAT (Transcriptome-Aware Tokenization), which pairs a gene-set vocabulary with a per-cell tokenizer. The vocabulary holds overlapping gene sets that recur with stable relative expression across the pretraining corpus. Using these sets raises two difficulties. First, which genes should share a token depends on the cell, whereas existing multi-gene tokens fix the grouping in advance. Second, gene sets of different sizes must be compared with single genes on a common scale. The tokenizer therefore decides per cell, letting gene sets and single genes compete for token positions under an expression score normalized by the square root of set size. Training still reconstructs individual genes, so predictions stay at gene resolution. In frozen-embedding cell-type annotation, scTAT matches the strongest one-gene-per-token model with half the token budget. Its advantage over one-gene-per-token models at the same budget grows as the budget shrinks and the tokenizer assigns more positions to gene sets. Encoding the same genes with gene-set tokens also nearly halves the Transformer's matrix-multiplication cost. These results show that a token need not hold exactly one gene: when the tokenizer decides per cell which genes share a token, a fixed budget covers more of each transcriptome at no cost in annotation accuracy.",
+      "authors": [
+        "Jiaqi Xiong",
+        "Jiaying Li",
+        "Yu Zheng",
+        "Xiang Zhou",
+        "Ziteng Wang",
+        "Xinting Hu",
+        "Jiaxin Qi"
+      ],
+      "primary_category": "q-bio.GN",
+      "categories": [
+        "q-bio.GN"
+      ],
+      "published": "2026-10-21 08:29:29+00:00",
+      "link": "https://arxiv.org/pdf/2611.05410v2",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Transcriptome-aware tokenization compresses gene tokens for efficient single-cell foundation models",
+      "llm_evidence_cn": "转录组感知分词通过基因集合共享压缩token，提升单细胞基础模型效率",
+      "llm_evidence": "转录组感知分词通过基因集合共享压缩token，提升单细胞基础模型效率",
+      "canonical_evidence": "转录组感知分词通过基因集合共享压缩token，提升单细胞基础模型效率",
+      "llm_tldr_en": "Proposes scTAT, a transcriptome-aware tokenizer that groups co-expressed genes into overlapping gene-set tokens, reducing the one-gene-one-token cost of single-cell foundation models while preserving informative genes.",
+      "llm_tldr_cn": "单细胞基础模型通常把每个基因当作一个token，但单细胞可表达数千基因，逐基因token化使自注意力计算昂贵且大量低表达基因信号微弱。论文提出scTAT，将预训练语料中稳定共表达的重叠基因集合组成词汇表，并配合逐细胞分词器让共表达基因共享token、保留显著基因的独立token。该工作为单细胞基础模型降低计算成本、提升基因token利用效率提供了新的分词思路，并可服务于大规模转录组建模与后续扰动预测。",
+      "llm_tldr": "单细胞基础模型通常把每个基因当作一个token，但单细胞可表达数千基因，逐基因token化使自注意力计算昂贵且大量低表达基因信号微弱。论文提出scTAT，将预训练语料中稳定共表达的重叠基因集合组成词汇表，并配合逐细胞分词器让共表达基因共享token、保留显著基因的独立token。该工作为单细胞基础模型降低计算成本、提升基因token利用效率提供了新的分词思路，并可服务于大规模转录组建模与后续扰动预测。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "efficient single cell foundation models using parameter efficient fine tuning gene token compression sparse computation distillation and adaptive computation",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.32962v2",
+      "source": "arxiv",
+      "title": "Shared clones make random cell halves look reproducible in pooled screens",
+      "abstract": "Single-cell perturbation screens are used to train and evaluate models of perturbation effects, and model scores are judged against the reproducibility of the measured effects. Reproducibility is usually judged by splitting each perturbation's cells into two random halves, assumed to be independent replicates. In pooled screens such as Perturb-seq, the cells carrying a guide RNA descend from a limited number of transduced cells, so two random halves contain the same clones: pseudoreplication whose unit is not marked in the data. Using null perturbations (no expected effect) as controls, we compared random halves with independent replicates from separate transductions, and tested directly with halves that differ only in their clones. In a genome-scale screen of primary T cells, null perturbations agreed between random halves almost always and between independent replicates only half the time, the rate expected from noise alone; more cells did not remove it. With halves that share no clone, split by the T-cell receptor constant region or by a clone barcode, the excess agreement largely disappeared. Under a simple model, consistent with a screen that recorded clones, its size equals the share of expression differences set by clones divided by the effective number of clones per perturbation; in cell lines an upper bound on it was small. In the T-cell screen, shared clones inflated benchmark ceilings and reliability labels, the more so in donors with fewer effective clones, and when a model's input and scoring answer come from one transduction, published models that predict effects in a new cell state scored well even on perturbations with no expected effect; for the model tested (STATE), the gain vanished with the same guide from another transduction as answer. Reproducibility is better judged across separate transductions than between random halves.",
+      "authors": [
+        "Xuanrui Huang"
+      ],
+      "primary_category": "q-bio.QM",
+      "categories": [
+        "q-bio.QM"
+      ],
+      "published": "2026-10-23 17:53:14+00:00",
+      "link": "https://arxiv.org/pdf/2610.32962v2",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "reproducibility of single-cell perturbation screens used to train and evaluate perturbation models",
+      "llm_evidence_cn": "用于训练与评估扰动模型的单细胞扰动筛选可重复性",
+      "llm_evidence": "用于训练与评估扰动模型的单细胞扰动筛选可重复性",
+      "canonical_evidence": "用于训练与评估扰动模型的单细胞扰动筛选可重复性",
+      "llm_tldr_en": "Splitting a perturbation's cells into random halves is treated as independent replication, but pooled screens share clones. Using null perturbations and independent transductions, the study shows random halves inflate reproducibility and biases model evaluation.",
+      "llm_tldr_cn": "单细胞扰动筛选常用于训练与评估扰动效应预测模型，而模型好坏通常以随机二分细胞后的效应可重复性来衡量，并默认两半是独立重复。作者指出在Perturb-seq等混合筛选中，携带同一guide的细胞源自有限转导细胞，随机两半其实共享克隆，构成数据中未标注的伪重复。研究以无预期效应的对照扰动为基准，比较随机二分与来自独立转导的真实重复，并直接检验仅克隆组成不同的两半。结果表明随机二分高估了可重复性，从而影响扰动预测模型的评估结论，提示需重新审视该领域的评价协议。",
+      "llm_tldr": "单细胞扰动筛选常用于训练与评估扰动效应预测模型，而模型好坏通常以随机二分细胞后的效应可重复性来衡量，并默认两半是独立重复。作者指出在Perturb-seq等混合筛选中，携带同一guide的细胞源自有限转导细胞，随机两半其实共享克隆，构成数据中未标注的伪重复。研究以无预期效应的对照扰动为基准，比较随机二分与来自独立转导的真实重复，并直接检验仅克隆组成不同的两半。结果表明随机二分高估了可重复性，从而影响扰动预测模型的评估结论，提示需重新审视该领域的评价协议。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2610.35508v1",
+      "source": "arxiv",
+      "title": "Escaping cells dilute CRISPR screen responses unequally across cell types",
+      "abstract": "Single-cell CRISPR screens run in many cell types are used to compare how cell types respond to perturbation, to train models that transfer effects between them and to score such models. These uses assume that cells carrying a guide RNA had their target knocked down. Yet cells grow for days before sequencing: when an essential gene is knocked down, knocked-down cells are depleted or stop dividing while cells that escaped knockdown keep growing, and the measured response, an average over all cells carrying the guide, is diluted. We define the escape fraction of a perturbation as the share of its measured cells whose target was not effectively knocked down, and estimate it from each cell's counts of the targeted gene with a two-group mixture that recovers known fractions in simulated mixtures. In most cell types the escape fraction rises with how essential the gene is, it is higher in a later screen of the same cells, and it reaches about half of the measured cells in human embryonic stem cells (hESCs). It predicts how much each response is diluted: the response size falls to (1 - e)^2 of that of the knocked-down cells. Because the escape fraction differs between cell types, it changes all three uses: hESCs respond like K562 cells unless knockdown depletes them, the coefficient a simple transfer model learns is lowered by the dilution of the cell type it predicts, and a benchmark scored on all cells rewards predictions shrunk towards no change, partly because that ground truth is itself diluted. Where cells stop dividing instead, the response also contains expression differences between cell-cycle stages. Response sizes should be compared on knocked-down cells or corrected for the escape fraction.",
+      "authors": [
+        "Xuanrui Huang"
+      ],
+      "primary_category": "q-bio.QM",
+      "categories": [
+        "q-bio.QM"
+      ],
+      "published": "2026-10-26 14:33:48+00:00",
+      "link": "https://arxiv.org/pdf/2610.35508v1",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Quantifies CRISPR escape fraction that dilutes measured perturbation responses unequally across cell types, affecting cross-cell-type transfer models",
+      "llm_evidence_cn": "量化CRISPR逃逸比例对扰动响应的稀释及其跨细胞类型差异，影响跨细胞类型迁移模型",
+      "llm_evidence": "量化CRISPR逃逸比例对扰动响应的稀释及其跨细胞类型差异，影响跨细胞类型迁移模型",
+      "canonical_evidence": "量化CRISPR逃逸比例对扰动响应的稀释及其跨细胞类型差异，影响跨细胞类型迁移模型",
+      "llm_tldr_en": "Shows that single-cell CRISPR screens are confounded by cells escaping knockdown, defines escape fraction and estimates it per perturbation, revealing unequal dilution of responses across cell types that can bias perturbation-transfer models.",
+      "llm_tldr_cn": "单细胞CRISPR筛选常被用于比较不同细胞类型的扰动响应并训练跨细胞类型迁移模型，但携带向导RNA的细胞未必真正被敲低。论文定义扰动的逃逸比例，利用靶基因计数以两组混合模型从单细胞数据中估计该比例，发现逃逸造成的响应稀释在不同细胞类型间并不均等。该结果提示训练和评估扰动预测模型时必须校正逃逸混杂，否则跨细胞类型泛化结论可能被系统性偏倚。",
+      "llm_tldr": "单细胞CRISPR筛选常被用于比较不同细胞类型的扰动响应并训练跨细胞类型迁移模型，但携带向导RNA的细胞未必真正被敲低。论文定义扰动的逃逸比例，利用靶基因计数以两组混合模型从单细胞数据中估计该比例，发现逃逸造成的响应稀释在不同细胞类型间并不均等。该结果提示训练和评估扰动预测模型时必须校正逃逸混杂，否则跨细胞类型泛化结论可能被系统性偏倚。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "out-of-distribution generalization of perturbation predictors to unseen genes drugs cell types and combinations",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2610.28200v2",
+      "source": "arxiv",
+      "title": "Parameter-Efficient Adaptation of Time Series Foundation Models for Electrical Load Forecasting",
+      "abstract": "Accurate electrical load forecasting supports power-system operation across countries, regions, cities, and buildings, but repeated development of target-specific models is costly. Time series foundation models (TSFMs) provide reusable pretrained backbones, although multi-domain pretraining may not fully capture load-specific characteristics. This paper compares pretrained inference, full fine-tuning, and low-rank adaptation (LoRA) in terms of forecasting accuracy and adaptation efficiency across four electrical load aggregation levels. MOIRAI 1.0 Large serves as the primary backbone, while Chronos-2 assesses whether the findings transfer across model families. The evaluation covers both in-distribution (ID) and out-of-distribution (OOD) settings and examines whether compact adaptation provides consistent gains over strong pretrained checkpoints. Pretrained foundation models outperform the implemented seasonal naive and XGBoost baselines across the evaluated aggregation levels. On MOIRAI Large, rank-16 LoRA reduces normalized mean absolute error (NMAE) by 7.5% on average while updating 3.146 million parameters, about 1% of the model, and retains most of the improvement from full fine-tuning. Chronos-2 achieves lower pretrained NMAE than MOIRAI, while its relative adaptation gains remain smaller overall. OOD results show that adaptation benefits vary by target, with the clearest gains for the local-area series and several buildings. Overall, LoRA provides a favorable accuracy-efficiency trade-off when adaptation yields a meaningful gain over a strong pretrained checkpoint.",
+      "authors": [
+        "Aliullah",
+        "Julian Oelhaf",
+        "Edouard Fouché",
+        "Jessica Deuschel",
+        "Christian Bergler",
+        "Andreas Maier",
+        "Siming Bayer"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-10-20 13:40:48+00:00",
+      "link": "https://arxiv.org/pdf/2610.28200v2",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "LoRA versus full fine-tuning of foundation models with in- and out-of-distribution evaluation",
+      "llm_evidence_cn": "基础模型上LoRA与全量微调对比并含分布外评估",
+      "llm_evidence": "基础模型上LoRA与全量微调对比并含分布外评估",
+      "canonical_evidence": "基础模型上LoRA与全量微调对比并含分布外评估",
+      "llm_tldr_en": "This work benchmarks pretrained inference, full fine-tuning, and LoRA adaptation for time series foundation models on electrical load forecasting across four aggregation levels and in-/out-of-distribution settings.",
+      "llm_tldr_cn": "时间序列基础模型可复用预训练骨干，但多域预训练难以充分刻画电力负荷的特定特征，重复开发专用模型成本高。本文在四个负荷聚合层级上系统比较预训练直接推理、全量微调与低秩适配LoRA的预测精度与适配效率，以MOIRAI 1.0 Large为主干并用Chronos-2检验结论的跨模型可迁移性，评估覆盖分布内与分布外场景。结果为在基础模型上选择参数高效适配策略提供了实证依据。",
+      "llm_tldr": "时间序列基础模型可复用预训练骨干，但多域预训练难以充分刻画电力负荷的特定特征，重复开发专用模型成本高。本文在四个负荷聚合层级上系统比较预训练直接推理、全量微调与低秩适配LoRA的预测精度与适配效率，以MOIRAI 1.0 Large为主干并用Chronos-2检验结论的跨模型可迁移性，评估覆盖分布内与分布外场景。结果为在基础模型上选择参数高效适配策略提供了实证依据。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "parameter-efficient fine-tuning adapters and low-rank adaptation for single-cell foundation models",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2610.29134v1",
+      "source": "arxiv",
+      "title": "NormTune: Norm-Guided Parameter-Efficient Fine-Tuning for Reasoning-Intensive Tasks",
+      "abstract": "Full fine-tuning has achieved remarkable success on reasoning-intensive tasks, but it often requires substantial GPU resource consumption. Parameter-efficient fine-tuning (PEFT) provides a promising alternative for reducing this cost, yet we observe a substantial performance gap on reasoning-intensive tasks. In this paper, we present three key observations showing that this gap is closely associated with norm-related under-adaptation, where PEFT produces markedly smaller weight-update norms than full fine-tuning. Based on these observations, we propose Norm-Guided Parameter-Efficient Fine-Tuning (NormTune), a simple yet effective strategy that adaptively strengthens insufficiently updated layers according to their weight-update norms. Extensive experiments show that NormTune consistently enhances multiple PEFT methods across challenging reasoning benchmarks. Specifically, when trained on S1K-1.1, integrating NormTune into rank-8 LoRA, Bone, and MoRA yields substantial average accuracy improvements of 24.24\\%, 11.33\\%, and 16.21\\% , respectively, across AIME 2024, MATH 500, GPQA, and AIME 2025. Moreover, NormTune-enhanced rank-256 LoRA, Bone, and MoRA achieve performance comparable to S1 full fine-tuning, with respective average gains of 2.17\\%, 0.93\\%, and 3.00\\% over this baseline.",
+      "authors": [
+        "Zhangming Li",
+        "Qinghao Hu",
+        "Weifan Guan",
+        "Yifan Zhang",
+        "Peisong Wang",
+        "Jian Cheng"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-10-21 03:14:09+00:00",
+      "link": "https://arxiv.org/pdf/2610.29134v1",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Generic parameter-efficient fine-tuning method transferable to efficient single-cell foundation model adaptation",
+      "llm_evidence_cn": "通用参数高效微调方法，可迁移用于单细胞基础模型的高效适配",
+      "llm_evidence": "通用参数高效微调方法，可迁移用于单细胞基础模型的高效适配",
+      "canonical_evidence": "通用参数高效微调方法，可迁移用于单细胞基础模型的高效适配",
+      "llm_tldr_en": "NormTune analyzes why parameter-efficient fine-tuning under-adapts on reasoning-intensive tasks and proposes norm-guided strengthening of under-updated layers, offering a transferable efficient adaptation strategy for large pretrained models.",
+      "llm_tldr_cn": "针对参数高效微调在推理密集型任务上因权重更新范数偏小而产生欠适配、与全量微调存在明显性能差距的问题，论文分析更新范数与适配不足的关系，提出按权重更新范数自适应增强更新不足层的NormTune方法。实验表明该策略能缩小参数高效微调与全量微调的差距，并为大模型高效适配提供可迁移思路。该方法不改变原有微调框架，主要作为通用增强策略，对单细胞基础模型等大模型的低成本适配具有方法参考价值。",
+      "llm_tldr": "针对参数高效微调在推理密集型任务上因权重更新范数偏小而产生欠适配、与全量微调存在明显性能差距的问题，论文分析更新范数与适配不足的关系，提出按权重更新范数自适应增强更新不足层的NormTune方法。实验表明该策略能缩小参数高效微调与全量微调的差距，并为大模型高效适配提供可迁移思路。该方法不改变原有微调框架，主要作为通用增强策略，对单细胞基础模型等大模型的低成本适配具有方法参考价值。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "parameter-efficient fine-tuning adapters and low-rank adaptation for single-cell foundation models",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2610.36994v1",
+      "source": "arxiv",
+      "title": "CaLLM: Continual Adaptation of LLMs via Non-Parametric Adapter Routing",
+      "abstract": "Continual adaptation of large language models (LLMs) to evolving task distributions while mitigating catastrophic forgetting remains an open problem. Existing strategies often struggle to scale or lack a robust mechanism for zero-shot task-to-expert assignment. We introduce CaLLM, a framework that resolves these tensions by combining metric-based meta-learning with modular parameter isolation via lightweight adapters. First, CaLLM projects each input batch into a task-agnostic embedding space to find its nearest prototype. It then routes the batch to the specific adapter specialized for that data distribution. This formulation provides (i)~controllable cross-task interference by design, (ii)~constant computational complexity regardless of task count, (iii)~seamless integration of novel distributions through prototype expansion, and (iv)~regime agnosticism as the local routing decision enables a unified approach to both online and offline settings. Our experiments demonstrate that this routing mechanism discovers semantically coherent task groupings while facilitating constructive interference between similar tasks, and keeping overhead at a minimum. Across diverse and fine-grained continual learning benchmarks, CaLLM consistently outperforms traditional isolation and replay methods, establishing prototype-based modular routing as a principled and scalable approach to lifelong adaptation of LLMs.",
+      "authors": [
+        "Bilge Celik",
+        "Anna Vettoruzzo",
+        "Joaquin Vanschoren"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-10-27 10:41:56+00:00",
+      "link": "https://arxiv.org/pdf/2610.36994v1",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "lightweight adapters with prototype-based dynamic routing for continual adaptation",
+      "llm_evidence_cn": "轻量适配器加原型路由实现参数高效持续适配",
+      "llm_evidence": "轻量适配器加原型路由实现参数高效持续适配",
+      "canonical_evidence": "轻量适配器加原型路由实现参数高效持续适配",
+      "llm_tldr_en": "CaLLM combines metric-based meta-learning with lightweight modular adapters, routing each input batch to a nearest-prototype adapter so continual LLM adaptation avoids forgetting at constant cost.",
+      "llm_tldr_cn": "大语言模型在任务分布持续演化时易发生灾难性遗忘，已有持续适配方法难以扩展到大量任务，也缺乏可靠的任务到专家分配机制。CaLLM将基于度量的元学习与轻量适配器的模块化参数隔离相结合，先把输入批次投影到任务无关嵌入空间匹配最近原型，再路由到对应专用适配器。该设计使跨任务干扰可控、计算复杂度与任务数量无关。其参数高效适配与动态路由思路可迁移到单细胞基础模型。",
+      "llm_tldr": "大语言模型在任务分布持续演化时易发生灾难性遗忘，已有持续适配方法难以扩展到大量任务，也缺乏可靠的任务到专家分配机制。CaLLM将基于度量的元学习与轻量适配器的模块化参数隔离相结合，先把输入批次投影到任务无关嵌入空间匹配最近原型，再路由到对应专用适配器。该设计使跨任务干扰可控、计算复杂度与任务数量无关。其参数高效适配与动态路由思路可迁移到单细胞基础模型。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "parameter-efficient fine-tuning adapters and low-rank adaptation for single-cell foundation models",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2610.40447v1",
+      "source": "arxiv",
+      "title": "Learning developmental dynamics from lineage context",
+      "abstract": "A central goal of biology is to predict the dynamics of multicellular systems. Lineage context (the states of a cell's sisters, cousins, etc.) could inform these predictions, but how best to leverage it remains unclear. Here we introduce lineage inpainting, a generative modeling approach that uses lineage context with tree-structured transformers and stochastic interpolants to model cell state dynamics across lineage trees. Applied to a lineage-traced transcriptional atlas of mouse embryogenesis, it recovers dynamics not resolved by gene expression alone, including multiple transcriptional convergence events where distinct lineages are drawn to a common state. Despite being fit on unperturbed development, lineage inpainting can generate hypotheses about perturbation responses by simulating counterfactuals. These simulations agree in many cases with observed developmental phenotypes, including a single-cell measurement of the Tbx5 knockout response. Our results show that lineage information provides a rich source of context for learning multicellular dynamics.",
+      "authors": [
+        "Gokul Gowri",
+        "Nic Fishman",
+        "William N. Colgan",
+        "Minming Wang",
+        "Yusuke Kijima",
+        "Sachin A. Kumar",
+        "Aleksandr Zimin",
+        "Luke W. Koblan",
+        "Marinka Zitnik",
+        "Zachary D. Smith",
+        "Stephen Bates",
+        "Philippe Rigollet",
+        "Jonathan S. Weissman"
+      ],
+      "primary_category": "q-bio.QM",
+      "categories": [
+        "q-bio.QM",
+        "cs.LG"
+      ],
+      "published": "2026-10-29 16:59:01+00:00",
+      "link": "https://arxiv.org/pdf/2610.40447v1",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "generative model of cell state dynamics that hypothesizes perturbation responses",
+      "llm_evidence_cn": "生成式细胞状态动态并可推断扰动响应",
+      "llm_evidence": "生成式细胞状态动态并可推断扰动响应",
+      "canonical_evidence": "生成式细胞状态动态并可推断扰动响应",
+      "llm_tldr_en": "Lineage inpainting uses tree-structured transformers and stochastic interpolants to model cell state dynamics from lineage context, recovering transcriptional convergence events and generating hypotheses about perturbation responses despite training only on unperturbed development.",
+      "llm_tldr_cn": "多细胞系统动态预测困难，谱系上下文信息尚未被充分利用。作者提出谱系修补（lineage inpainting）生成建模方法，结合树结构Transformer与随机插值在谱系树上刻画细胞状态动态。在小鼠胚胎发育谱系转录图谱上，该方法恢复了仅靠基因表达无法解析的动态，包括多条谱系汇聚到同一状态的事件；尽管仅在未扰动发育数据上训练，仍能生成关于扰动响应的假设。",
+      "llm_tldr": "多细胞系统动态预测困难，谱系上下文信息尚未被充分利用。作者提出谱系修补（lineage inpainting）生成建模方法，结合树结构Transformer与随机插值在谱系树上刻画细胞状态动态。在小鼠胚胎发育谱系转录图谱上，该方法恢复了仅靠基因表达无法解析的动态，包括多条谱系汇聚到同一状态的事件；尽管仅在未扰动发育数据上训练，仍能生成关于扰动响应的假设。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}
