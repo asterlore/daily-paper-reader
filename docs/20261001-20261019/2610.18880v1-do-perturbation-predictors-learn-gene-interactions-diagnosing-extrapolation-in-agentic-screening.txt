@@ -1,0 +1,273 @@
+Title: Do Perturbation Predictors Learn Gene Interactions? Diagnosing Extrapolation in Agentic Screening
+
+URL Source: https://arxiv.org/pdf/2610.18880v1
+
+Published Time: Thu, 15 Oct 2026 00:00:41 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+# Do Perturbation Predictors Learn Gene Interactions? Diagnosing Extrapolation in Agentic Screening 
+
+Ziyuan Gao 
+
+Department of Computer Science and Technology University of Cambridge 
+
+zg344@cam.ac.uk 
+
+# Abstract 
+
+High-throughput perturbation screens increasingly use machine-learning models to predict the effects of gene combinations that were never measured. A difficult case arises when both genes in a test pair were seen individually during training, but their combination was not. In this setting, standard OOD methods often fail because neither gene appears unfamiliar on its own. We therefore compare each model prediction with a simple additive prediction obtained by summing the two observed single-gene effects. The difference between them, which we call addi-tive disagreement (AD), measures how much extra interaction effect the model introduces for an unseen combination. Across eight prediction methods and three Perturb-seq datasets, specialised neural predictors do not consistently outperform this simple additive baseline. More importantly, predictions with larger deviations from the additive baseline tend to have larger errors. Conventional output-based and embedding-based confidence signals are inconsistent across datasets and mod-els, whereas AD remains informative across all evaluated compositional settings. We further study how this signal can guide decisions in an agentic perturbation-screening workflow. The code is available at https://github.com/zygao930/OOD. 
+
+# 1 Introduction 
+
+High-throughput perturbation screens have become a central experimental paradigm in functional genomics, enabling systematic measurement of how genetic interventions reshape cellular states at single-cell resolution [1–4]. These datasets have driven the development of virtual cell models that aim to predict cellular responses to perturbations not directly observed during training [5–8]. As such models are increasingly used to prioritise candidate interventions and narrow experimental search spaces [9, 10], and to support emerging agentic workflows that autonomously design perturbation experiments, query predictors, and rank candidates for follow-up [11–15], their reliability becomes a practical concern rather than merely an academic one. When high-confidence but unreliable predictions are used to guide costly follow-up experiments, they can, in the worst case, waste limited resources, distort candidate rankings, and lead subsequent analyses towards misleading biological interpretations [16–19]. Recent perturbation predictors include graph-based models [5], compositional approaches [6], and single-cell foundation models [7, 8, 20], yet benchmarks show that these specialised methods do not consistently outperform simple linear baselines on unseen perturbations and combinations [21, 18, 22, 23]. Standard OOD and uncertainty methods, including maximum softmax probability [24], kNN [25], Mahalanobis distance [26], deep ensembles [27], MC dropout [28], and selective prediction [29], are not designed for compositional OOD [30, 31], where familiar components form an unseen combination. In perturbation prediction, both genes may therefore be familiar while their joint effect is not, making unreliable extrapolation difficult to detect from input proximity alone. 
+
+> Preprint. arXiv:2610.18880v1 [cs.LG] 1 Oct 2026
+
+Figure 1: Pipeline for diagnosing interaction extrapolation in combinatorial perturbation prediction. To understand where prediction errors originate, we decompose each model’s output into a component supported by observed single-gene effects and a residual interaction term that the model extrapolates without direct training signal. The magnitude of this residual, which we call additive disagreement 
+
+(AD), quantifies how strongly a prediction departs from an experimentally grounded additive reference. We evaluate this decomposition across eight prediction methods spanning six modelling paradigms on two combinatorial perturbation datasets, Norman and Joung–Zhang, together with Adamson as a complementary single-gene OOD setting [2, 32, 33]. We compare AD with eight alternative reliability signals spanning embedding-based, output-based, and ensemble-based approaches. We further evaluate the practical utility of these reliability signals in an agentic perturbation-screening setting, examining whether they can identify predictions that rely on unsupported interaction extrapolation. Our main findings are: (1) we show across eight prediction methods that specialised neural predictors do not consistently outperform simple additive baselines on unseen gene combinations, and identify the co-expression graph as a major source of GEARS’s extrapolation failures; (2) we show that generic reliability signals, including kNN distance, Mahalanobis distance, and ensemble uncertainty, are substantially weaker and less consistent than AD under compositional shift; and (3) by separating observed additive effects from model-implied interactions, we show that AD provides the most consistent indicator of prediction failure across the two compositional datasets, suggesting that current models do not reliably learn interactions that transfer to unseen combinations. 
+
+# 2 Method 
+
+As illustrated in Figure 1, predictions for novel gene combinations contain an observed additive component and an extrapolated interaction component. Existing evaluations [21, 18, 22, 23] typically treat the prediction as a single point estimate, obscuring which component drives the error. We formalise this distinction to diagnose prediction failures. When a model predicts the effect of combining genes A and B, both genes have been observed individually during training and the model has learned representations for each. The challenge is therefore not that the individual inputs are unfamiliar, but that the model must predict how A and B
+
+interact despite never observing this particular combination. We evaluate this setting on CRISPRa perturbations in K562 cells from Norman et al. [2] and on a second combinatorial perturbation dataset from Joung–Zhang et al. [33]. We additionally use the single-gene CRISPRi dataset from Adamson et al. [32] to examine whether generic reliability signals remain informative under a different OOD setting. Dataset and split details are in Appendix B. The compositional structure suggests a natural decomposition. For an unseen pair (A, B ), the model prediction can be written as 
+
+fθ (A, B ) = (δA + δB )
+
+| {z }
+
+> observed additive reference
+
++ ˆIθ (A, B )
+
+| {z }
+
+> model-implied interaction
+
+, (1) where δA and δB denote the measured single-gene effects and 
+
+ˆIθ (A, B ) = fθ (A, B ) − (δA + δB ) (2) is the interaction correction introduced by the model. The additive component is grounded in single-gene responses, whereas ˆIθ (A, B ) must be extrapolated for a held-out combination. This motivates a 2direct reliability signal based on the magnitude of the unsupported correction: 
+
+AD( A, B ) = 1
+
+G ∥fθ (A, B ) − (δA + δB )∥1 , (3) where G is the number of evaluated genes. We call this quantity additive disagreement . Large AD indicates that the model asserts a strong interaction correction for a combination it has never observed. Unlike generic uncertainty measures, AD directly targets the component that requires compositional generalisation and has a clear biological interpretation as the mean magnitude of the model-implied departure from additivity. Standard OOD methods may fail under compositional shift because kNN [25] and Mahalanobis distance [26] measure input novelty, while both genes are individually observed and the novelty lies in their interaction. We therefore evaluate eight prediction methods, from Ridge and the additive prior to MLP, Transformer [34], CPA [6], scGPT based predictors [7], and GEARS [5]. Across models, we compare AD with eight alternative reliability signals, including output uncertainty and embedding based OOD scores. Performance is assessed by failure detection AUROC, error rank correlation, and MAE improvement under selective abstention [29] (Appendix B). As perturbation predictors are increasingly integrated into agentic pipelines for experimental design [11, 12], identifying predictions that rely on unsupported interaction extrapolation becomes practically important. Any system querying a predictor can simultaneously compute the additive reference, δA + δB , and compare it with the model output using only single-gene effect estimates. 
+
+# 3 Results 
+
+3.1 Prediction Performance 
+
+Table 1 compares model performance on unseen gene combinations across two compositional datasets. On Norman, Ridge achieves the lowest full-transcriptome MAE and wins 60 of 75 evaluations over the additive baseline. On Joung–Zhang, Ridge again achieves the lowest MAE, but CPA wins the most pairs (29/44) and Transformer wins 20/44. Despite these differences in pairwise win rates, Additive achieves the best Top20 MAE on Norman, while Ridge achieves the best Top20 MAE on Joung–Zhang. GEARS and GEARS+scGPT perform worst on both datasets and never outperform the additive baseline (0/75 on Norman, 0/44 on Joung–Zhang). Initialising with scGPT representations provides little improvement. Overall, no neural predictor consistently outperforms the additive baseline across both datasets and both metrics. Table 1: Prediction performance on held-out gene combinations. Wins/Add. denotes the number of evaluations outperforming the additive baseline.                                                              
+
+> Norman (75 evaluations) Joung–Zhang (44 pairs) Model MAE ↓Top20 MAE ↓Wins/Add. MAE ↓Top20 MAE ↓Wins/Add. Additive 0.0142 0.2121 –0.0190 0.2832 –Ridge [35] 0.0118 0.2312 60/75 0.0187 0.2496 18/44 MLP 0.0214 0.3910 6/75 0.0252 0.3726 2/44 Transformer [34] 0.0215 0.6049 8/75 0.0201 0.4051 20/44 CPA [6] 0.0175 0.3395 11/75 0.0192 0.4064 29/44 scGPT [7] 0.0224 0.6300 6/75 0.0209 0.4059 13/44 GEARS+scGPT [5, 7] 0.0338 0.2834 0/75 0.0500 0.3290 0/44 GEARS [5] 0.0336 0.2892 0/75 0.0512 0.3445 0/44
+
+3.2 Reliability Analysis 
+
+Table 2 compares nine reliability signals for GEARS. Additive disagreement, prediction magnitude, and gene-wise variance reliably identify high-error predictions, whereas kNN and ensemble-based signals are substantially weaker and Mahalanobis distance performs near random. Ensemble variance is included as a model-instability baseline; its much weaker correlation with error than AD indicates that the failures are not explained solely by training randomness. Because both genes are individually observed during training, embedding distance does not directly capture the unseen interaction under 3compositional OOD. Abstaining on the highest-risk 10%, 20%, and 50% of predictions using additive disagreement reduces MAE by 12%, 19%, and 38%, respectively, as shown in Figure 2. AD achieves the highest AUROC at all three failure thresholds and reaches 0.996 for the top 10% highest-error evaluations. Overall, compositional errors are more closely associated with unsupported interaction corrections than with input-space novelty (full results in Appendix C.2). Table 2: Reliability signals across failure thresholds and abstention rates. Top-k% denotes the highest-error predictions. 
+
+Failure AUROC ↑ Error ranking ↑ Abstention improvement ↑
+
+Signal Top50% Top25% Top10% Spearman 10% 20% 50% Ensemble variance 0.670 0.708 0.782 0.348 +1% +4% +17% 
+
+Additive disagreement 0.994 0.989 0.996 0.982 +12% +19% +38% 
+
+Prediction magnitude 0.993 0.986 0.983 0.978 +11% +19% +38% 
+
+Gene-wise variance 0.933 0.945 0.983 0.903 +11% +19% +35% 
+
+NN error proxy 0.683 0.710 0.664 0.345 +2% +5% +14% 
+
+kNN distance 0.623 0.638 0.599 0.290 +4% +6% +16% 
+
+Mahalanobis distance 0.491 0.463 0.418 −0.081 +2% −2% −7% 
+
+Cosine to nearest 0.175 0.066 0.125 −0.752 −7% −12% −29% 
+
+Random 0.563 0.508 0.593 0.073 −2% +1% +6% 
+
+Figure 2: Reliability and failure analysis on Norman. (a, b) Risk–coverage curves for GEARS and MLP across three seeds. (c) Additive disagreement correlates with true interaction magnitude. 
+
+3.3 Failure Analysis Failure modes of interaction extrapolation. Table 3 shows representative failure patterns in GEARS predictions. We observe two recurring behaviours. In the first, GEARS produces large interaction corrections that move predictions far from the additive reference. In the second, the corrections are smaller but still introduce unnecessary deviations. In both cases, the model-implied interaction correction is closely associated with the increase in prediction error. For example, on CEBPE+CEBPA the additive baseline achieves an MAE of 0.036, whereas GEARS produces an Table 3: Representative failure cases. Left: high-interaction pairs where GEARS produces large unsupported interaction corrections. Right: lower-interaction pairs where GEARS adds unnecessary noise. AD = additive disagreement.                                            
+
+> High-interaction failures Lower-interaction noise
+> Pair GEARS Add. AD Pair GEARS Add. AD
+> CEBPE+CEBPA 0.096 0.036 0.087 SET+CEBPE 0.042 0.025 0.038
+> JUN+CEBPA 0.068 0.026 0.069 PRDM1+CBFA2T3 0.041 0.020 0.038 CEBPE+CEBPB 0.068 0.023 0.068 SGK1+S1PR2 0.036 0.013 0.039 C3orf72+FOXL2 0.064 0.022 0.061 CEBPE+CNN1 0.036 0.018 0.032 ZBTB10+SNAI1 0.063 0.021 0.063 ETS2+IKZF3 0.032 0.013 0.035
+
+4MAE of 0.096 with an AD of 0.087, nearly tripling the error. Conversely, on SET+CEBPE the additive baseline already performs better at 0.025, yet GEARS introduces a smaller correction with AD = 0 .038 . See Appendix C.1 for correction magnitudes and GEARS ablations. 
+
+Gene-level analysis. We decompose pair-level predictions into per-gene contributions to identify where GEARS’s corrections fail. Larger corrections are strongly associated with higher error, suggesting that they often add noise rather than transferable interaction signal. GEARS assigns 9.7×
+
+larger corrections to the top-20 DE genes than to the rest of the transcriptome (mean | ˆIg | = 0 .324 
+
+vs. 0.033 ), even though the additive baseline already captures much of their signal. Because these graph-based corrections do not distinguish observed from unseen combinations, they often shift predictions away from an informative additive estimate. Accordingly, GEARS improves over the additive baseline on only 25.3% of evaluated pairs under Top20 MAE (Figure 3). 
+
+Figure 3: Per-pair Top20 MAE for GEARS and the additive baseline across 75 Norman evaluations. Blue circles and red squares denote additive and GEARS errors, respectively; connectors show their difference, with green indicating GEARS improvement and orange indicating worse performance. 
+
+# 4 Discussion 
+
+We test whether the observed failures arise from weak interaction signal, interaction complexity, model design, or evaluation choice. The failures are not due to weak interactions: the interaction component accounts for 68% of the total effect on Norman and 104% on average on Joung–Zhang, with no pair below 10%. Interaction magnitude also does not consistently predict difficulty. GEARS excess error increases with interaction magnitude on Norman ( ρ = 0 .527 , p < 10 −4), whereas several other models show weak or negative correlations, and all evaluated models show strong negative correlations on Joung–Zhang, including GEARS ( ρ = −0.749 , p < 10 −4). The interactions nevertheless exhibit shared structure: on Norman, the first principal component explains 31.3% of the variance, four explain 50%, and 21 explain 90%; on Joung–Zhang, the corresponding values are 21.3%, four, and 15 components. Thus, interactions are substantial and structured, but their difficulty depends on both model and dataset rather than interaction strength alone. The Norman analyses further implicate the co-expression graph in GEARS’s failures. Co-expression degree correlates with both predicted interaction magnitude ( ρ = 0 .633 ) and prediction error ( ρ =0.626 ). Removing the co-expression graph reduces MAE from 0.0336 to 0.0228, while removing both graphs yields 0.0259. This suggests that co-expression message passing amplifies erroneous corrections around highly connected genes rather than capturing transferable pair-specific interactions, although graph-ablated variants still underperform the additive baseline. Overall, the evidence points primarily to modeling choices. The evaluated architectures do not consistently generalize structured interaction effects to unseen combinations, and in GEARS, co-expression message passing is a major contributor to failure. We also find an evaluation-dependent limitation of additive disagreement: on Norman, its failure-detection AUROC falls from 0.990 under transcriptome-wide MAE to 0.619 under Top20 MAE, showing that reliability over the full transcriptome does not necessarily transfer to a restricted gene set. 5References 
+
+[1] Atray Dixit, Oren Parnas, Biyu Li, Jenny Chen, Charles P Fulco, Livnat Jerby-Arnon, Nemanja D Marjanovic, Danielle Dionne, Tyler Burks, Raktima Raychowdhury, Britt Adamson, Thomas M Norman, Eric S Lander, Jonathan S Weissman, Nir Friedman, and Aviv Regev. Perturb-seq: Dissecting molecular circuits with scalable single-cell rna profiling of pooled genetic screens. Cell , 167(7):1853–1866.e17, 2016. [2] Thomas M Norman, Max A Horlbeck, Joseph M Replogle, Alex Y Ge, Albert Xu, Marco Jost, Luke A Gilbert, and Jonathan S Weissman. Exploring genetic interaction manifolds constructed from rich single-cell phenotypes. Science , 365(6455):786–793, 2019. [3] Joseph M Replogle, Reuben A Saunders, Angela N Pogson, Jeffrey A Hussmann, Alexander Lenail, Alina Guna, Lauren Mascibroda, Eric J Wagner, Karen Adelman, Gila Lithwick-Yanai, Nano Iremadze, Florian Oberstrass, Dina Lipson, Jose L Bonnar, Marco Jost, Thomas M Norman, and Jonathan S Weissman. Mapping information-rich genotype-phenotype landscapes with genome-scale perturb-seq. Cell , 185(14): 2559–2575.e28, 2022. [4] Chris J Frangieh, Johannes C Melms, Pratiksha I Thakore, Kathryn R Geiger-Schuller, Patricia Ho, Adrienne M Luoma, Brian Cleary, Livnat Jerby-Arnon, Shruti Malu, Michael S Cuoco, Megan Zhao, Casey R Ager, Meri Rogava, Lana Hovey, Asaf Rotem, Chantale Bernatchez, Kai W Wucherpfennig, Bruce E Johnson, Orit Rozenblatt-Rosen, Dirk Schadendorf, Aviv Regev, and Benjamin Izar. Multimodal pooled perturb-cite-seq screens in patient models define mechanisms of cancer immune evasion. Nature Genetics , 53:332–341, 2021. [5] Yusuf Roohani, Kexin Huang, and Jure Leskovec. Predicting transcriptional outcomes of novel multigene perturbations with gears. Nature Biotechnology , 42:927–935, 2024. [6] Mohammad Lotfollahi, Anna Klimovskaia Susmelj, Carlo De Donno, Leon Hetzel, Yuge Ji, Ignacio L Ibarra, Sanjay R Srivatsan, Mohsen Naghipourfar, Riza M Daza, Beth Martin, Jay Shendure, José L McFaline-Figueroa, Pierre Boyeau, F Alexander Wolf, Nafissa Yakubova, Stephan Günnemann, Cole Trapnell, David Lopez-Paz, and Fabian J Theis. Predicting cellular responses to complex perturbations in high-throughput screens. Molecular Systems Biology , 19(6), 2023. [7] Haotian Cui, Chloe Wang, Hassaan Maan, Kuan Pang, Fengning Luo, Nan Duan, and Bo Wang. scgpt: toward building a foundation model for single-cell multi-omics using generative ai. Nature Methods , 21(8): 1470–1480, 2024. [8] Minsheng Hao, Jing Gong, Xin Zeng, Chiming Liu, Yuzhi Guo, Xinning Cheng, Taifeng Wang, Jianzhu Ma, Xuegong Zhang, and Le Song. Large-scale foundation model on single-cell transcriptomics. Nature Methods , 21(8):1481–1491, 2024. [9] Charlotte Bunne, Yusuf Roohani, Yanay Rosen, Ankit Gupta, Xiang Zhang, Marcel Roed, Theodore Alexandrov, Mohammed AlQuraishi, Patricia Brennan, Daniel B Burkhardt, Andrea Califano, Jesse Cool, Abby F Dernburg, Keith Ewing, Emily B Fox, Maxime Haury, Amy E Herr, Eric Horvitz, Patrick D Hsu, Viren Jain, Gregory R Johnson, Thomas Kalil, David R Kelley, Shana O Kelley, Anna Kreshuk, Tim Mitchison, Stefan Otte, Jay Shendure, Nicholas J Sofroniew, Fabian Theis, Christina V Theodoris, Srigokul Upadhyayula, Marc Valer, Bo Wang, Eric Xing, Serena Yeung-Levy, Marinka Zitnik, Theofanis Karaletsos, Aviv Regev, Emma Lundberg, Jure Leskovec, and Stephen R Quake. How to build the virtual cell with artificial intelligence: Priorities and opportunities. Cell , 187(25):7045–7063, 2024. [10] Kexin Huang, Romain Lopez, Jan-Christian Hütter, Takamasa Kudo, Antonio Rios, and Aviv Regev. Sequential optimal experimental design of perturbation screens guided by multi-modal priors. In Research in Computational Molecular Biology (RECOMB 2024) , volume 14758 of Lecture Notes in Computer Science , pages 17–37, 2024. [11] Yusuf Roohani, Andrew Lee, Qian Huang, Jian Vora, Zachary Steinhart, Kexin Huang, Alexander Marson, Percy Liang, and Jure Leskovec. Biodiscoveryagent: An ai agent for designing genetic perturbation experiments. In Proceedings of the 13th International Conference on Learning Representations (ICLR) ,2025. [12] Minsheng Hao, Yongjoon Lee, Hao Wang, Gabriele Scalia, and Aviv Regev. Perturboagent: An llm-based agent for designing iterative perturb-seq experiments. In Proceedings of the 20th Machine Learning in Computational Biology Meeting , volume 311 of PMLR , pages 44–64, 2025. [13] Daniil A Boiko, Robert MacKnight, Ben Kline, and Gabe Gomes. Autonomous chemical research with large language models. Nature , 624(7992):570–578, 2023. 
+
+6[14] Andres M Bran, Sam Cox, Oliver Schilter, Carlo Baldassari, Andrew D White, and Philippe Schwaller. Augmenting large language models with chemistry tools. Nature Machine Intelligence , 6:525–535, 2024. [15] Yinuo Qu, Kexin Huang, Mengdi Yin, Kaiwen Zhan, Dongming Liu, Da Yin, Henry C Cousins, William A Johnson, Xin Wang, Mihir Shah, Russ B Altman, Denny Zhou, Michael Wang, and Le Cong. Crispr-gpt for agentic automation of gene-editing experiments. Nature Biomedical Engineering , 10(2):245–258, 2026. [16] Roc Viñas Torné, Maciej Wiatrak, Zoe Piran, Shengyao Fan, Ling Jiang, Sarah A Teichmann, Mor Nitzan, and Maria Brbi´ c. Systema: A framework for evaluating genetic perturbation response prediction beyond systematic variation. Nature Biotechnology , 44:1050–1059, 2026. [17] Henry E Miller, Gonzalo M Mejia, Francois J A Leblanc, Bingyu Wang, Bryce Swain, and Lucas P de Lima Camillo. Deep learning-based genetic perturbation models do outperform uninformative baselines on well-calibrated metrics. bioRxiv , page 2025.10.20.683304, 2025. [18] Ihab Bendidi, Sean Whitfield, Kian Kenyon-Dean, Hanane Ben Yedder, Yasmine El Mesbahi, Emmanuel Noutahi, and Ava K Denton. Benchmarking transcriptomics foundation models for perturbation analysis: One pca still rules them all. arXiv preprint arXiv:2410.13956 , 2024. [19] Zhan Wei, Yicheng Wang, Yingxin Gao, Shuyan Wang, Peng Li, Daifeng Si, Yue Gao, Shuai Wu, Dingfan Li, Kexin Dong, et al. Benchmarking algorithms for generalizable single-cell perturbation response prediction. Nature Methods , 23:451–464, 2026. [20] Christina V Theodoris, Ling Xiao, Anant Chopra, Mark D Chaffin, Zeina R Al Sayed, Matthew C Hill, Helene Mantineo, Elizabeth M Brydon, Zexian Zeng, X Shirley Liu, and Patrick T Ellinor. Transfer learning enables predictions in network biology. Nature , 618(7965):616–624, 2023. [21] Constantin Ahlmann-Eltze, Wolfgang Huber, and Simon Anders. Deep-learning-based gene perturbation effect prediction does not yet outperform simple linear baselines. Nature Methods , 22(8):1657–1661, 2025. [22] Aly Wenteler, Marco Occhetta, Nathan Branson, Vlad Curean, Max Huebner, William Dee, William Connell, Sang Peter Chung, Alix Hawkins-Hooker, Yasha Ektefaie, Carlos M Valdez Córdova, and Ava Gallagher-Syed. Perteval-scfm: Benchmarking single-cell foundation models for perturbation effect prediction. In Proceedings of the 42nd International Conference on Machine Learning (ICML) , volume 267 of PMLR , pages 66633–66677, 2025. [23] Eric Kernfeld, Yuqing Yang, Joshua S Weinstock, Alexis Battle, and Patrick Cahan. A comparison of computational methods for expression forecasting. Genome Biology , 26:388, 2025. [24] Dan Hendrycks and Kevin Gimpel. A baseline for detecting misclassified and out-of-distribution examples in neural networks. In Proceedings of the 5th International Conference on Learning Representations (ICLR) , 2017. [25] Yiyou Sun, Yifei Ming, Xiaojin Zhu, and Yixuan Li. Out-of-distribution detection with deep nearest neighbors. In Proceedings of the 39th International Conference on Machine Learning (ICML) , pages 20827–20840, 2022. [26] Kimin Lee, Kibok Lee, Honglak Lee, and Jinwoo Shin. A simple unified framework for detecting out-of-distribution samples and adversarial attacks. In Advances in Neural Information Processing Systems 31 ,pages 7167–7177, 2018. [27] Balaji Lakshminarayanan, Alexander Pritzel, and Charles Blundell. Simple and scalable predictive uncertainty estimation using deep ensembles. In Advances in Neural Information Processing Systems 30 ,pages 6402–6413, 2017. [28] Yarin Gal and Zoubin Ghahramani. Dropout as a Bayesian approximation: representing model uncertainty in deep learning. In Proceedings of the 33rd International Conference on Machine Learning (ICML) , pages 1050–1059, 2016. [29] Yonatan Geifman and Ran El-Yaniv. Selective classification for deep neural networks. In Advances in Neural Information Processing Systems 30 , pages 4878–4887, 2017. [30] Brenden M Lake and Marco Baroni. Generalization without systematicity: On the compositional skills of sequence-to-sequence recurrent networks. In Proceedings of the 35th International Conference on Machine Learning (ICML) , volume 80 of PMLR , pages 2873–2882, 2018. [31] Daniel Keysers, Nathanael Schärli, Nathan Scales, Hylke Buisman, Daniel Furrer, Sergii Kashubin, Nikola Momchev, Danila Sinopalnikov, Lukasz Stafiniak, Tibor Tihon, Dmitry Tsarkov, Xiao Wang, Marc van Zee, and Olivier Bousquet. Measuring compositional generalization: A comprehensive method on realistic data. In Proceedings of the 8th International Conference on Learning Representations (ICLR) , 2020. 
+
+7[32] Britt Adamson, Thomas M Norman, Marco Jost, May Y Cho, James K Nuñez, Yuwen Chen, Jacqueline E Villalta, Luke A Gilbert, Max A Horlbeck, Marco Y Hein, Ryan A Pak, Andrew N Gray, Carol A Gross, Atray Dixit, Oren Parnas, Aviv Regev, and Jonathan S Weissman. A multiplexed single-cell crispr screening platform enables systematic dissection of the unfolded protein response. Cell , 167(7):1867–1882.e11, 2016. [33] Julia Joung, Sai Ma, Tristan Tay, Kathryn R Geiger-Schuller, Paul C Kirchgatterer, Vanessa K Verdine, Baolin Guo, Mario Arias-Garcia, William E Allen, Avneesh Singh, Olena Kuksenko, Omar O Abudayyeh, Jonathan S Gootenberg, Zhanyu Fu, Rhiannon K Macrae, Jason D Buenrostro, Aviv Regev, and Feng Zhang. A transcription factor atlas of directed differentiation. Cell , 186(1):209–229.e26, 2023. [34] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. In Advances in Neural Information Processing Systems 30 , pages 5998–6008, 2017. [35] Arthur E Hoerl and Robert W Kennard. Ridge regression: biased estimation for nonorthogonal problems. 
+
+Technometrics , 12(1):55–67, 1970. [36] Diederik P Kingma and Max Welling. Auto-encoding variational Bayes. In Proceedings of the 2nd International Conference on Learning Representations (ICLR) , 2014. 
+
+8A Additional Analysis of Reliability Signals 
+
+Why embedding-based novelty can miss compositional shift. Under compositional shift, both constituent genes A and B have been observed individually during training, although their combina-tion has not. Pair representations constructed from familiar gene embeddings may therefore remain close to the training distribution. This is particularly likely when pair embeddings are formed through smooth aggregation functions such as averaging or pooling, because the resulting representation primarily reflects component-level familiarity rather than whether the interaction has been observed. Consequently, kNN distance, Mahalanobis distance, and cosine similarity may assign low novelty to an unseen combination even when its interaction prediction is unreliable. Embedding-based detec-tion need not fail in every setting, but component-level familiarity weakens the alignment between representation-space novelty and interaction-level novelty. 
+
+Relationship between AD and prediction error. Let the true interaction residual be 
+
+Itrue (A, B ) = y(A, B ) − (δA + δB ). (4) Since 
+
+fθ (A, B ) − y(A, B ) = ˆIθ (A, B ) − Itrue (A, B ), (5) the triangle inequality gives 
+
+∥ ˆIθ (A, B )∥1,G − ∥ Itrue (A, B )∥1,G ≤ ∥ fθ (A, B )−y(A, B )∥1,G ≤ ∥ ˆIθ (A, B )∥1,G +∥Itrue (A, B )∥1,G .
+
+(6) In the additive limiting case, Itrue (A, B ) = 0 , prediction error is exactly equal to AD. More generally, AD measures how strongly the model departs from the experimentally grounded additive reference. A large AD does not necessarily imply a large error, because a large correction may be accurate if it matches the true interaction. AD should therefore be interpreted as a risk signal for unsupported interaction extrapolation, rather than as a deterministic estimate of prediction error. Empirically, AD is strongly associated with GEARS prediction error on both compositional datasets, with Spearman correlations of ρ = 0 .982 on Norman and ρ = 0 .830 on Joung–Zhang. Across all evaluated models, its correlations range from 0.528 to 0.982 on Norman and from 0.767 to 0.939 
+
+on Joung–Zhang. Thus, although the bounds do not guarantee a monotonic relationship, large model-implied interaction corrections are consistently associated with higher error in the evaluated compositional settings. 
+
+Prediction magnitude versus additive disagreement. Because 
+
+fθ (A, B ) = ( δA + δB ) + ˆIθ (A, B ), (7) PM and AD may induce similar rankings when variation in the additive component is small relative to variation in the model-implied interaction correction. This occurs for GEARS on Norman, where their Spearman correlations with error are 0.978 and 0.982 , respectively. However, PM also increases for perturbations with large but experimentally supported single-gene effects. It therefore conflates the magnitude of the additive response with the magnitude of the extrapolated interaction correction. This distinction becomes clearer across models and datasets. On Joung–Zhang, PM correlates strongly with error for Ridge ( ρ = 0 .812 ), but is close to zero for Transformer ( ρ = 0 .041 ) and scGPT (ρ = 0 .021 ). AD remains positively associated with error for every evaluated model. By subtracting the observed additive component, AD more specifically targets interaction-level extrapolation. 
+
+Dependence on the evaluation metric. The reliability of AD depends on how prediction error is defined. On Norman, AD achieves a failure-detection AUROC of 0.990 when failure is measured by full-transcriptome MAE, but only 0.619 under Top20 MAE. The same pattern holds for squared error, with AUROC decreasing from 0.961 under full-transcriptome MSE to 0.597 under Top20 MSE. This difference follows from the gene sets used by the signal and the evaluation metric. Full-transcriptome AD aggregates departures from the additive reference across all evaluated genes and is therefore well aligned with full-transcriptome error. Top20 metrics evaluate only the most differentially expressed genes for each pair. A prediction may accumulate small deviations across many genes while remaining accurate on the Top20 set, or may have a modest global deviation but large errors on a few selected genes. Reliability established at the transcriptome-wide level therefore does not automatically transfer to a restricted gene set. Applications focused on biomarkers, pathways, or selected genes should define and validate reliability over the same target set. 9B Experimental Details 
+
+B.1 Datasets Datasets. We evaluate on three Perturb-seq datasets. 
+
+Norman (CRISPRa, K562). After filtering through the GEARS preprocessing pipeline, the dataset contains 89,357 cells and 5,045 genes [5]. It includes 105 single-gene and 131 combinatorial perturbation conditions [2]. Among the combinatorial conditions, 128 pairs have both constituent genes represented among the observed single-gene perturbations and are therefore eligible for compositional OOD evaluation. This provides the primary setting in which both constituent genes are observed during training but their combination is held out. 
+
+Joung–Zhang (combinatorial). We use the combinatorial perturbation dataset from Joung et al. [33]. After requiring both constituent genes of a double perturbation to have corresponding single-gene conditions, 44 pairs remain eligible for evaluation. This provides a second compositional OOD setting with a different perturbation library and experimental context. 
+
+Adamson (CRISPRi, K562). We use the single-gene perturbation dataset from Adamson et al. [32] as a complementary single-gene OOD setting. Here, the held-out perturbation gene itself is absent from training. The evaluation contains 48 held-out single-gene perturbations across three splits. All three datasets (Norman, Joung–Zhang, Adamson) are publicly available and cited to their original publications, and the model implementations we build on (GEARS, scGPT, CPA) are used under their respective open-source licenses. 
+
+B.2 Preprocessing 
+
+For each perturbation condition c, we represent its effect relative to control as 
+
+δc = μc − μctrl , (8) where μc and μctrl denote the mean expression profiles of the perturbation and control cells, re-spectively. A double perturbation (A, B ) is eligible for compositional evaluation only when both corresponding single-gene conditions are observed, allowing the additive reference 
+
+δA + δB (9) to be constructed. Ridge, MLP, Transformer, CPA, and scGPT are trained on condition-level mean effect vectors, whereas GEARS is trained on single-cell expression profiles through its original data pipeline. For Top20 MAE, the 20 genes with the largest absolute observed effect are selected separately for each held-out perturbation. 
+
+Splits. For Norman, each seed (42 , 43 , 44) partitions the eligible pairs into 20% test pairs, 20% validation pairs, and 60% training pairs. Each split contains 25 test pairs and 25 validation pairs, yielding 75 pair-seed test evaluations across the three seeds. All single-gene conditions and non-eligible combinatorial conditions remain in training. For Joung–Zhang, each of the 44 eligible double perturbations is held out once in leave-one-out cross-validation. All remaining conditions are used for training, and each model is retrained independently for every fold. For Adamson, single-gene perturbations are held out across three predefined splits, yielding 48 test evaluations in total. 10 B.3 Prediction Methods 
+
+All experiments were run on an internal cluster of 10 NVIDIA A100 GPUs. Table 4: Prediction method details. Non-graph models are trained on condition-level mean perturba-tion effects. GEARS is trained on single-cell expression profiles using its original data pipeline. 
+
+Model Paradigm Key details Additive Prior ˆδA+B = δA + δB ; no training Ridge [35] Linear Multi-output regression with one-hot perturbation indicators and 
+
+L2 regularization, α = 1 .0
+
+MLP Feedforward Learned 64-dimensional gene embeddings, two 256-dimensional hidden layers, ReLU, LayerNorm, dropout 0.1, learning rate 
+
+10 −3, and a maximum of 200 epochs Transformer [34] Attention 64-dimensional embeddings, 4 attention heads, 2 encoder layers, 256-dimensional feedforward blocks, pre-normalization, learnable positional embeddings, and mean pooling CPA [6, 36] Compositional VAE 64-dimensional latent representation with additive perturbation embeddings, KL-weight annealing to 0.1 over 100 epochs, a maximum of 300 epochs, and patience 40 scGPT [7] Foundation Frozen pretrained 512-dimensional scGPT gene embeddings projected to 128 dimensions, followed by a trainable 3-layer, 4-head Transformer predictor with AdamW learning rate 
+
+5×10 −4
+
+GEARS+scGPT Foundation+Graph GEARS with gene embeddings initialized from scGPT representations reduced from 512 to 64 dimensions using principal component analysis GEARS [5] Graph+biology Gene Ontology similarity and co-expression graphs, hidden dimension 64, 15 epochs, learning rate 10 −3, and batch size 64 
+
+B.4 Reliability Signals 
+
+All magnitude-based signals are averaged over the G evaluated genes so that their scale is comparable to MAE. Table 5: Reliability signal definitions. Each signal produces one scalar risk score per prediction, with higher values indicating greater predicted risk. 
+
+Signal Source Definition Additive disagreement Prior AD( A, B ) = 1
+
+G ∥fθ (A, B ) − (δA + δB )∥1
+
+Prediction magnitude Output PM( A, B ) = 1
+
+G ∥fθ (A, B )∥1
+
+Gene-wise variance Output Var g [fθ (A, B )g ]
+
+Ensemble variance [27] Output 1
+
+G
+
+> G
+
+X
+
+> g=1
+
+Var s [fθs (A, B )g ] across three independently trained models kNN distance [25] Embedding Mean cosine distance to the five nearest training perturbations in the corresponding model representation space Mahalanobis distance [26] Embedding Mahalanobis distance from the empirical distribution of training representations NN error proxy Embedding Prediction error associated with the nearest training perturbation in representation space Cosine to nearest Embedding Negated cosine similarity to the nearest training perturbation Random Baseline Independent score sampled uniformly from [0 , 1] 
+
+11 C Additional Analysis of Selective Prediction 
+
+This section provides complete selective-prediction results and additional analyses of the model-implied interaction corrections. 
+
+C.1 Why Models Extrapolate Unreliably C.1.1 Magnitude of Model-Implied Interaction Corrections 
+
+For each model, we measure the mean absolute interaction correction introduced relative to the additive reference. Table 6 reports the distribution of these corrections on Norman and their Spear-man correlation with prediction error. Ridge introduces the smallest corrections and achieves the lowest overall MAE. The neural predictors generally introduce larger corrections. GEARS and GEARS+scGPT produce the largest corrections, with mean AD values of 0.0344 and 0.0348, respec-tively. Their corrections are also strongly ranked with prediction error ( ρ = 0 .982 and ρ = 0 .981 ). This indicates that the main GEARS failures occur when the model moves strongly away from the additive reference without transferable pair-specific evidence. Table 6: Model-implied interaction corrections on Norman. Mean, median, and 90th percentile report the distribution of additive disagreement across 75 test evaluations. Correlation is the Spearman correlation between AD and prediction error.                                     
+
+> Model Mean AD Median AD 90th percentile Corr. with error Additive 000–Ridge 0.0113 0.0096 0.0155 0.528 CPA 0.0184 0.0170 0.0249 0.585 MLP 0.0227 0.0208 0.0297 0.660 Transformer 0.0241 0.0212 0.0344 0.627 scGPT 0.0251 0.0218 0.0356 0.598 GEARS+scGPT 0.0348 0.0324 0.0589 0.981 GEARS 0.0344 0.0314 0.0597 0.982
+
+GEARS ablations. We ablate the graph components and training composition of GEARS to identify the source of unreliable interaction extrapolation (Table 7). Removing the co-expression graph gives the largest improvement and reduces MAE from 0.0336 to 0.0228. By contrast, removing the GO graph slightly worsens performance. In GEARS, each gene aggregates information from its neighbours during message passing. Highly connected genes therefore receive signals from many sources. Interaction correction magnitude correlates with node degree ( ρ = 0 .633 ), showing that highly connected genes tend to receive larger corrections. These aggregated signals can fit interaction patterns in the training pairs. However, the graph is fixed and does not record which gene combinations have been observed. GEARS therefore applies the same mechanism to held-out pairs, even when no pair-specific evidence is available. This process transfers interaction patterns from the training set to unseen combinations and often increases prediction error. Table 7: GEARS ablations. ✓/×indicate whether each component is used. Pairs denotes combinato-rial training data; CoExp denotes co-expression.                                     
+
+> Configuration Pairs GO CoExp MAE ↓Wins/Add. Full GEARS ✓✓✓0.0336 0/75 No GO ✓×✓0.0342 0/75 No CoExp ✓✓×0.0228 3/75 No graphs ✓××0.0259 3/75 Singles-only GEARS ×✓✓0.0291 1/75 Additive –––0.0142 –
+
+Training on single-gene perturbations alone already produces a higher MAE than the additive baseline (0.0291 vs. 0.0142). The model therefore does not recover additive predictions when interaction supervision is absent. Adding combinatorial training data further increases MAE to 0.0336. This 12 result suggests that GEARS learns interaction corrections from the training pairs but does not transfer them reliably to unseen pairs. Overall, the main source of error is not simply a failure to model additive effects, but the introduction of interaction corrections without transferable evidence. 
+
+C.2 Reliability Signals for Selective Prediction 
+
+Having established that unreliable predictions arise from interaction corrections without transferable evidence, we now evaluate whether reliability signals can rank these failures. We report fixed-abstention results on Norman, full risk–coverage curves across OOD settings, and the transfer of each signal across datasets. 
+
+C.2.1 Selective Prediction on Norman 
+
+For each reliability signal, we rank the 75 GEARS test evaluations by predicted risk, remove the highest-risk fraction, and recompute MAE on the retained evaluations. Table 8 reports results from 10% to 50% abstention. Additive disagreement, prediction magnitude, and gene-wise variance consistently reduce retained-set error. AD reduces MAE by 19% at 20% abstention and by 38% at 50% abstention. Ensemble variance, the nearest-neighbour error proxy, and kNN distance provide smaller improvements. Mahalanobis distance and the cosine-to-nearest signal can worsen perfor-mance, indicating that representation-space proximity does not reliably identify failed interaction extrapolation. Table 8: Selective prediction for GEARS on Norman. The MAE without abstention is 0.0336. At each abstention level, the highest-risk evaluations are removed and MAE is recomputed on the retained set. Parentheses report the relative MAE reduction from the full-coverage result.                                                   
+
+> Signal Abs10% Abs20% Abs30% Abs40% Abs50% Additive disagreement 0.0296 (+12%) 0.0272 (+19%) 0.0249 (+26%) 0.0226 (+33%) 0.0207 (+38%) Prediction magnitude 0.0298 (+11%) 0.0272 (+19%) 0.0248 (+26%) 0.0226 (+33%) 0.0208 (+38%) Gene-wise variance 0.0298 (+11%) 0.0273 (+19%) 0.0256 (+24%) 0.0246 (+27%) 0.0217 (+35%) Ensemble variance 0.0332 (+1%) 0.0321 (+4%) 0.0298 (+11%) 0.0292 (+13%) 0.0277 (+17%) NN error proxy 0.0331 (+2%) 0.0320 (+5%) 0.0308 (+8%) 0.0290 (+14%) 0.0290 (+14%) kNN distance 0.0323 (+4%) 0.0317 (+6%) 0.0315 (+6%) 0.0299 (+11%) 0.0282 (+16%) Mahalanobis distance 0.0329 (+2%) 0.0342 (-2%) 0.0351 (-4%) 0.0354 (-5%) 0.0360 (-7%) Cosine to nearest 0.0359 (-7%) 0.0376 (-12%) 0.0398 (-18%) 0.0405 (-21%) 0.0432 (-29%) Random 0.0344 (-2%) 0.0334 (+1%) 0.0315 (+6%) 0.0314 (+7%) 0.0316 (+6%)
+
+13 C.2.2 Risk–Coverage Across OOD Settings 
+
+Risk–coverage curves complement the fixed abstention rates by showing retained-set error across the full coverage range. Lower MAE at a given coverage indicates that a signal more effectively ranks unreliable predictions. 
+
+Figure 4: Risk–coverage curves on Norman under compositional OOD. Each curve reports retained-set MAE as progressively higher-risk predictions are removed. Lower MAE at a given coverage indicates better selective prediction. 14 Figure 5: Risk–coverage curves on Adamson under single-gene OOD. Each curve reports retained-set MAE as progressively higher-risk predictions are removed. AD is undefined because the held-out perturbation gene is unobserved. 15 Figure 6: Risk–coverage curves on Joung–Zhang under compositional OOD. Each curve reports retained-set MAE as progressively higher-risk predictions are removed. Lower MAE at a given coverage indicates better selective prediction. 16 C.2.3 Cross-dataset Reliability 
+
+Table 9 evaluates whether reliability signals transfer across datasets. On Norman, AD ranks errors well across all models, with the strongest correlations observed for GEARS and GEARS+scGPT. On Joung–Zhang, AD remains consistently positive across models, while PM and GV become substantially more variable: PM correlates strongly with error for Ridge ( ρ = 0 .812 ) but is close to zero for Transformer ( ρ = 0 .041 ) and scGPT ( ρ = 0 .021 ). kNN distance is also inconsistent and can correlate negatively with error. On Adamson, where the OOD shift is at the single-gene level rather than the combination level, PM and GV are strong for MLP and CPA, moderate for GEARS, and weak for Transformer and scGPT. In contrast, AD maintains positive correlations with error across all models and both compositional datasets ( ρ = 0 .528 –0.939 ), making it the most consistent ranking signal across settings. Table 9: Cross-dataset reliability of uncertainty signals. Abs20 denotes improvement after 20% abstention. AD is undefined for single-gene OOD on Adamson.                                                                                                               
+
+> Spearman ρ(signal vs. error) ↑Abstention ↑
+> Dataset OOD type Model AD PM GV kNN kNN Abs20 Norman Compositional GEARS 0.982 0.978 0.903 0.290 +5 .8%
+> GEARS+scGPT 0.981 0.982 0.909 −0.045 +1 .7%
+> MLP 0.660 0.558 0.410 0.426 +3 .0%
+> Ridge 0.528 0.491 0.423 0.345 +1 .7%
+> Transformer 0.627 0.384 0.336 −0.217 −3.7%
+> CPA 0.585 0.398 0.316 0.323 +4 .0%
+> scGPT 0.598 0.258 0.177 0.070 +0 .0%
+> Joung–Zhang Compositional Ridge 0.939 0.812 0.519 −0.468 −11 .6%
+> MLP 0.796 0.388 0.441 0.137 −3.2%
+> Transformer 0.783 0.041 −0.038 0.294 −3.0%
+> CPA 0.767 0.268 0.091 0.141 +5 .0%
+> scGPT 0.778 0.021 0.179 0.306 +5 .7%
+> GEARS+scGPT 0.870 0.788 0.026 −0.041 −1.3%
+> GEARS 0.830 0.729 −0.039 0.094 −0.6%
+> Adamson Single-gene GEARS —0.436 0.362 −0.275 −3.0%
+> MLP —0.926 0.903 0.415 +12 .1%
+> Transformer —−0.047 −0.085 −0.082 −0.6%
+> CPA —0.879 0.860 0.620 +12 .7%
+> scGPT —−0.090 −0.022 0.181 +6 .4%
+
+17 C.3 Reliability-Aware Fallback 
+
+Given that reliability signals can rank unreliable predictions, we finally test whether they have decision-level utility on unseen combinations. We evaluate a conservative fallback analysis in which high-risk model predictions are replaced by the additive reference. Table 10 reports cross-fitted routing results, with thresholds selected on calibration groups and evaluated on disjoint held-out groups. GEARS and GEARS+scGPT never outperform the additive baseline on either dataset, and routing substantially reduces their errors but generally remains slightly worse than always using the additive reference. For models with mixed pair-level performance, routing provides only modest improvements. On Joung–Zhang, kNN routing reduces Ridge MAE from 0.0187 to 0.0185, prediction magnitude reduces CPA MAE from 0.0192 to 0.0186, and gene-wise variance reduces Transformer MAE from 0.0201 to 0.0187, all slightly outperforming the additive baseline of 0.0190. Routed performance remains above the oracle in most cases, indicating that current signals do not fully capture when fallback is beneficial. Ridge is the main exception on Norman, where it already outperforms the additive baseline on most evaluations. Table 10: Cross-fitted conservative fallback analysis. Each column is a model and each row is a fallback policy. For high-risk predictions, the model output is replaced by the additive reference; this evaluates the decision utility of each reliability signal rather than assuming that the additive reference is universally reliable. Thresholds are selected on calibration groups and evaluated on disjoint held-out groups. Oracle selects whichever prediction has lower error for each evaluation. Wins denotes the number of evaluations where the model outperforms the additive baseline.                                                                                                                                 
+
+> Norman (75 evaluations) Routing policy Ridge CPA MLP Trans. scGPT GEARS+scGPT GEARS Wins/Additive 60/75 11/75 6/75 8/75 6/75 0/75 0/75 No routing (always model) 0.0118 0.0175 0.0214 0.0215 0.0224 0.0338 0.0336 Route by additive disagreement 0.0122 0.0143 0.0144 0.0143 0.0144 0.0144 0.0144 Route by prediction magnitude 0.0122 0.0144 0.0145 0.0145 0.0150 0.0144 0.0144 Route by gene-wise variance 0.0122 0.0145 0.0148 0.0145 0.0146 0.0144 0.0144 Route by kNN distance 0.0121 0.0142 0.0144 0.0145 0.0144 0.0160 0.0156 No routing (always additive) 0.0142 0.0142 0.0142 0.0142 0.0142 0.0142 0.0142 Oracle routing 0.0115 0.0135 0.0139 0.0138 0.0138 0.0142 0.0142
+> Joung–Zhang (44 evaluations) Routing policy Ridge CPA MLP Trans. scGPT GEARS+scGPT GEARS Wins/Additive 18/44 29/44 2/44 20/44 13/44 0/44 0/44 No routing (always model) 0.0187 0.0192 0.0252 0.0201 0.0209 0.0500 0.0512 Route by additive disagreement 0.0188 0.0192 0.0195 0.0192 0.0192 0.0207 0.0203 Route by prediction magnitude 0.0188 0.0186 0.0193 0.0189 0.0191 0.0200 0.0200 Route by gene-wise variance 0.0190 0.0186 0.0193 0.0187 0.0192 0.0207 0.0213 Route by kNN distance 0.0185 0.0190 0.0190 0.0190 0.0190 0.0203 0.0215 No routing (always additive) 0.0190 0.0190 0.0190 0.0190 0.0190 0.0190 0.0190 Oracle routing 0.0181 0.0177 0.0189 0.0181 0.0184 0.0190 0.0190
+
+18 D Limitations and Future Directions 
+
+The present framework has several limitations. First, additive disagreement requires observed single-gene effects for both constituent perturbations. It is therefore defined for compositional OOD, where the components are individually observed, but not for settings in which the perturbed gene itself is unseen, such as the Adamson evaluation. Second, AD measures the magnitude of the model-implied interaction correction rather than its biological correctness. A large correction may be accurate when it matches the true interaction, and a small correction may still be wrong. AD should therefore be interpreted as a risk signal for unsupported extrapolation, not as a direct estimate of interaction error. Third, reliability depends on the evaluation target. AD performs strongly under full-transcriptome MAE on Norman but transfers poorly to Top20 error. A global transcriptome-wide score may therefore be insufficient for applications focused on particular genes, pathways, or cell states. Gene-level and pathway-level disagreement measures are a natural extension. Finally, the present study establishes the framework for pairwise perturbations across distinct compo-sitional settings. Extending it to higher-order combinations will require richer references than simple pairwise additivity, potentially using hierarchical, pathway-aware, or mechanism-informed priors. The same decomposition may also generalize to other compositional scientific settings, including drug combinations and multimodal interventions. 
+
+# Declaration of LLM Usage 
+
+Large language models were used solely as writing and coding assistants during the preparation of this work. Specifically, they were used to polish prose, improve clarity, and assist with routine coding tasks such as reformatting tables and debugging plotting and evaluation scripts. 
+
+# Ethics Statement 
+
+This work studies the reliability of perturbation-response predictors using publicly available, de-identified Perturb-seq datasets. It involves no human subjects, no personally identifiable information, and no data collection. The study is diagnostic in nature: by identifying when predictions rely on unsupported interaction extrapolation, it aims to reduce wasted experimental resources and misleading biological interpretations in downstream screening pipelines. We are not aware of foreseeable harmful applications arising directly from this work. 19

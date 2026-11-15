@@ -1,0 +1,169 @@
+{
+  "date": "20261001-20261019",
+  "date_label": "2026-10-01 ~ 2026-10-19",
+  "generated_at": "2026-11-15 12:04:33 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2610.04475v1",
+      "route": "20261001-20261019/2610.04475v1-vclmu-mechanism-centric-virtual-cell-world-modeling-for-perturbation-response",
+      "title": "VCLMU: Mechanism-Centric Virtual Cell World Modeling for Perturbation Response",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "以潜在机制单元为核心的虚拟细胞世界模型预测遗传扰动响应",
+      "first_seen_at": "2026-11-15 12:04:33 UTC",
+      "updated_at": "2026-11-15 12:04:33 UTC"
+    },
+    {
+      "paper_id": "2610.04945v2",
+      "route": "20261001-20261019/2610.04945v2-tempobridge-source-conditioned-flow-matching-with-optimal-transport-couplings-for-single-cell-population-transitions",
+      "title": "TempoBridge: Source-Conditioned Flow Matching with Optimal Transport Couplings for Single-Cell Population Transitions",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "源条件流匹配建模遗传与化学扰动下的单细胞群体转变",
+      "first_seen_at": "2026-11-15 12:04:33 UTC",
+      "updated_at": "2026-11-15 12:04:33 UTC"
+    },
+    {
+      "paper_id": "2610.09054v1",
+      "route": "20261001-20261019/2610.09054v1-beyond-the-transcriptome-chromatin-informed-prediction-of-cell-state-dependent-perturbation-responses",
+      "title": "Beyond the Transcriptome: Chromatin-Informed Prediction of Cell-State-Dependent Perturbation Responses",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "染色质信息驱动的遗传扰动转录响应预测",
+      "first_seen_at": "2026-11-15 12:04:33 UTC",
+      "updated_at": "2026-11-15 12:04:33 UTC"
+    },
+    {
+      "paper_id": "2610.18456v1",
+      "route": "20261001-20261019/2610.18456v1-learning-perturbation-specific-representations-through-conditional-energy-prior-for-cellular-response-prediction",
+      "title": "Learning Perturbation-Specific Representations through Conditional Energy Prior for Cellular Response Prediction",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "用于细胞扰动响应预测的条件能量先验",
+      "first_seen_at": "2026-11-15 12:04:33 UTC",
+      "updated_at": "2026-11-15 12:04:33 UTC"
+    },
+    {
+      "paper_id": "2610.18880v1",
+      "route": "20261001-20261019/2610.18880v1-do-perturbation-predictors-learn-gene-interactions-diagnosing-extrapolation-in-agentic-screening",
+      "title": "Do Perturbation Predictors Learn Gene Interactions? Diagnosing Extrapolation in Agentic Screening",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "诊断扰动预测器对未见基因组合的外推能力",
+      "first_seen_at": "2026-11-15 12:04:33 UTC",
+      "updated_at": "2026-11-15 12:04:33 UTC"
+    },
+    {
+      "paper_id": "2610.19029v1",
+      "route": "20261001-20261019/2610.19029v1-deep-learning-based-virtual-perturbation-reveals-increasing-heterogeneity-of-gene-regulatory-responses-with-aging",
+      "title": "Deep learning-based virtual perturbation reveals increasing heterogeneity of gene regulatory responses with aging",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "从未扰动转录组预测虚拟基因扰动效应",
+      "first_seen_at": "2026-11-15 12:04:33 UTC",
+      "updated_at": "2026-11-15 12:04:33 UTC"
+    },
+    {
+      "paper_id": "2610.25021v1",
+      "route": "20261001-20261019/2610.25021v1-synergy-aware-residual-flow-matching-for-single-cell-perturbation-prediction",
+      "title": "Synergy-Aware Residual Flow Matching for Single-Cell Perturbation Prediction",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "用于单细胞扰动响应预测的残差流匹配",
+      "first_seen_at": "2026-11-15 12:04:33 UTC",
+      "updated_at": "2026-11-15 12:04:33 UTC"
+    },
+    {
+      "paper_id": "2610.16093v1",
+      "route": "20261001-20261019/2610.16093v1-cloneot-predicting-clone-specific-perturbation-responses-with-lineage-supervised-neural-inverse-optimal-transport",
+      "title": "CloneOT: predicting clone-specific perturbation responses with lineage-supervised neural inverse optimal transport",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "用谱系监督神经逆最优传输预测单细胞扰动响应",
+      "first_seen_at": "2026-11-15 12:04:33 UTC",
+      "updated_at": "2026-11-15 12:04:33 UTC"
+    },
+    {
+      "paper_id": "2610.21943v2",
+      "route": "20261001-20261019/2610.21943v2-panoramic-modelling-of-single-cell-transcriptomes-at-scale-with-cellnet",
+      "title": "Panoramic modelling of single-cell transcriptomes at scale with CellNet",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "大规模转录组数据预训练的单细胞基础模型",
+      "first_seen_at": "2026-11-15 12:04:33 UTC",
+      "updated_at": "2026-11-15 12:04:33 UTC"
+    },
+    {
+      "paper_id": "2610.26267v1",
+      "route": "20261001-20261019/2610.26267v1-a-pitfall-in-the-evaluation-of-gene-perturbation-models",
+      "title": "A Pitfall in the Evaluation of Gene Perturbation Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "基因扰动模型预测未见干预时的评估陷阱",
+      "first_seen_at": "2026-11-15 12:04:33 UTC",
+      "updated_at": "2026-11-15 12:04:33 UTC"
+    }
+  ]
+}

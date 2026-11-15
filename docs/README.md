@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-10-20 ~ 2026-10-29</span>
+      <span class="dpr-home-dashboard-kicker">2026-10-01 ~ 2026-10-19</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 7 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 10 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>2</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>5</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>10</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-11-15 08:15:55 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-11-15 12:04:33 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>2026-10-20至10-29共筛出7篇，精读2篇、速读5篇，重点集中在单细胞基础模型与CRISPR筛选的方法学审视。最值得看的是《Rethinking One Gene, One Token》以9.0分提出的转录组感知分词思路，以及《Shared clones…》对pooled screens可重复性假象的提醒。普通读者可先读这两篇精读，再结合速读中“逃逸细胞稀释CRISPR响应”的结论，判断筛选结果是否受细胞类型差异干扰。</p>
+<p>2026-10-01至10-19共速读10篇论文，VCLMU、TempoBridge与染色质信息扰动预测这三篇9.0分论文最值得关注。建议普通读者优先看VCLMU的“虚拟细胞世界模型”思路，再关注TempoBridge如何用最优传输刻画单细胞群体转变。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -78,12 +78,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">2 篇</strong>
+    <strong class="dpr-home-dashboard-count">0 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Rethinking One Gene, One Token: Transcriptome-Aware Tokenization for Single-Cell Foundation Models">Rethinking One Gene, One Token: Transcriptome-Aware Tokenization for Single-Cell Foundation Models</span></li><li><span class="dpr-home-dashboard-paper-title" title="Shared clones make random cell halves look reproducible in pooled screens">Shared clones make random cell halves look reproducible in pooled screens</span></li></ul>
+<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">virtual-cell <strong>2</strong></span></div>
+
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -91,12 +91,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">5 篇</strong>
+    <strong class="dpr-home-dashboard-count">10 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Escaping cells dilute CRISPR screen responses unequally across cell types">Escaping cells dilute CRISPR screen responses unequally across cell types</span></li><li><span class="dpr-home-dashboard-paper-title" title="Parameter-Efficient Adaptation of Time Series Foundation Models for Electrical Load Forecasting">Parameter-Efficient Adaptation of Time Series Foundation Models for Electrical Load Forecasting</span></li><li><span class="dpr-home-dashboard-paper-title" title="NormTune: Norm-Guided Parameter-Efficient Fine-Tuning for Reasoning-Intensive Tasks">NormTune: Norm-Guided Parameter-Efficient Fine-Tuning for Reasoning-Intensive Tasks</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="VCLMU: Mechanism-Centric Virtual Cell World Modeling for Perturbation Response">VCLMU: Mechanism-Centric Virtual Cell World Modeling for Perturbation Response</span></li><li><span class="dpr-home-dashboard-paper-title" title="TempoBridge: Source-Conditioned Flow Matching with Optimal Transport Couplings for Single-Cell Population Transitions">TempoBridge: Source-Conditioned Flow Matching with Optimal Transport Couplings for Single-Cell Population Transitions</span></li><li><span class="dpr-home-dashboard-paper-title" title="Beyond the Transcriptome: Chromatin-Informed Prediction of Cell-State-Dependent Perturbation Responses">Beyond the Transcriptome: Chromatin-Informed Prediction of Cell-State-Dependent Perturbation Responses</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">virtual-cell <strong>5</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">virtual-cell <strong>10</strong></span></div>
 </section>
 </div>
 

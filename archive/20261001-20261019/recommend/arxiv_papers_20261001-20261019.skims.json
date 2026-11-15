@@ -1,0 +1,409 @@
+{
+  "mode": "skims",
+  "generated_at": "2026-11-15T12:03:44.946480+00:00",
+  "stats": {
+    "mode": "skims",
+    "forced_all_quick": true,
+    "min_score": 8.0,
+    "deep_divecandidates": 10,
+    "deep_cap": null,
+    "deep_selected": 0,
+    "quick_candidates": 10,
+    "quick_skim_target": null,
+    "quick_selected": 10
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2610.04475v1",
+      "source": "arxiv",
+      "title": "VCLMU: Mechanism-Centric Virtual Cell World Modeling for Perturbation Response",
+      "abstract": "Predicting cellular responses to genetic perturbations is a central capability for virtual cells and a key step toward computational modeling of biological interventions. Most existing models directly map an unperturbed molecular profile and perturba- tion to the resulting observation without explicitly representing the latent cellular transition induced by the intervention. We introduce a mechanism-centric virtual cell world model that represents cellular state as a set of Latent Mechanism Units (LMUs) and treats genetic perturbations as actions on these latent states. Each LMU combines a reusable identity grounded in multimodal biological evidence with an observation-specific state, allowing a perturbation to induce mechanism- specific stochastic transitions before decoding the resulting transcriptional response. We train VCLMU through two-stage pretraining, first on around 200K pseudo-bulk perturbation profiles and then on gene-aligned single-cell perturbation data. Across six perturbation-disjoint benchmarks, VCLMU consistently improves perturbation- specific response recovery over strong baselines while maintaining competitive global response accuracy. We further analyze learned LMUs through enrichment between perturbation responses and LMU gene sets and show that they capture structured biological response programs. These results support mechanism-level latent state transition as a useful formulation for virtual cell models that aim to predict and interpret cellular responses to biological interventions.",
+      "authors": [
+        "Yuwei Miao",
+        "Azim Dehghani Amirabad",
+        "Scott Oloff",
+        "Junzhou Huang",
+        "Tianyu Cui",
+        "Rui Liao"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-10-03 12:26:20+00:00",
+      "link": "https://arxiv.org/pdf/2610.04475v1",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "virtual cell world model predicting cellular responses to genetic perturbations via latent mechanism units",
+      "llm_evidence_cn": "以潜在机制单元为核心的虚拟细胞世界模型预测遗传扰动响应",
+      "llm_evidence": "以潜在机制单元为核心的虚拟细胞世界模型预测遗传扰动响应",
+      "canonical_evidence": "以潜在机制单元为核心的虚拟细胞世界模型预测遗传扰动响应",
+      "llm_tldr_en": "VCLMU represents cellular state as latent mechanism units grounded in multimodal biological evidence and treats genetic perturbations as actions on these states, enabling mechanism-centric virtual cell prediction of perturbation responses.",
+      "llm_tldr_cn": "现有扰动响应模型直接把未扰动表达谱与扰动映射到观测结果，未显式刻画干预引起的潜在细胞状态转变。作者提出机制中心的虚拟细胞世界模型VCLMU，将细胞状态表示为一组潜在机制单元，每个单元由多模态生物学证据支撑的可复用身份与样本特异状态组成，并把遗传扰动视为作用于这些潜状态的动作。该框架可生成机制特异的随机扰动响应，为虚拟细胞的扰动预测与生物干预计算建模提供新范式。",
+      "llm_tldr": "现有扰动响应模型直接把未扰动表达谱与扰动映射到观测结果，未显式刻画干预引起的潜在细胞状态转变。作者提出机制中心的虚拟细胞世界模型VCLMU，将细胞状态表示为一组潜在机制单元，每个单元由多模态生物学证据支撑的可复用身份与样本特异状态组成，并把遗传扰动视为作用于这些潜状态的动作。该框架可生成机制特异的随机扰动响应，为虚拟细胞的扰动预测与生物干预计算建模提供新范式。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.04945v2",
+      "source": "arxiv",
+      "title": "TempoBridge: Source-Conditioned Flow Matching with Optimal Transport Couplings for Single-Cell Population Transitions",
+      "abstract": "Destructive single-cell measurements provide unpaired population snapshots rather than observations of the same cells across conditions. Local cell states and transition requests may also be insufficient to distinguish responses across source populations. We introduce TempoBridge, a common source-conditioned transport formulation for temporal, genetic, and chemical population transitions. Source cells initialize latent transport and provide a fixed empirical population summary. The velocity field receives this summary alongside the evolving cell state, flow time, and a structured transition descriptor. Minibatch optimal transport (OT) supplies couplings only for conditional flow-matching training paths; inference requires neither target expression nor OT computation. On held-out donors, TempoBridge achieves an Energy distance of 0.129 versus 0.144 for scGen. Genetic mean-expression $L_2$ error is 2.261 versus 3.156 for scGPT-scratch under Seen 2/2. On held-out compounds, condition-averaged drug-effect correlation is 0.598 versus 0.561 for the CellFlow adapter. Temporal ablations show higher mean distributional error after removing source context, replacing optimal transport with random pairing, or replacing flow matching with static residual regression. Together, these results demonstrate the predictive utility of a common source-conditioned transport formulation across held-out donors, gene combinations, and compounds.",
+      "authors": [
+        "Bowen Han",
+        "Lingbei Meng",
+        "Shihuan Luo",
+        "Yupeng Zang",
+        "Wenlin LI",
+        "Peize He",
+        "Yaodi Luo",
+        "Lian Zhang",
+        "Jianqing Zhu",
+        "Jinchao Xu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "q-bio.GN"
+      ],
+      "published": "2026-10-04 04:39:07+00:00",
+      "link": "https://arxiv.org/pdf/2610.04945v2",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "source-conditioned flow matching for genetic and chemical single-cell population transitions",
+      "llm_evidence_cn": "源条件流匹配建模遗传与化学扰动下的单细胞群体转变",
+      "llm_evidence": "源条件流匹配建模遗传与化学扰动下的单细胞群体转变",
+      "canonical_evidence": "源条件流匹配建模遗传与化学扰动下的单细胞群体转变",
+      "llm_tldr_en": "TempoBridge introduces a source-conditioned flow-matching formulation with optimal-transport couplings to model unpaired single-cell population transitions across temporal, genetic and chemical perturbations.",
+      "llm_tldr_cn": "针对破坏性单细胞测量只提供未配对群体快照、难以追踪同一细胞跨条件状态转变的问题，作者提出TempoBridge源条件流匹配框架。该方法用源细胞初始化潜空间传输，向速度场注入群体摘要、流时间与结构化转变描述子，并用微批最优传输为条件流匹配提供训练耦合。该统一表述同时覆盖时间、遗传与化学三类群体转变，为虚拟细胞中的扰动响应预测提供可复用范式。",
+      "llm_tldr": "针对破坏性单细胞测量只提供未配对群体快照、难以追踪同一细胞跨条件状态转变的问题，作者提出TempoBridge源条件流匹配框架。该方法用源细胞初始化潜空间传输，向速度场注入群体摘要、流时间与结构化转变描述子，并用微批最优传输为条件流匹配提供训练耦合。该统一表述同时覆盖时间、遗传与化学三类群体转变，为虚拟细胞中的扰动响应预测提供可复用范式。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.09054v1",
+      "source": "arxiv",
+      "title": "Beyond the Transcriptome: Chromatin-Informed Prediction of Cell-State-Dependent Perturbation Responses",
+      "abstract": "Predicting transcriptional responses to genetic perturbations is central to understanding gene function. Existing predictors primarily rely on transcriptomic measurements, although chromatin accessibility provides complementary information about the cellular context in which perturbations act. Using this information requires linking chromatin context to specific perturbations and accounting for baseline differences between independently sampled control and perturbed populations. We propose ChromaPert, a chromatin-informed framework for predicting state-dependent perturbation responses. ChromaPert combines molecular and DNA-informed locus priors with paired control RNA--ATAC features to jointly represent target identity and measured cellular context. Its Chromatin-Guided Response Router (CGRR) builds a source bank of control-derived expression offsets and retrieves relevant sources using perturbation/locus or control-ATAC similarity. These offsets account for baseline differences, while conditional transport flow learns the remaining response. Across three unseen-target and held-out-state settings on K562 CAT-ATAC and Perturb-Multiome, ChromaPert achieves the highest all-gene response correlation among evaluated methods. When transferring known perturbations to held-out states, it improves correlation by 23.2% across all genes and 46.2% for the twenty most responsive genes over the strongest respective baselines. Correct RNA--ATAC pairing improves recovery of chromatin-associated response slopes over shuffled pairing, while cross-state predictions retain state-specific responses to the same perturbation.",
+      "authors": [
+        "Jiafa Ruan",
+        "Chenyang He",
+        "Ruijie Quan",
+        "Fanglei Xue",
+        "Zongxin Yang",
+        "Yi Yang"
+      ],
+      "primary_category": "q-bio.GN",
+      "categories": [
+        "q-bio.GN"
+      ],
+      "published": "2026-10-06 20:05:35+00:00",
+      "link": "https://arxiv.org/pdf/2610.09054v1",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "chromatin-informed prediction of transcriptional responses to genetic perturbations",
+      "llm_evidence_cn": "染色质信息驱动的遗传扰动转录响应预测",
+      "llm_evidence": "染色质信息驱动的遗传扰动转录响应预测",
+      "canonical_evidence": "染色质信息驱动的遗传扰动转录响应预测",
+      "llm_tldr_en": "ChromaPert predicts cell-state-dependent transcriptional responses to genetic perturbations by combining molecular and DNA-informed locus priors with paired control RNA-ATAC features, going beyond transcriptome-only predictors.",
+      "llm_tldr_cn": "现有扰动响应预测器主要依赖转录组，忽略染色质可及性提供的细胞上下文信息。作者提出ChromaPert，融合分子与DNA信息驱动的位点先验，并用配对的对照RNA-ATAC特征联合表征扰动靶标与细胞状态。该框架可预测状态依赖的扰动响应，缓解独立采样对照与扰动群体间的基线差异。工作将染色质先验引入扰动预测，提升了上下文感知的响应建模能力。",
+      "llm_tldr": "现有扰动响应预测器主要依赖转录组，忽略染色质可及性提供的细胞上下文信息。作者提出ChromaPert，融合分子与DNA信息驱动的位点先验，并用配对的对照RNA-ATAC特征联合表征扰动靶标与细胞状态。该框架可预测状态依赖的扰动响应，缓解独立采样对照与扰动群体间的基线差异。工作将染色质先验引入扰动预测，提升了上下文感知的响应建模能力。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.18456v1",
+      "source": "arxiv",
+      "title": "Learning Perturbation-Specific Representations through Conditional Energy Prior for Cellular Response Prediction",
+      "abstract": "AI-based cellular perturbation prediction is essential to accelerate drug discovery and therapeutic identification. However, perturbation-specific signals are generally obscured by cellular complexity, making it difficult for existing methods to correctly capture perturbation effects. To address this problem, we propose PerturbEnergy, which introduces a conditional energy-based prior over perturbation representations. It assigns lower energy (higher probability) to representations compatible with the given perturbation and higher energy to others, thereby explicitly tilting the latent space toward perturbation-preferred regions. Besides, PerturbEnergy can be integrated into autoencoder architectures as we find its Evidence Lower Bound (ELBO) is equivalent to the ELBO of the complete autoencoder. We further prove that optimizing PerturbEnergy increases the lower bound on the conditional mutual information between representation and perturbation. Extensive experiments on four benchmark datasets demonstrate the effectiveness of our PerturbEnergy: it improves perturbation recognition especially in latent space with improvement of up to 83.2\\%; It also achieves state-of-the-art performance for predicting top-50/100/200 differentially expressed gene(DEG) response and remaining competitive on highly variable gene(HVG) prediction. The code is provided: https://github.com/BlueWhaleLab/PerturbEnergy",
+      "authors": [
+        "Yuchen Yan",
+        "Yatao Bian"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-10-13 14:24:25+00:00",
+      "link": "https://arxiv.org/pdf/2610.18456v1",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Conditional energy prior for cellular perturbation response prediction",
+      "llm_evidence_cn": "用于细胞扰动响应预测的条件能量先验",
+      "llm_evidence": "用于细胞扰动响应预测的条件能量先验",
+      "canonical_evidence": "用于细胞扰动响应预测的条件能量先验",
+      "llm_tldr_en": "PerturbEnergy adds a conditional energy-based prior over perturbation representations to tilt the latent space toward perturbation-preferred regions, improving cellular response prediction within autoencoder architectures.",
+      "llm_tldr_cn": "针对细胞复杂性掩盖扰动特异性信号、现有方法难以准确捕捉扰动效应的问题，作者提出PerturbEnergy，在扰动表征上引入条件能量先验，对与给定扰动相容的表征赋予更低能量，从而显式地将隐空间拉向扰动偏好区域。该方法可集成到自编码器架构中，改善细胞响应预测对扰动效应的刻画。这一能量先验框架为扰动特异性表征学习提供了可插拔的通用方案。",
+      "llm_tldr": "针对细胞复杂性掩盖扰动特异性信号、现有方法难以准确捕捉扰动效应的问题，作者提出PerturbEnergy，在扰动表征上引入条件能量先验，对与给定扰动相容的表征赋予更低能量，从而显式地将隐空间拉向扰动偏好区域。该方法可集成到自编码器架构中，改善细胞响应预测对扰动效应的刻画。这一能量先验框架为扰动特异性表征学习提供了可插拔的通用方案。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.18880v1",
+      "source": "arxiv",
+      "title": "Do Perturbation Predictors Learn Gene Interactions? Diagnosing Extrapolation in Agentic Screening",
+      "abstract": "High-throughput perturbation screens increasingly use machine-learning models to predict the effects of gene combinations that were never measured. A difficult case arises when both genes in a test pair were seen individually during training, but their combination was not. In this setting, standard OOD methods often fail because neither gene appears unfamiliar on its own. We therefore compare each model prediction with a simple additive prediction obtained by summing the two observed single-gene effects. The difference between them, which we call additive disagreement (AD), measures how much extra interaction effect the model introduces for an unseen combination. Across eight prediction methods and three Perturb-seq datasets, specialised neural predictors do not consistently outperform this simple additive baseline. More importantly, predictions with larger deviations from the additive baseline tend to have larger errors. Conventional output-based and embedding-based confidence signals are inconsistent across datasets and models, whereas AD remains informative across all evaluated compositional settings. We further study how this signal can guide decisions in an agentic perturbation-screening workflow. The code is available at https://github.com/zygao930/OOD.",
+      "authors": [
+        "Ziyuan Gao"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "q-bio.GN"
+      ],
+      "published": "2026-10-01 02:29:02+00:00",
+      "link": "https://arxiv.org/pdf/2610.18880v1",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "diagnosing extrapolation of perturbation predictors to unseen gene combinations",
+      "llm_evidence_cn": "诊断扰动预测器对未见基因组合的外推能力",
+      "llm_evidence": "诊断扰动预测器对未见基因组合的外推能力",
+      "canonical_evidence": "诊断扰动预测器对未见基因组合的外推能力",
+      "llm_tldr_en": "Perturbation predictors must extrapolate to unseen gene combinations; the authors propose additive disagreement, comparing predictions with summed single-gene effects across eight methods and three Perturb-seq datasets to reveal when interaction learning fails.",
+      "llm_tldr_cn": "面向高通量扰动筛选需要预测未测量基因组合效应的需求，论文聚焦两基因各自见过但组合未见这一困难外推情形。作者提出加性分歧指标，用模型预测与单基因效应加性预测之差衡量额外互作，并在八种方法与三个Perturb-seq数据集上系统比较。结果表明标准OOD方法在该设定下常失效，AD可揭示模型是否真正学到基因互作，为扰动预测器的组合外推评估提供可解释度量。",
+      "llm_tldr": "面向高通量扰动筛选需要预测未测量基因组合效应的需求，论文聚焦两基因各自见过但组合未见这一困难外推情形。作者提出加性分歧指标，用模型预测与单基因效应加性预测之差衡量额外互作，并在八种方法与三个Perturb-seq数据集上系统比较。结果表明标准OOD方法在该设定下常失效，AD可揭示模型是否真正学到基因互作，为扰动预测器的组合外推评估提供可解释度量。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "out-of-distribution generalization of perturbation predictors to unseen genes drugs cell types and combinations",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.19029v1",
+      "source": "arxiv",
+      "title": "Deep learning-based virtual perturbation reveals increasing heterogeneity of gene regulatory responses with aging",
+      "abstract": "A central hypothesis in aging biology proposes that the gradual accumulation of stochastic molecular damage drives transcriptional deregulation (TD), ultimately leading to functional decline. However, existing single-cell analyses largely rely on static expression measurements and provide limited resolution of how regulatory responses change at the level of individual cells. Here, we leverage DKO, a deep learning framework that predicts cell-specific virtual gene perturbation effects from unperturbed transcriptomes, capturing cell-to-cell differences in regulatory context without requiring a reconstructed gene regulatory network or matched perturbation data. Applying DKO to single-cell transcriptomic datasets from humans, mice, Drosophila, and C. elegans revealed that the transcriptional consequences of perturbing the same gene became increasingly heterogeneous across cells with age, indicating that gene regulatory responses become less consistent and more dependent on cellular context. Furthermore, we find that cells with higher somatic mutation burdens have greater knockout-response variability, linking accumulated molecular damage to regulatory inconsistency. Within the same cellular populations, higher impact variability was also associated with higher senescence scores, linking transcriptional dysregulation to senescence-associated states. Our findings identify a progressive loss of regulatory robustness at both the gene and cell levels as a conserved feature of aging, linking stochastic molecular damage to increasing heterogeneity in cellular regulatory responses.",
+      "authors": [
+        "Yongjian He",
+        "Julia Hanna Haddad Guez",
+        "Xu-Wen Wang",
+        "Orr Levy"
+      ],
+      "primary_category": "q-bio.MN",
+      "categories": [
+        "q-bio.MN",
+        "q-bio.GN",
+        "q-bio.TO"
+      ],
+      "published": "2026-10-13 18:21:03+00:00",
+      "link": "https://arxiv.org/pdf/2610.19029v1",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "deep learning virtual gene perturbation prediction from unperturbed transcriptomes",
+      "llm_evidence_cn": "从未扰动转录组预测虚拟基因扰动效应",
+      "llm_evidence": "从未扰动转录组预测虚拟基因扰动效应",
+      "canonical_evidence": "从未扰动转录组预测虚拟基因扰动效应",
+      "llm_tldr_en": "The authors use DKO, a deep learning framework predicting cell-specific virtual gene perturbation effects from unperturbed transcriptomes, to reveal increasing heterogeneity of gene regulatory responses with aging without needing a reconstructed GRN.",
+      "llm_tldr_cn": "衰老研究假设分子损伤累积导致转录失调，但现有单细胞分析多为静态表达，难以刻画单细胞层面的调控响应变化。作者采用DKO深度学习框架，从未扰动转录组预测细胞特异的虚拟基因扰动效应，无需重构基因调控网络或匹配扰动数据。将其应用于单细胞数据集后，揭示基因调控响应异质性随衰老增强。该工作展示了虚拟扰动在衰老生物学中的实用价值。",
+      "llm_tldr": "衰老研究假设分子损伤累积导致转录失调，但现有单细胞分析多为静态表达，难以刻画单细胞层面的调控响应变化。作者采用DKO深度学习框架，从未扰动转录组预测细胞特异的虚拟基因扰动效应，无需重构基因调控网络或匹配扰动数据。将其应用于单细胞数据集后，揭示基因调控响应异质性随衰老增强。该工作展示了虚拟扰动在衰老生物学中的实用价值。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.25021v1",
+      "source": "arxiv",
+      "title": "Synergy-Aware Residual Flow Matching for Single-Cell Perturbation Prediction",
+      "abstract": "Predicting single-cell responses to genetic and chemical perturbations is important for understanding regulatory mechanisms and prioritizing therapeutic interventions. Existing methods have made progress by modeling perturbation-conditioned expression shifts with neural networks, graph priors, foundation-model representations, or distributional generative models. However, combinatorial perturbation prediction remains challenging because much of the response can be explained by additive single-perturbation effects, while the biologically informative signal often lies in a smaller non-additive residual induced by perturbation interactions. Directly generating the full post-perturbation expression profile may therefore allocate substantial capacity to the dominant additive component and underemphasize synergy-specific structure. To address this issue, we propose \\textbf{SynGeneFlow}, a synergy-aware flow matching framework that anchors the source distribution at an additive prior and learns a residual flow toward the true perturbed state. SynGeneFlow further incorporates perturbation-conditioned gene interaction modeling, where a static gene-gene mask provides biological structure and a perturbation-dependent deformation bias dynamically modulates gene-gene coupling. To preserve population-level response structure, we align both endpoint distributions and biological residual distributions with MMD-based regularization. We evaluate SynGeneFlow on genetic and drug perturbation benchmarks under observed-single, held-out, and cross-modality settings. The results demonstrate that residualizing flow matching around additive perturbation effects provides a biologically grounded and robust framework for single-cell perturbation response prediction.",
+      "authors": [
+        "Jingrui Wu",
+        "Wangyun Dan"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-10-18 05:02:00+00:00",
+      "link": "https://arxiv.org/pdf/2610.25021v1",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Residual flow matching for single-cell perturbation response prediction",
+      "llm_evidence_cn": "用于单细胞扰动响应预测的残差流匹配",
+      "llm_evidence": "用于单细胞扰动响应预测的残差流匹配",
+      "canonical_evidence": "用于单细胞扰动响应预测的残差流匹配",
+      "llm_tldr_en": "Synergy-aware residual flow matching focuses modeling capacity on the non-additive residual induced by perturbation interactions, improving combinatorial single-cell perturbation prediction.",
+      "llm_tldr_cn": "预测单细胞对遗传与化学扰动的响应对理解调控机制和优选治疗干预意义重大，但组合扰动预测仍然困难，因为大部分响应可由单扰动加性效应解释，真正有生物学信息的信号往往在于较小的非加性残差。作者提出协同感知残差流匹配方法，聚焦建模扰动交互产生的非加性残差而非直接生成完整扰动后表达谱。该框架有望更高效地刻画组合扰动效应，提升单细胞扰动预测的准确性。",
+      "llm_tldr": "预测单细胞对遗传与化学扰动的响应对理解调控机制和优选治疗干预意义重大，但组合扰动预测仍然困难，因为大部分响应可由单扰动加性效应解释，真正有生物学信息的信号往往在于较小的非加性残差。作者提出协同感知残差流匹配方法，聚焦建模扰动交互产生的非加性残差而非直接生成完整扰动后表达谱。该框架有望更高效地刻画组合扰动效应，提升单细胞扰动预测的准确性。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.16093v1",
+      "source": "arxiv",
+      "title": "CloneOT: predicting clone-specific perturbation responses with lineage-supervised neural inverse optimal transport",
+      "abstract": "Predicting single-cell perturbation responses requires mapping between two unpaired populations of cells measured before and after the perturbation. Optimal transport (OT) provides a principled framework for constructing such mappings by minimizing the transport cost, and neural OT methods (\\textit{e.g.}, CellOT) have been employed for this prediction task. However, these methods rely on a fixed transport cost, typically the squared Euclidean distance. This cost may connect cells with the wrong responses. Lineage tracing provides the information needed to learn the cost, as heritable barcodes link the cells of the same clone before and after the perturbation. Here, we propose \\CloneOT, a neural inverse OT method that learns both the transport cost and the transport map from partially lineage-traced single-cell datasets. \\CloneOT\\ represents the cost as a neural network. It learns the cost by minimizing the extra cost that the lineage adds to the optimal transport, so that the cheapest transport keeps the cells of each clone together. Our experiments demonstrate that \\CloneOT\\ recovers the correct transport on 2D datasets, while the squared Euclidean cost fails. Moreover, \\CloneOT\\ outperforms five baselines on 14 lineage-tracing perturbation scenarios of cancer cells, for both seen and unseen clones. Furthermore, we show that \\CloneOT\\ reveals the clone-specific transcriptional programs of drug-tolerant persister cells and forecasts the fate of each clone from its cells before treatment. Our implementation is available at https://github.com/poseidonchan/CloneOT.",
+      "authors": [
+        "Yanshuo Chen",
+        "Wei Chen",
+        "Heng Huang"
+      ],
+      "primary_category": "q-bio.GN",
+      "categories": [
+        "q-bio.GN",
+        "cs.LG"
+      ],
+      "published": "2026-10-12 03:02:54+00:00",
+      "link": "https://arxiv.org/pdf/2610.16093v1",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "predicting single-cell perturbation responses with lineage-supervised neural inverse optimal transport",
+      "llm_evidence_cn": "用谱系监督神经逆最优传输预测单细胞扰动响应",
+      "llm_evidence": "用谱系监督神经逆最优传输预测单细胞扰动响应",
+      "canonical_evidence": "用谱系监督神经逆最优传输预测单细胞扰动响应",
+      "llm_tldr_en": "CloneOT predicts single-cell perturbation responses by learning the transport cost from lineage barcodes instead of a fixed Euclidean cost, using neural inverse optimal transport to map unpaired pre- and post-perturbation populations.",
+      "llm_tldr_cn": "单细胞扰动响应预测需要在扰动前后两个未配对细胞群体之间建立映射，神经最优传输虽提供了原则性框架，却依赖固定的平方欧氏传输代价，可能把细胞连到错误的响应上。作者提出CloneOT，利用谱系追踪条形码把同一克隆在扰动前后的细胞对应起来，以监督方式学习传输代价，并构建神经逆最优传输映射。该方法使代价函数由数据驱动，从而更准确地刻画克隆特异的扰动响应，为虚拟细胞式的扰动预测提供了更可靠的建模范式。",
+      "llm_tldr": "单细胞扰动响应预测需要在扰动前后两个未配对细胞群体之间建立映射，神经最优传输虽提供了原则性框架，却依赖固定的平方欧氏传输代价，可能把细胞连到错误的响应上。作者提出CloneOT，利用谱系追踪条形码把同一克隆在扰动前后的细胞对应起来，以监督方式学习传输代价，并构建神经逆最优传输映射。该方法使代价函数由数据驱动，从而更准确地刻画克隆特异的扰动响应，为虚拟细胞式的扰动预测提供了更可靠的建模范式。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.21943v2",
+      "source": "arxiv",
+      "title": "Panoramic modelling of single-cell transcriptomes at scale with CellNet",
+      "abstract": "Comprehensively characterizing cellular landscapes to elucidate cell diversity is a central goal in biology. Recent advances in single-cell profiling have created unprecedented opportunities for this endeavor by capturing diverse transcriptomes with remarkable breadth. However, current foundation models generally struggle to leverage such holistic and valuable information to represent a cell. Here we present CellNet, which enables panoramic modelling of single-cell transcriptomes at scale by integrating DNA-derived gene identities and measured RNA expression into a shared image representation. Pretrained on 231 million image-based cell profiles across 40 species and covering over one million genes, CellNet improves the recognition of rare and condition-associated cellular states, enables the study of genes beyond experimentally measured panels, and uncovers associations between poorly characterized non-coding RNAs and known biological programmes. CellNet paves the way for AI-enabled cell-biology discovery at the whole-transcriptome scale. The CellNet website is available at https://www.cellnet.top.",
+      "authors": [
+        "Xiaoqing Lian",
+        "Pei Liu",
+        "Jiahui Tan",
+        "Luoda Tan",
+        "Chaoyi Li",
+        "Zhonghao Ren",
+        "Hongxin Xiang",
+        "Tianxu Lv",
+        "He Wang",
+        "Xiang Pan",
+        "Quan Zou",
+        "Chen Lin",
+        "Xiangxiang Zeng"
+      ],
+      "primary_category": "q-bio.GN",
+      "categories": [
+        "q-bio.GN"
+      ],
+      "published": "2026-10-15 14:17:14+00:00",
+      "link": "https://arxiv.org/pdf/2610.21943v2",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "single-cell foundation model pretrained on large-scale transcriptomic data",
+      "llm_evidence_cn": "大规模转录组数据预训练的单细胞基础模型",
+      "llm_evidence": "大规模转录组数据预训练的单细胞基础模型",
+      "canonical_evidence": "大规模转录组数据预训练的单细胞基础模型",
+      "llm_tldr_en": "CellNet integrates DNA-derived gene identities with measured RNA expression into a shared image representation, pretrained on 231 million cell profiles across 40 species, improving recognition of rare and condition-specific cells in large-scale single-cell transcriptome modelling.",
+      "llm_tldr_cn": "针对现有单细胞基础模型难以充分利用大规模图谱整体信息来表征细胞的问题，提出CellNet，将DNA来源的基因身份与实测RNA表达整合为统一的图像表示，并在覆盖40个物种、逾百万基因的2.31亿个细胞谱上进行预训练。实验表明该模型提升了对稀有细胞与特定状态细胞的识别能力。该工作为大规模单细胞转录组的基础模型预训练提供了全景式建模范式。",
+      "llm_tldr": "针对现有单细胞基础模型难以充分利用大规模图谱整体信息来表征细胞的问题，提出CellNet，将DNA来源的基因身份与实测RNA表达整合为统一的图像表示，并在覆盖40个物种、逾百万基因的2.31亿个细胞谱上进行预训练。实验表明该模型提升了对稀有细胞与特定状态细胞的识别能力。该工作为大规模单细胞转录组的基础模型预训练提供了全景式建模范式。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "single-cell foundation models pretrained on transcriptomic data for cellular perturbation prediction",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.26267v1",
+      "source": "arxiv",
+      "title": "A Pitfall in the Evaluation of Gene Perturbation Models",
+      "abstract": "Gene perturbation models aim to predict transcriptional responses to unseen genetic interventions, but comparisons rely on heterogeneous evaluation metrics and differentially-expressed (DE) gene subsets. We investigate the consequences of these choices using eight methods across six single-gene perturbation datasets under a unified evaluation protocol. Varying the number of top DE genes reveals substantial instability in Precision-based rankings, with the winning method changing $86.7\\%$ of the time, while rankings based on the rest of the metrics remain comparatively stable. Investigating this discrepancy exposes that repeating a single predicted expression profile across cell-level rows, a standard practice for many methods, can inflate significance estimates and produce excessively large predicted significant-DE sets. Specifically we found that $67.1\\%$ of tested perturbation--gene pairs pass the significance threshold despite some of them having minuscule effects. We derive an inflation factor showing that replicated predictions can amplify the standardized Mann--Whitney statistic even after correction for tied ranks, without adding independent information. This artifact changes Precision mainly as the number of DE genes increases because for smaller cutoffs, most of the genes are already significant due to the effect-based ordering. Taking this pitfall into account in our benchmark comparison, we find that a random forest using Gene Ontology features achieves the best overall results.",
+      "authors": [
+        "George Panagopoulos",
+        "Saman Omidi",
+        "Tsz Pan Tong",
+        "Jun Pang"
+      ],
+      "primary_category": "stat.AP",
+      "categories": [
+        "stat.AP",
+        "cs.LG"
+      ],
+      "published": "2026-10-19 12:24:05+00:00",
+      "link": "https://arxiv.org/pdf/2610.26267v1",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Evaluation pitfalls for gene perturbation models predicting unseen interventions",
+      "llm_evidence_cn": "基因扰动模型预测未见干预时的评估陷阱",
+      "llm_evidence": "基因扰动模型预测未见干预时的评估陷阱",
+      "canonical_evidence": "基因扰动模型预测未见干预时的评估陷阱",
+      "llm_tldr_en": "This work shows that heterogeneous metrics and DE-gene subsets make gene perturbation model rankings unstable, and that repeating a single predicted profile across cells inflates significance estimates.",
+      "llm_tldr_cn": "针对基因扰动模型预测未见遗传干预响应时评估指标与差异表达基因子集异质、比较不可靠的问题，作者在统一评估协议下用八种方法在六个单基因扰动数据集上系统考察这些选择的影响。结果显示，随top差异表达基因数量变化，基于精度的排名极不稳定，胜出方法有86.7%概率改变，而其余指标排名相对稳定。研究进一步揭示，将单一预测表达谱在细胞层面重复会夸大显著性估计，为扰动预测的规范评估提供了警示。",
+      "llm_tldr": "针对基因扰动模型预测未见遗传干预响应时评估指标与差异表达基因子集异质、比较不可靠的问题，作者在统一评估协议下用八种方法在六个单基因扰动数据集上系统考察这些选择的影响。结果显示，随top差异表达基因数量变化，基于精度的排名极不稳定，胜出方法有86.7%概率改变，而其余指标排名相对稳定。研究进一步揭示，将单一预测表达谱在细胞层面重复会夸大显著性估计，为扰动预测的规范评估提供了警示。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "out-of-distribution generalization of perturbation predictors to unseen genes drugs cell types and combinations",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    }
+  ]
+}
