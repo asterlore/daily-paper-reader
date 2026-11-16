@@ -15,7 +15,7 @@ _OUTCOME = re.compile(
     r"to\s+appear\s+(?:in|at)|forthcoming\s+(?:in|at)|"
     r"published\s+(?:in|at)|appeared\s+(?:in|at)|"
     r"in\s+press|conditionally\s+accepted|"
-    r"presented\s+at)\b",
+    r"published\s+online)\b",
     re.I,
 )
 _NEGATIVE = re.compile(
@@ -94,13 +94,13 @@ def detect_author_declaration(paper: Dict[str, Any]) -> Dict[str, str]:
         prefix = part[:match.start()]
         if re.search(r"\b(not|never|wasn't|isn't)\s*$", prefix, re.I):
             continue
-        if re.search(r"\bnot\s+(?:yet\s+)?accepted\b", part, re.I):
+        if re.search(r"\bnot\s+(?:yet\s+)?(?:accepted|published)\b", part, re.I):
             continue
         if re.search(r"\b(rejected|withdrawn)\b", part, re.I):
             continue
         # Exclude statuses that are only submissions (and lack an outcome).
         outcome = match.group(0).lower()
-        status = "published_claim" if re.search(r"published|appeared|presented", outcome) else "accepted_claim"
+        status = "published_claim" if re.search(r"published|appeared", outcome) else "accepted_claim"
         return {
             "status": status,
             "venue_type": _classify_venue(part),
