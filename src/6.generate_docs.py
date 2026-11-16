@@ -1410,11 +1410,17 @@ def merge_daily_run_results(
     str,
 ]:
     state_file = daily_state_path(docs_dir, date_str)
-    try:
-        state = load_daily_state(state_file)
-    except (OSError, ValueError):
+    # Accepted-only runs must not resurrect unverified recommendations from
+    # an earlier all-mode run of the exact same historical date window.
+    strict = os.getenv("DPR_ACCEPTANCE_MODE", "").strip() == "accepted_only"
+    if strict:
         state = {}
-    if not state:
+    else:
+        try:
+            state = load_daily_state(state_file)
+        except (OSError, ValueError):
+            state = {}
+    if not state and not strict:
         state = bootstrap_daily_state_from_sidebar(
             sidebar_path=os.path.join(docs_dir, "_sidebar.md"),
             date_str=date_str,
