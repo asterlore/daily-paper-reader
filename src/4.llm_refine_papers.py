@@ -12,6 +12,7 @@ from typing import Any, Callable, Dict, List
 
 from llm import DeepSeekClient, resolve_max_output_tokens
 from subscription_plan import build_pipeline_inputs
+from arxiv_acceptance import detect_author_declaration
 
 SCRIPT_DIR = os.path.dirname(__file__)
 ROOT_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
@@ -790,6 +791,7 @@ def process_file(
     filter_model: str,
     max_output_tokens: int,
     filter_concurrency: int,
+    acceptance_mode: str = "accepted_only",
 ) -> None:
     # 检查输入文件是否存在，如果不存在说明今天没有新论文，优雅退出
     if not os.path.exists(input_path):
@@ -833,8 +835,37 @@ def process_file(
 
     candidate_ids = unique_tagged([{"tag": pid} for pid in candidate_ids])
     candidate_ids = [item["tag"] for item in candidate_ids]
+
+    # Judge only the reranker shortlist, before DeepSeek. The claim is NOT
+    # independently verified and absence of a claim does not mean rejection.
+    status_counts: Dict[str, int] = {}
+    accepted_ids: List[str] = []
+    for pid in candidate_ids:
+        paper = paper_map.get(pid)
+        if not paper:
+            continue
+        declaration = detect_author_declaration(paper)
+        paper["acceptance"] = declaration
+        key = declaration["status"]
+        status_counts[key] = status_counts.get(key, 0) + 1
+        if key in ("accepted_claim", "published_claim"):
+            accepted_ids.append(pid)
+
+    data["acceptance_mode"] = acceptance_mode
+    data["acceptance_stats"] = {
+        "checked": len(candidate_ids),
+        "author_claim_accepted_or_published": len(accepted_ids),
+        "status_counts": status_counts,
+    }
+    log(f"[INFO] arXiv author declarations: checked={len(candidate_ids)} "
+        f"accepted_or_published={len(accepted_ids)} statuses={status_counts} "
+        f"mode={acceptance_mode}")
+    if acceptance_mode == "accepted_only":
+        candidate_ids = accepted_ids
     if not candidate_ids:
-        log("[WARN] no candidates found with star_rating >= min_star.")
+        log("[WARN] no candidates remain for DeepSeek after retrieval/acceptance filtering.")
+        data["llm_ranked"] = []
+        data["llm_ranked_at"] = datetime.now(timezone.utc).isoformat()
         save_json(data, output_path)
         group_end()
         return
@@ -855,6 +886,8 @@ def process_file(
         group_end()
         return
 
+    # Keep the classification alongside the scored papers for Step 5/6,
+    # but do NOT include it in DeepSeek prompts or billable LLM context.
     random.shuffle(docs)
     batches = chunk_list(docs, batch_size)
     log(
@@ -1001,6 +1034,13 @@ def main() -> None:
         help="concurrent LLM filter requests.",
     )
 
+    parser.add_argument(
+        "--acceptance-mode",
+        default=os.getenv("DPR_ACCEPTANCE_MODE", "accepted_only"),
+        choices=("accepted_only", "all"),
+        help="Author-declared arXiv acceptance filter: accepted_only (default) or all.",
+    )
+
     args = parser.parse_args()
 
     input_path = args.input
@@ -1025,6 +1065,7 @@ def main() -> None:
         filter_model=args.filter_model,
         max_output_tokens=args.max_output_tokens,
         filter_concurrency=args.filter_concurrency,
+        acceptance_mode=args.acceptance_mode,
     )
 
 
