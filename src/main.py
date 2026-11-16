@@ -553,9 +553,9 @@ def main() -> None:
     )
     parser.add_argument(
         "--acceptance-mode",
-        default=os.getenv("DPR_ACCEPTANCE_MODE", "accepted_only"),
+        default=os.getenv("DPR_ACCEPTANCE_MODE", "all"),
         choices=("accepted_only", "all"),
-        help="arXiv 作者声明录用筛选：accepted_only（默认）或 all（保留全部候选）。",
+        help="arXiv 录用状态筛选：all（默认，保留全部并对作者声明录用且评分≥7额外推荐）或 accepted_only。",
     )
     parser.add_argument(
         "--profile-tag",
