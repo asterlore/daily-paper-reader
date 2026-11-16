@@ -1688,6 +1688,21 @@ def build_markdown_content(
     lines.append("---")
     lines.append("")
 
+    # Display the author declaration on paper pages, not only in JSON metadata.
+    declaration = paper.get("acceptance") or {}
+    if isinstance(declaration, dict) and declaration.get("status") in ("accepted_claim", "published_claim"):
+        kind = "发表" if declaration["status"] == "published_claim" else "录用"
+        venue_type = {
+            "journal": "期刊", "conference": "会议主会/会议",
+            "workshop": "Workshop", "unspecified": "未识别类型",
+        }.get(str(declaration.get("venue_type") or ""), "未识别类型")
+        evidence = str(declaration.get("evidence") or "").strip()
+        lines.append("## 录用/发表状态（arXiv 作者声明，未经独立核实）")
+        lines.append(f"- 声明：{kind}；类型：{venue_type}")
+        if evidence:
+            lines.append(f"- arXiv 原始说明：{evidence}")
+        lines.append("")
+
     # 正文部分：摘要
     if zh_abstract:
         lines.append("## 摘要")
