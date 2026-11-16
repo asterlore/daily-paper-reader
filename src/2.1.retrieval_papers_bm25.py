@@ -123,6 +123,9 @@ class Paper:
   categories: List[str] = field(default_factory=list)
   published: str | None = None
   link: str | None = None
+  comment: str = ""
+  journal_ref: str = ""
+  doi: str = ""
   source: str = "arxiv"
   tags: Set[str] = field(default_factory=set)
 
@@ -151,6 +154,9 @@ class Paper:
       "categories": self.categories,
       "published": self.published,
       "link": self.link,
+      "comment": self.comment,
+      "journal_ref": self.journal_ref,
+      "doi": self.doi,
       "tags": sorted(self.tags),
     }
 
@@ -563,6 +569,9 @@ def load_paper_pool(path: str) -> List[Paper]:
         categories=[str(c) for c in (item.get("categories") or [])],
         published=str(item.get("published") or "") or None,
         link=str(item.get("link") or "") or None,
+        comment=str(item.get("comment") or ""),
+        journal_ref=str(item.get("journal_ref") or ""),
+        doi=str(item.get("doi") or ""),
       )
       if p.id:
         papers.append(p)
@@ -717,6 +726,9 @@ def rank_papers_for_queries_via_supabase(
           categories=[str(c) for c in (row.get("categories") or [])],
           published=str(row.get("published") or "") or None,
           link=str(row.get("link") or "") or None,
+          comment=str(row.get("comment") or ""),
+          journal_ref=str(row.get("journal_ref") or ""),
+          doi=str(row.get("doi") or ""),
         )
       if paper_tag:
         id_to_paper[pid].tags.add(paper_tag)
