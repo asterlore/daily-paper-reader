@@ -552,6 +552,12 @@ def main() -> None:
         help="1–30天：auto/standard/skims；31–365天固定使用独立arXiv专题回溯。",
     )
     parser.add_argument(
+        "--acceptance-mode",
+        default=os.getenv("DPR_ACCEPTANCE_MODE", "accepted_only"),
+        choices=("accepted_only", "all"),
+        help="arXiv 作者声明录用筛选：accepted_only（默认）或 all（保留全部候选）。",
+    )
+    parser.add_argument(
         "--profile-tag",
         default="",
         help="仅运行指定 tag 对应的词条；大小写不敏感，支持空格。",
@@ -734,7 +740,7 @@ def main() -> None:
         print_trace_retrieval("RERANK", rerank_path, trace_ids)
     run_step(
         "Step 4 - LLM refine",
-        [python, os.path.join(SRC_DIR, "4.llm_refine_papers.py")],
+        [python, os.path.join(SRC_DIR, "4.llm_refine_papers.py"), "--acceptance-mode", args.acceptance_mode],
     )
     if trace_ids:
         print_trace_llm("LLM", llm_path, trace_ids)
