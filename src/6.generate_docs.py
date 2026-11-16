@@ -1654,6 +1654,22 @@ def build_markdown_content(
         lines.append(f"source: {yaml_escape_value(paper_source)}")
     if selection_source:
         lines.append(f"selection_source: {yaml_escape_value(selection_source)}")
+    # Explicitly label author claims; do not present them as publisher-verified.
+    acceptance = paper.get("acceptance") or {}
+    if isinstance(acceptance, dict):
+        status = str(acceptance.get("status") or "").strip()
+        venue = str(acceptance.get("venue_type") or "").strip()
+        evidence = str(acceptance.get("evidence") or "").strip()
+        evidence_source = str(acceptance.get("evidence_source") or "").strip()
+        if status:
+            lines.append(f"acceptance_status: {yaml_escape_value(status)}")
+            lines.append("acceptance_verification: author_claim_only")
+        if venue:
+            lines.append(f"acceptance_venue_type: {yaml_escape_value(venue)}")
+        if evidence:
+            lines.append(f"acceptance_evidence: {yaml_escape_value(evidence)}")
+        if evidence_source:
+            lines.append(f"acceptance_evidence_source: {yaml_escape_value(evidence_source)}")
     if figure_assets:
         lines.append(f"figures_json: {yaml_escape_value(json.dumps(figure_assets, ensure_ascii=False))}")
     if table_assets:
@@ -2778,6 +2794,11 @@ def _parse_generated_md_to_meta(
     if not src_value and "selection_source" in fm_meta:
         src_value = str(fm_meta.get("selection_source") or "").strip()
 
+    acceptance_status = str(fm_meta.get("acceptance_status") or "").strip()
+    acceptance_venue_type = str(fm_meta.get("acceptance_venue_type") or "").strip()
+    acceptance_evidence = str(fm_meta.get("acceptance_evidence") or "").strip()
+    acceptance_evidence_source = str(fm_meta.get("acceptance_evidence_source") or "").strip()
+
     # tags：输出为更“短”的一行形式（字符串），避免 JSON pretty-print 时每个 tag 独占一行
     tags_compact: List[str] = []
     for t in tags_typed:
@@ -2801,6 +2822,11 @@ def _parse_generated_md_to_meta(
         "abstract_en": abstract_en,
         "source": paper_source_value,
         "selection_source": src_value,
+        "acceptance_status": acceptance_status,
+        "acceptance_venue_type": acceptance_venue_type,
+        "acceptance_evidence": acceptance_evidence,
+        "acceptance_evidence_source": acceptance_evidence_source,
+        "acceptance_verification": "author_claim_only" if acceptance_status else "",
     }
 
 
@@ -2856,6 +2882,15 @@ def write_day_meta_index_json(
                     )
                     if not item.get("title_en"):
                         item["title_en"] = (title or "").strip()
+                    # Existing Markdown may predate the acceptance metadata;
+                    # use the current source as fallback without extra API calls.
+                    declaration = source.get("acceptance") if isinstance(source.get("acceptance"), dict) else {}
+                    if declaration:
+                        item["acceptance_status"] = str(declaration.get("status") or "")
+                        item["acceptance_venue_type"] = str(declaration.get("venue_type") or "")
+                        item["acceptance_evidence"] = str(declaration.get("evidence") or "")
+                        item["acceptance_evidence_source"] = str(declaration.get("evidence_source") or "")
+                        item["acceptance_verification"] = "author_claim_only"
                     papers.append(item)
                 except Exception as e:
                     errors.append({"paper_id": route, "error": str(e)})
@@ -2873,6 +2908,13 @@ def write_day_meta_index_json(
                         str(paper.get("selection_source") or ""),
                         str(paper.get("abstract") or ""),
                     )
+                    declaration = paper.get("acceptance") if isinstance(paper.get("acceptance"), dict) else {}
+                    if declaration:
+                        item["acceptance_status"] = str(declaration.get("status") or "")
+                        item["acceptance_venue_type"] = str(declaration.get("venue_type") or "")
+                        item["acceptance_evidence"] = str(declaration.get("evidence") or "")
+                        item["acceptance_evidence_source"] = str(declaration.get("evidence_source") or "")
+                        item["acceptance_verification"] = "author_claim_only"
                     papers.append(item)
                 except Exception as e:
                     errors.append(
