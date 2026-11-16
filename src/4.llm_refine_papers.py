@@ -791,7 +791,7 @@ def process_file(
     filter_model: str,
     max_output_tokens: int,
     filter_concurrency: int,
-    acceptance_mode: str = "accepted_only",
+    acceptance_mode: str = "all",
 ) -> None:
     # 检查输入文件是否存在，如果不存在说明今天没有新论文，优雅退出
     if not os.path.exists(input_path):
@@ -1036,7 +1036,7 @@ def main() -> None:
 
     parser.add_argument(
         "--acceptance-mode",
-        default=os.getenv("DPR_ACCEPTANCE_MODE", "accepted_only"),
+        default=os.getenv("DPR_ACCEPTANCE_MODE", "all"),
         choices=("accepted_only", "all"),
         help="Author-declared arXiv acceptance filter: accepted_only (default) or all.",
     )
