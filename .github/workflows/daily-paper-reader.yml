@@ -24,9 +24,9 @@ on:
         required: false
         default: "auto"
       acceptance_mode:
-        description: "作者在 arXiv 声明录用/发表：accepted_only（默认，仅评审这类论文）或 all（评审所有候选并标注）"
+        description: "录用状态检测：all（默认，全部评审；已录用/发表且 DPR≥7 分额外推荐）或 accepted_only（仅评审有作者声明的论文）"
         required: false
-        default: "accepted_only"
+        default: "all"
       profile_tag:
         description: "仅运行指定词条 tag；留空表示全量运行"
         required: false
