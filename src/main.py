@@ -582,6 +582,7 @@ def main() -> None:
         help="强制执行 Step 1（全量数据拉取），即使 Supabase 已启用。",
     )
     args = parser.parse_args()
+    os.environ["DPR_ACCEPTANCE_MODE"] = args.acceptance_mode
     if args.fetch_days is not None and not 1 <= args.fetch_days <= 365:
         parser.error('--fetch-days 必须在 1–365 天之间')
 
