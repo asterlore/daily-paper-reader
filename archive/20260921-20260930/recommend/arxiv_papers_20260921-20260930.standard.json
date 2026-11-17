@@ -1,0 +1,506 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-11-17T13:42:48.737127+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 5,
+    "deep_cap": 6,
+    "deep_selected": 5,
+    "quick_candidates": 5,
+    "quick_skim_target": 11,
+    "quick_selected": 5,
+    "author_claim_7plus_added": 0
+  },
+  "deep_dive": [
+    {
+      "id": "2609.32467v1",
+      "source": "arxiv",
+      "title": "Bison: Cross-Dataset Learning for Unseen-Compound Perturbation Prediction",
+      "abstract": "Predicting transcriptional responses to unseen compounds is limited by fragmented chemical coverage and heterogeneous experimental platforms and gene panels. To assess molecular generalization across these settings, we build on Chem-PerturBridge to benchmark eight datasets with 16,771 compounds, withholding test compounds from every training dataset. This comparison reveals that high overall response agreement can coexist with weak prediction of drug-specific differences, despite reproducible signals across repeated measurements. To exploit complementary chemical supervision while targeting these differences, we introduce Bison: a shared gene representation connects native panels, while two discrete diffusion models compose context-dependent responses with molecular deviations learned through matched drug-contrast supervision. A single Bison model jointly trained across all eight datasets achieves the highest mean overall-response and drug-contrast Pearson correlations on the full benchmark in comparison with 11 methods trained independently per dataset. Compared with dataset-specific training of the same architecture, joint training increases mean drug-contrast correlation by 27.4\\%, with gains across all eight datasets and improvements in overall response prediction. These results demonstrate how matched drug contrasts turn complementary screens into shared molecular supervision for unseen-drug response prediction while preserving native gene measurements.",
+      "authors": [
+        "Yunfan Liu",
+        "Kasra Ghorbani",
+        "Yufei Huang",
+        "Zicheng Liu",
+        "Jiangbin Zheng",
+        "Jingbo Zhou",
+        "Shaorong Chen",
+        "Chang Yu",
+        "Stan Z. Li"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-09-26 10:58:44+00:00",
+      "link": "https://arxiv.org/pdf/2609.32467v1",
+      "comment": "",
+      "journal_ref": "",
+      "doi": "",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "acceptance": {
+        "status": "not_declared",
+        "venue_type": "unspecified",
+        "evidence": "",
+        "evidence_source": "",
+        "verification": "author_claim_only"
+      },
+      "llm_score": 9.0,
+      "llm_evidence_en": "benchmark and model for predicting transcriptional responses to unseen compounds across datasets",
+      "llm_evidence_cn": "面向未见化合物的跨数据集转录响应预测基准与模型",
+      "llm_evidence": "面向未见化合物的跨数据集转录响应预测基准与模型",
+      "canonical_evidence": "面向未见化合物的跨数据集转录响应预测基准与模型",
+      "llm_tldr_en": "Bison benchmarks eight perturbation datasets with 16,771 compounds under compound-level withholding, showing high overall agreement can hide weak drug-specific signals, and proposes shared gene representations with dual discrete diffusion to capture context-dependent responses.",
+      "llm_tldr_cn": "预测未见化合物的转录响应受化学覆盖碎片化与实验平台、基因面板异质性制约。作者基于Chem-PerturBridge构建覆盖八个数据集、16771个化合物的基准，测试化合物从所有训练集中剔除，发现总体响应一致性高但药物特异性差异预测很弱。为此提出Bison，用共享基因表示连接不同原生面板，并以两个离散扩散模型组合上下文相关响应。该工作为跨数据集、分布外的化合物扰动预测提供了评测框架与改进模型。",
+      "llm_tldr": "预测未见化合物的转录响应受化学覆盖碎片化与实验平台、基因面板异质性制约。作者基于Chem-PerturBridge构建覆盖八个数据集、16771个化合物的基准，测试化合物从所有训练集中剔除，发现总体响应一致性高但药物特异性差异预测很弱。为此提出Bison，用共享基因表示连接不同原生面板，并以两个离散扩散模型组合上下文相关响应。该工作为跨数据集、分布外的化合物扰动预测提供了评测框架与改进模型。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "out-of-distribution generalization of perturbation predictors to unseen genes drugs cell types and combinations",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.34391v1",
+      "source": "arxiv",
+      "title": "P2P: Cross-View Population Denoising for Unpaired Single-Cell Perturbation Response Prediction",
+      "abstract": "AIVC (AI Virtual Cell) is a learned simulator of cellular behavior across conditions. Predicting how a cell population responds transcriptionally to a genetic perturbation is a core task. Perturb-seq records that response by destructive sequencing, so a control cell and a perturbed cell are never observed as a pair, and cells under one condition remain heterogeneous and noisy. Regression on individual cells absorbs sampling variation into the estimated effect, whereas interpretation requires the reproducible population effect. P2P (Perturbation-to-Perturbation) takes a stochastic cell-set view as its supervision unit. Two views drawn from the same condition share a reproducible population effect and differ by view-specific variation. A permutation-invariant set encoder summarizes the control population, a structured encoder represents perturbation tokens, cellular context, dose, and combination interactions, and a gate blends empirical condition-effect memory with a neural residual. A heteroscedastic head predicts the population mean and gene-wise response variance. Under one protocol and five seeds, P2P attains the lowest expression RMSE and the highest Effect Pearson, DEG F1, and DEG average precision on each of Adamson, Norman, Replogle K562, and Replogle RPE1 relative to GenePert, LinearPert, SLIM, Scouter, and scPILOT. On Replogle K562, Effect Pearson rises from 0.643 to 0.702 and DEG F1 rises from 0.067 to 0.178 relative to Scouter, the strongest baseline on both metrics.",
+      "authors": [
+        "Haojie Yang",
+        "Ran Su"
+      ],
+      "primary_category": "cs.ET",
+      "categories": [
+        "cs.ET",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-28 06:06:06+00:00",
+      "link": "https://arxiv.org/pdf/2609.34391v1",
+      "comment": "",
+      "journal_ref": "",
+      "doi": "",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "acceptance": {
+        "status": "not_declared",
+        "venue_type": "unspecified",
+        "evidence": "",
+        "evidence_source": "",
+        "verification": "author_claim_only"
+      },
+      "llm_score": 9.0,
+      "llm_evidence_en": "unpaired single-cell perturbation response prediction for AI virtual cell",
+      "llm_evidence_cn": "面向AI虚拟细胞的非配对单细胞扰动响应预测",
+      "llm_evidence": "面向AI虚拟细胞的非配对单细胞扰动响应预测",
+      "canonical_evidence": "面向AI虚拟细胞的非配对单细胞扰动响应预测",
+      "llm_tldr_en": "P2P treats a stochastic cell-set as the supervision unit, using two views from the same condition that share a reproducible population effect to denoise unpaired single-cell perturbation response prediction.",
+      "llm_tldr_cn": "预测细胞群体对遗传扰动的转录响应是AI虚拟细胞的核心任务，但Perturb-seq的破坏性测序使对照与扰动细胞无法配对，单细胞回归会把采样噪声吸收进效应估计。作者提出P2P，以随机细胞集合为监督单元，利用同条件两个视图共享可重复群体效应而差异仅为视图噪声的结构进行去噪。该框架给出更稳健的群体水平扰动响应预测，提升虚拟细胞模拟器的可重复性。",
+      "llm_tldr": "预测细胞群体对遗传扰动的转录响应是AI虚拟细胞的核心任务，但Perturb-seq的破坏性测序使对照与扰动细胞无法配对，单细胞回归会把采样噪声吸收进效应估计。作者提出P2P，以随机细胞集合为监督单元，利用同条件两个视图共享可重复群体效应而差异仅为视图噪声的结构进行去噪。该框架给出更稳健的群体水平扰动响应预测，提升虚拟细胞模拟器的可重复性。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.35106v1",
+      "source": "arxiv",
+      "title": "DRIFT: Disentangled Responsive-Invariant Flow Transport for Single-Cell Perturbation Prediction",
+      "abstract": "Predicting cellular responses to perturbations is a central problem in cellular biology, with broad applications in systems biology and drug discovery. This task is challenging because cellular responses can be complex and cell-state dependent, intrinsic cell-to-cell variability can be confounded with perturbation effects, and destructive single-cell RNA sequencing precludes paired measurements of the same cell before and after treatment. Flow matching transports control cells to perturbed states flexibly, but acting on the full cell state can confound perturbation effects with pre-existing cell-to-cell variability. Disentangled approaches separate responsive from invariant components, but model perturbations through prescribed mechanisms, such as latent shifts or graph edits, limiting their flexibility. We address both limitations in a unified framework. A variational encoder disentangles each cell into an invariant block, capturing state unaffected by the perturbation, and a responsive block, capturing state it changes, through conditional priors and an information-theoretic invariance constraint. Conditional flow matching transports only the responsive block, conditioned on the perturbation and invariant state, yielding a flexible, data-driven model of perturbation effects without confounding pre-existing variability. Across several benchmarks, our method outperforms the strongest published method in settings involving combinatorial and unseen perturbation prediction.",
+      "authors": [
+        "Mustapha Bounoua",
+        "Giulio Franzese",
+        "Pietro Michiardi"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-28 13:12:33+00:00",
+      "link": "https://arxiv.org/pdf/2609.35106v1",
+      "comment": "",
+      "journal_ref": "",
+      "doi": "",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "acceptance": {
+        "status": "not_declared",
+        "venue_type": "unspecified",
+        "evidence": "",
+        "evidence_source": "",
+        "verification": "author_claim_only"
+      },
+      "llm_score": 9.0,
+      "llm_evidence_en": "single-cell perturbation response prediction via disentangled responsive-invariant flow transport",
+      "llm_evidence_cn": "通过响应-不变成分解耦流传输预测单细胞扰动响应",
+      "llm_evidence": "通过响应-不变成分解耦流传输预测单细胞扰动响应",
+      "canonical_evidence": "通过响应-不变成分解耦流传输预测单细胞扰动响应",
+      "llm_tldr_en": "DRIFT predicts single-cell perturbation responses by disentangling responsive from invariant cell components and using flow matching to transport control cells, avoiding confounding of perturbation effects with pre-existing cell-to-cell variability.",
+      "llm_tldr_cn": "单细胞扰动响应预测因响应依赖细胞状态、细胞间固有变异易与扰动效应混淆，且破坏性测序无法配对观测同一细胞而困难。作者提出DRIFT，将细胞状态解耦为响应成分与不变成分，并在解耦空间用流匹配把对照细胞传输到扰动状态，从而避免整体状态传输带来的混淆。方法在单细胞扰动数据上验证了预测精度与解耦有效性。该工作为可靠的单细胞扰动响应建模提供了显式分离变异来源的思路。",
+      "llm_tldr": "单细胞扰动响应预测因响应依赖细胞状态、细胞间固有变异易与扰动效应混淆，且破坏性测序无法配对观测同一细胞而困难。作者提出DRIFT，将细胞状态解耦为响应成分与不变成分，并在解耦空间用流匹配把对照细胞传输到扰动状态，从而避免整体状态传输带来的混淆。方法在单细胞扰动数据上验证了预测精度与解耦有效性。该工作为可靠的单细胞扰动响应建模提供了显式分离变异来源的思路。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2610.02232v1",
+      "source": "arxiv",
+      "title": "Generalizable single-cell perturbation response prediction using energy-guided flow matching",
+      "abstract": "Predicting phenotypic and transcriptional responses to perturbations at single-cell resolution provides a powerful tool for probing biological systems. However, existing methods typically rely on fixed mappings learned during training, making it challenging to calibrate distribution shifts or adapt to novel perturbation conditions during inference. Here, we present scEGFlow, an energy-guided flow matching framework that dynamically bridges control and perturbed cellular states. scEGFlow models continuous transitions from control cell populations to perturbed states using conditional flow matching. It then applies condition-specific energy gradients to correct and steer these predictions, enabling flexible adjustments without retraining the flow model. Evaluations across benchmarks spanning imaging phenotypes and transcriptomic profiles show that scEGFlow outperforms existing methods in reconstructing response distributions under both seen and unseen perturbation conditions, faithfully preserving cellular manifold geometry and population heterogeneity. This advantage is notable when adapting to new conditions with only a few measured cells, consistently improving prediction accuracy. Furthermore, scEGFlow accurately recapitulates perturbation-induced up- and down-regulation patterns across consensus gene expression signatures, where energy guidance improves the agreement between predicted and observed regulatory directions. Ultimately, these findings demonstrate that scEGFlow provides a modular, generalizable, and steerable solution for single-cell perturbation modeling. By grounding generative flows in learned biological landscapes, this architecture establishes a new computational paradigm for navigating and manipulating cellular behavior in silico.",
+      "authors": [
+        "Jianan Wei",
+        "Jiajun Hong",
+        "Guikun Chen",
+        "Ning Yang",
+        "Lifeng Fan",
+        "Wenguan Wang"
+      ],
+      "primary_category": "q-bio.GN",
+      "categories": [
+        "q-bio.GN",
+        "cs.LG",
+        "q-bio.CB"
+      ],
+      "published": "2026-09-27 03:53:41+00:00",
+      "link": "https://arxiv.org/pdf/2610.02232v1",
+      "comment": "",
+      "journal_ref": "",
+      "doi": "",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "acceptance": {
+        "status": "not_declared",
+        "venue_type": "unspecified",
+        "evidence": "",
+        "evidence_source": "",
+        "verification": "author_claim_only"
+      },
+      "llm_score": 9.0,
+      "llm_evidence_en": "energy-guided flow matching predicts single-cell perturbation responses and adapts to distribution shift and novel perturbations",
+      "llm_evidence_cn": "能量引导流匹配预测单细胞扰动响应并适应分布偏移与新扰动",
+      "llm_evidence": "能量引导流匹配预测单细胞扰动响应并适应分布偏移与新扰动",
+      "canonical_evidence": "能量引导流匹配预测单细胞扰动响应并适应分布偏移与新扰动",
+      "llm_tldr_en": "scEGFlow models control-to-perturbed cell transitions with conditional flow matching and applies condition-specific energy gradients to steer predictions, enabling adaptation to novel perturbations and distribution shifts without retraining.",
+      "llm_tldr_cn": "现有单细胞扰动响应预测依赖训练阶段的固定映射，难以校准分布偏移或适应推理时的新扰动条件。作者提出scEGFlow框架，用条件流匹配刻画对照细胞群到扰动状态的连续转变，并施加条件特异性能量梯度对预测进行校正与引导。该设计使模型在推理阶段无需重新训练即可灵活调整，从而提升对新扰动条件的泛化能力。这为虚拟细胞层面的可泛化扰动响应预测提供了新范式。",
+      "llm_tldr": "现有单细胞扰动响应预测依赖训练阶段的固定映射，难以校准分布偏移或适应推理时的新扰动条件。作者提出scEGFlow框架，用条件流匹配刻画对照细胞群到扰动状态的连续转变，并施加条件特异性能量梯度对预测进行校正与引导。该设计使模型在推理阶段无需重新训练即可灵活调整，从而提升对新扰动条件的泛化能力。这为虚拟细胞层面的可泛化扰动响应预测提供了新范式。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "out-of-distribution generalization of perturbation predictors to unseen genes drugs cell types and combinations",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.32527v1",
+      "source": "arxiv",
+      "title": "AmbiModBench: Benchmarking Gene Perturbation Prediction Beyond Shared Responses",
+      "abstract": "Predicting cellular responses to genetic perturbations helps prioritize experiments in single-cell genomics, where exhaustive measurement is infeasible. While computational models increasingly predict these responses, three evaluation deficiencies obscure what their scores demonstrate. First, absolute metrics cannot separate target-specific predictions from a shared background response. Second, common metrics remain high under gene shuffling, so gene-level accuracy is never verified. Third, a score at one training size says nothing about coverage, which depends on representation-space proximity and response-constraining power. We propose AmbiModBench, a specificity-aware, gene-resolved and coverage-aware benchmark. It pairs every score with a training-mean reference fitted on the same split, screens each readout by gene-coordinate permutation, and links embedding distance to response variation. Across K562, RPE1 and Norman, strong absolute scores largely reflect shared background rather than target-specific learning. Widely used readouts track response magnitude distributions rather than the affected genes. Detectable gain follows representation-space coverage rather than training-set size. Nonetheless, on RPE1 the protocol yields a reproducible target-specific gain across five additional splits and three gene selections, which absolute scores alone cannot distinguish from shared background.",
+      "authors": [
+        "Sikai Huang",
+        "Zhiwen Yang",
+        "Kai Yu",
+        "Jiayuan Chen",
+        "Stan Z. Li"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG",
+        "q-bio.GN",
+        "stat.AP"
+      ],
+      "published": "2026-09-26 12:10:35+00:00",
+      "link": "https://arxiv.org/pdf/2609.32527v1",
+      "comment": "21 pages, 4figures",
+      "journal_ref": "",
+      "doi": "",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "acceptance": {
+        "status": "not_declared",
+        "venue_type": "unspecified",
+        "evidence": "",
+        "evidence_source": "",
+        "verification": "author_claim_only"
+      },
+      "llm_score": 8.0,
+      "llm_evidence_en": "benchmark for gene perturbation response prediction with specificity and coverage analysis",
+      "llm_evidence_cn": "面向基因扰动响应预测的特异性与覆盖度基准",
+      "llm_evidence": "面向基因扰动响应预测的特异性与覆盖度基准",
+      "canonical_evidence": "面向基因扰动响应预测的特异性与覆盖度基准",
+      "llm_tldr_en": "AmbiModBench is a specificity-aware, gene-resolved and coverage-aware benchmark that separates target-specific perturbation predictions from shared background responses and verifies gene-level accuracy under shuffling.",
+      "llm_tldr_cn": "现有基因扰动响应预测模型的评分难以区分靶点特异预测与共享背景响应，且基因打乱后指标仍偏高，无法验证基因级准确性。作者提出AmbiModBench基准，将每个分数与特异性、基因分辨率和覆盖度配对，并刻画表征空间邻近性与响应约束力对覆盖的影响。该基准揭示了既有评测的缺陷，为虚拟细胞扰动预测提供更可靠的评估框架。",
+      "llm_tldr": "现有基因扰动响应预测模型的评分难以区分靶点特异预测与共享背景响应，且基因打乱后指标仍偏高，无法验证基因级准确性。作者提出AmbiModBench基准，将每个分数与特异性、基因分辨率和覆盖度配对，并刻画表征空间邻近性与响应约束力对覆盖的影响。该基准揭示了既有评测的缺陷，为虚拟细胞扰动预测提供更可靠的评估框架。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2609.29221v1",
+      "source": "arxiv",
+      "title": "PRAXIS-VirtualCell: A Programmable and Trustworthy Framework for Agentic Virtual Cell Experiments",
+      "abstract": "Virtual cells are evolving from single-task predictive models toward programmable biological simulation systems, yet heterogeneous data, models, and validation evidence still lack a unified organizational framework. Here, we present PRAXIS-VirtualCell, a modular framework that organizes biological data, predictive models, perturbations, adapters, execution environments, and validation evidence to enable reproducible and auditable virtual experiments. The system supports cross-species tasks spanning Escherichia coli, Saccharomyces cerevisiae, and human K562 cells, while using biological contracts and evidence-aware execution to distinguish supported predictions from extrapolation and abstention. By further integrating agentic orchestration, PRAXIS-VirtualCell automatically translates natural-language questions into traceable virtual experiments, providing a unified runtime foundation for trustworthy and scalable Virtual Cell systems.",
+      "authors": [
+        "Zhenyu Ma",
+        "Xukai Jiang"
+      ],
+      "primary_category": "q-bio.QM",
+      "categories": [
+        "q-bio.QM"
+      ],
+      "published": "2026-09-24 08:29:53+00:00",
+      "link": "https://arxiv.org/pdf/2609.29221v1",
+      "comment": "",
+      "journal_ref": "",
+      "doi": "",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "acceptance": {
+        "status": "not_declared",
+        "venue_type": "unspecified",
+        "evidence": "",
+        "evidence_source": "",
+        "verification": "author_claim_only"
+      },
+      "llm_score": 7.0,
+      "llm_evidence_en": "modular framework organizing virtual-cell data, perturbation models, adapters and validation evidence",
+      "llm_evidence_cn": "组织虚拟细胞数据、扰动模型、适配器与验证证据的模块化框架",
+      "llm_evidence": "组织虚拟细胞数据、扰动模型、适配器与验证证据的模块化框架",
+      "canonical_evidence": "组织虚拟细胞数据、扰动模型、适配器与验证证据的模块化框架",
+      "llm_tldr_en": "PRAXIS-VirtualCell organizes heterogeneous data, predictive models, perturbations, adapters and validation evidence into a modular, auditable framework for programmable virtual-cell experiments across species.",
+      "llm_tldr_cn": "虚拟细胞正从单任务预测模型走向可编程生物模拟系统，但异构数据、模型与验证证据缺乏统一组织框架。作者提出PRAXIS-VirtualCell，将生物数据、预测模型、扰动、适配器、执行环境与验证证据模块化组织，并通过生物契约与证据感知执行区分可信预测与推断。系统在细菌、酵母与人K562细胞等跨物种任务上验证了可复现、可审计的虚拟实验流程。该框架为虚拟细胞的标准化实验与可信评估提供了基础设施。",
+      "llm_tldr": "虚拟细胞正从单任务预测模型走向可编程生物模拟系统，但异构数据、模型与验证证据缺乏统一组织框架。作者提出PRAXIS-VirtualCell，将生物数据、预测模型、扰动、适配器、执行环境与验证证据模块化组织，并通过生物契约与证据感知执行区分可信预测与推断。系统在细菌、酵母与人K562细胞等跨物种任务上验证了可复现、可审计的虚拟实验流程。该框架为虚拟细胞的标准化实验与可信评估提供了基础设施。",
+      "llm_tags": [
+        "query:virtual-cell:composite"
+      ],
+      "matched_query_tag": "query:virtual-cell:composite",
+      "matched_query_text": "Papers central to 面向虚拟细胞与单细胞基础模型的论文检索规划，覆盖分布外扰动预测、知识增强、高效建模、因果表示、动态路由与空间上下文增强。, especially work that connects or combines: single-cell foundation models pretrained on transcriptomic data for cellular perturbation prediction; algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations; out-of-distribution generalization of perturbation predictors to unseen genes drugs cell types and combinations; knowledge-enhanced cellular perturbation prediction using biological prior knowledge and relational graphs; parameter-efficient fine-tuning adapters and low-rank adaptation for single-cell foundation models; causal representation learning for reliable cellular perturbation response prediction; single cell foundation models for out of distribution cellular perturbation prediction across unseen genes drugs cell types and their combinations; knowledge enhanced perturbation prediction that incorporates gene regulatory networks protein interaction networks pathways and drug targets; efficient single cell foundation models using parameter efficient fine tuning gene token compression sparse computation distillation and adaptive computation; causal and spatially aware perturbation prediction with counterfactual constraints invariant learning dynamic routing and cell cell interaction context.",
+      "matched_requirement_id": "req-composite-virtual-cell",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2609.26290v2",
+      "source": "arxiv",
+      "title": "Learning to Fluctuate: Statistical Foundations for Causal Tabular Pretraining",
+      "abstract": "Causal tabular foundation models amortize effect estimation across synthetic mechanisms, but latent-effect supervision rewards posterior shrinkage rather than encoding the repeated-sample response needed in a fixed deployment population. We introduce fluctuation-supervised pretraining (FSP): each synthetic table is labeled by its average treatment effect plus its efficient influence-function fluctuation; deployment remains a frozen forward pass. Along the path $T_{λ,P}=θ(P)+λP_nψ_P$, we prove an endpoint transition: every fixed $λ<1$ retains label ambiguity of order $(1-λ)^2/n$, whereas full fluctuation makes the Gaussian label observable and reduces optimal finite-stratum causal label-prediction risk to order $n^{-2}$. A finite-pretraining bound combines label, network, episode-sampling, and optimization errors; its sampling defect controls fixed-mechanism bias, mean squared error, variance, Gaussian approximation, and, with variance-head accuracy, studentized coverage. Complementary lower bounds separate local $n^{-1}$ ATE risk from the $\\log N/M$ excess risk of generic finite-dictionary episode learning. Experiments trace the learned sampling response. Across 24 nonlinear continuous-covariate cells at trained context lengths, continuous-row FSP lowers checkpoint-mean macro RMSE by 7.0% versus S-learner and wins all 12 weak-overlap cells; validation-selected Summary FSP deploys $11.6\\times$ faster per table in our warm one-thread benchmark. Under effect shift, matched Raw FSP lowers mean-checkpoint RMSE by 54.2% and teacher defect by 99.0% versus latent-effect supervision, and RMSE by 10.2% versus the released CausalPFN-S checkpoint. Known-effect semisynthesis tests coverage; two randomized-study evaluations show that lower RMSE can coexist with residual attenuation.",
+      "authors": [
+        "Zhiheng Zhang"
+      ],
+      "primary_category": "stat.ML",
+      "categories": [
+        "stat.ML",
+        "cs.LG"
+      ],
+      "published": "2026-09-22 12:03:30+00:00",
+      "link": "https://arxiv.org/pdf/2609.26290v2",
+      "comment": "56 pages, 22 figures. Revised manuscript with expanded experiments, comparator suite, and reproducibility documentation; theoretical conclusions unchanged",
+      "journal_ref": "",
+      "doi": "",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "acceptance": {
+        "status": "not_declared",
+        "venue_type": "unspecified",
+        "evidence": "",
+        "evidence_source": "",
+        "verification": "author_claim_only"
+      },
+      "llm_score": 6.0,
+      "llm_evidence_en": "causal pretraining for foundation models with effect estimation",
+      "llm_evidence_cn": "面向基础模型的因果效应预训练",
+      "llm_evidence": "面向基础模型的因果效应预训练",
+      "canonical_evidence": "面向基础模型的因果效应预训练",
+      "llm_tldr_en": "Fluctuation-supervised pretraining labels synthetic tables with average treatment effects plus influence-function fluctuations, making causal labels observable and cutting risk to order n^-2.",
+      "llm_tldr_cn": "因果表格基础模型依赖潜在效应监督，容易导致后验收缩，无法编码固定部署人群所需的重复抽样响应。作者提出波动监督预训练，用平均处理效应及其有效影响函数波动为合成表格打标签，部署时仍保持冻结前向推理。理论分析表明完整波动可使高斯标签可观测，并将有限分层因果标签预测风险降至n的负二次方量级，为因果基础模型的监督设计提供统计依据。",
+      "llm_tldr": "因果表格基础模型依赖潜在效应监督，容易导致后验收缩，无法编码固定部署人群所需的重复抽样响应。作者提出波动监督预训练，用平均处理效应及其有效影响函数波动为合成表格打标签，部署时仍保持冻结前向推理。理论分析表明完整波动可使高斯标签可观测，并将有限分层因果标签预测风险降至n的负二次方量级，为因果基础模型的监督设计提供统计依据。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "causal representation learning for reliable cellular perturbation response prediction",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.27234v1",
+      "source": "arxiv",
+      "title": "Discover, Falsify, Revise: Auditing Input-Use Claims from Source Code to Predictive Contribution in Agent-Discovered Cell Models",
+      "abstract": "AI virtual cells aim to predict cellular responses to specified interventions, yet held-out predictive performance alone does not establish use of the supplied perturbation information. This prediction-claim gap matters in agentic model discovery, where language-model agents generate and revise predictors using score-based feedback. We introduce CELLAUDIT, which audits input-use claims by asking whether an input can enter the cited computation, whether fitted predictions depend on it, and whether that dependence improves prediction of observed response. On a paired morphology-transcriptomics perturbation benchmark (BBBC047), an agent-selected predictor attains a mean held-out Global Pearson correlation coefficient (PCC) of 0.3153 but remains invariant to compound replacement; a control-profile-only predictor reaches 0.3142. Source inspection identifies a compound-query pathway blocked by singleton key-value attention, and the invariance persists after refitting with disjoint control wells. In a stratified audit of 48 candidates across two linked tasks, 47 change predictions under compound replacement on both held-out folds, but only 20 show target-loss gains with intervals above zero on both folds. On BBBC047, falsification-guided revisions recover positive mean compound contributions while retaining gains over the control-profile-only baseline. In matched sci-Plex searches, audit-enriched feedback yields higher held-out performance and larger mean compound and dose contributions across five trajectories, although paired intervals span zero. Refitting fixed designs on an independently acquired cohort shows predictive generalization need not imply generalization of input-use claims: dose contribution persists, whereas support for compound identity does not. CELLAUDIT adds a falsification layer to agentic model discovery, moving from generate-score-revise toward discover-falsify-revise.",
+      "authors": [
+        "Mengran Li",
+        "Bo Li",
+        "Chengyang Zhang",
+        "Yang Yan",
+        "Jinfeng Xu",
+        "Zhenchao Tang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "q-bio.QM"
+      ],
+      "published": "2026-09-23 02:07:27+00:00",
+      "link": "https://arxiv.org/pdf/2609.27234v1",
+      "comment": "",
+      "journal_ref": "",
+      "doi": "",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "acceptance": {
+        "status": "not_declared",
+        "venue_type": "unspecified",
+        "evidence": "",
+        "evidence_source": "",
+        "verification": "author_claim_only"
+      },
+      "llm_score": 6.0,
+      "llm_evidence_en": "auditing whether AI virtual cell models actually use perturbation inputs for response prediction",
+      "llm_evidence_cn": "审计AI虚拟细胞模型是否真正利用扰动输入进行响应预测",
+      "llm_evidence": "审计AI虚拟细胞模型是否真正利用扰动输入进行响应预测",
+      "canonical_evidence": "审计AI虚拟细胞模型是否真正利用扰动输入进行响应预测",
+      "llm_tldr_en": "CELLAUDIT audits AI virtual cell models by testing whether perturbation inputs can enter the cited computation, whether predictions depend on them, and whether that dependence improves response prediction on a morphology-transcriptomics benchmark.",
+      "llm_tldr_cn": "AI虚拟细胞旨在预测细胞对特定干预的响应，但仅凭留出集预测性能并不能证明模型真的使用了所提供的扰动信息，这在语言模型智能体自动发现并修订预测器的场景中尤为关键。作者提出CELLAUDIT，从三方面审计输入使用声明：输入能否进入所指计算、拟合预测是否依赖该输入、这种依赖是否提升对观测响应的预测。在形态-转录组配对的扰动基准BBBC047上，该方法揭示了智能体筛选出的预测器的输入使用情况。该工作为虚拟细胞模型的可靠性评估提供了可核查的审计范式。",
+      "llm_tldr": "AI虚拟细胞旨在预测细胞对特定干预的响应，但仅凭留出集预测性能并不能证明模型真的使用了所提供的扰动信息，这在语言模型智能体自动发现并修订预测器的场景中尤为关键。作者提出CELLAUDIT，从三方面审计输入使用声明：输入能否进入所指计算、拟合预测是否依赖该输入、这种依赖是否提升对观测响应的预测。在形态-转录组配对的扰动基准BBBC047上，该方法揭示了智能体筛选出的预测器的输入使用情况。该工作为虚拟细胞模型的可靠性评估提供了可核查的审计范式。",
+      "llm_tags": [
+        "query:virtual-cell:composite"
+      ],
+      "matched_query_tag": "query:virtual-cell:composite",
+      "matched_query_text": "Papers central to 面向虚拟细胞与单细胞基础模型的论文检索规划，覆盖分布外扰动预测、知识增强、高效建模、因果表示、动态路由与空间上下文增强。, especially work that connects or combines: single-cell foundation models pretrained on transcriptomic data for cellular perturbation prediction; algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations; out-of-distribution generalization of perturbation predictors to unseen genes drugs cell types and combinations; knowledge-enhanced cellular perturbation prediction using biological prior knowledge and relational graphs; parameter-efficient fine-tuning adapters and low-rank adaptation for single-cell foundation models; causal representation learning for reliable cellular perturbation response prediction; single cell foundation models for out of distribution cellular perturbation prediction across unseen genes drugs cell types and their combinations; knowledge enhanced perturbation prediction that incorporates gene regulatory networks protein interaction networks pathways and drug targets; efficient single cell foundation models using parameter efficient fine tuning gene token compression sparse computation distillation and adaptive computation; causal and spatially aware perturbation prediction with counterfactual constraints invariant learning dynamic routing and cell cell interaction context.",
+      "matched_requirement_id": "req-composite-virtual-cell",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.37735v1",
+      "source": "arxiv",
+      "title": "CancerZigZag: Iterative Seed-Anchored Diffusion for Generative Modeling of Single-Cell State Transitions",
+      "abstract": "Single-cell cancer datasets are predominantly cross-sectional and rarely provide paired or longitudinal observations linking individual healthy-like cells to tumor-associated states. We introduce CancerZigZag, a seed-initialized diffusion-based framework for exploratory generation of tumor-associated single-cell candidate clouds from unpaired epithelial cell populations. For each cancer context, a diffusion model is trained exclusively on tumor-derived epithelial cells and applied through repeated partial latent-space perturbation and reverse diffusion to held-out healthy-like seeds, generating stochastic candidate clouds without paired measurements or classifier guidance. We applied CancerZigZag to colorectal, breast, lung, and renal cell carcinoma contexts and explored parameter landscapes defined by perturbation depth and the number of ZigZag cycles. Across the reported operating configurations, candidate clouds contained outputs classified toward held-out tumor-derived reference populations for each evaluated seed. Residual seed-dependent organization varied across contexts, with the clearest structure in colorectal cancer, more modest organization in lung cancer, and limited cloud-level structure in breast and renal cell carcinoma. Representative candidates also showed directional concordance with transcriptional shifts observed between held-out healthy-like and tumor-derived reference populations. CancerZigZag is not interpreted as a model of deterministic healthy-to-tumor transformation or cellular progression. Instead, it provides a reference-informed framework for exploring tumor-associated candidate distributions from unpaired healthy-like seeds and quantifying the context-dependent relationship between tumor-associated displacement and residual seed dependence.",
+      "authors": [
+        "Johannes Schlüter",
+        "Alexander Schönhuth"
+      ],
+      "primary_category": "q-bio.GN",
+      "categories": [
+        "q-bio.GN"
+      ],
+      "published": "2026-09-29 14:54:14+00:00",
+      "link": "https://arxiv.org/pdf/2609.37735v1",
+      "comment": "26 pages, 4 figures, 4 tables. Accepted for oral presentation at ISCB-AI 2026",
+      "journal_ref": "",
+      "doi": "",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "acceptance": {
+        "status": "accepted_claim",
+        "venue_type": "unspecified",
+        "evidence": "Accepted for oral presentation at ISCB-AI 2026",
+        "evidence_source": "comment",
+        "verification": "author_claim_only"
+      },
+      "llm_score": 6.0,
+      "llm_evidence_en": "generative modeling of single-cell state transitions via latent perturbation",
+      "llm_evidence_cn": "通过潜空间扰动生成单细胞状态转变",
+      "llm_evidence": "通过潜空间扰动生成单细胞状态转变",
+      "canonical_evidence": "通过潜空间扰动生成单细胞状态转变",
+      "llm_tldr_en": "CancerZigZag trains diffusion models only on tumor-derived epithelial cells and repeatedly perturbs healthy-like seeds in latent space to generate tumor-associated single-cell candidate clouds without paired data.",
+      "llm_tldr_cn": "单细胞癌症数据多为横断面，缺少健康样细胞到肿瘤状态的配对或纵向观测，难以建模状态转变。作者提出CancerZigZag，仅在肿瘤来源上皮细胞上训练扩散模型，再对留出的健康样种子反复施加部分潜空间扰动并反向扩散。在结直肠癌、乳腺癌等场景中无需配对测量或分类器引导即可生成随机的肿瘤相关候选细胞云，为无配对单细胞数据的探索性状态转变建模提供生成式框架。",
+      "llm_tldr": "单细胞癌症数据多为横断面，缺少健康样细胞到肿瘤状态的配对或纵向观测，难以建模状态转变。作者提出CancerZigZag，仅在肿瘤来源上皮细胞上训练扩散模型，再对留出的健康样种子反复施加部分潜空间扰动并反向扩散。在结直肠癌、乳腺癌等场景中无需配对测量或分类器引导即可生成随机的肿瘤相关候选细胞云，为无配对单细胞数据的探索性状态转变建模提供生成式框架。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2609.38908v1",
+      "source": "arxiv",
+      "title": "CellMSA: Context Modeling for Single-Cell Representation Learning",
+      "abstract": "Single-cell transcriptomics enables profiling of cellular states at unprecedented resolution, but its high dimensionality, sparsity, and technical batch effects pose significant challenges for representation learning. Existing single-cell foundation models typically encode each cell independently or only model cells from the same batch for denoising, thereby underutilizing the rich relational information across batches and cell types to model gene expression patterns. We argue that single-cell models can benefit from more informative cell-context modeling. By comparing consistency and variation across cells, models can capture fine-grained gene-gene dependencies associated with cell states, which are essential for learning high-quality representations. Inspired by the use of multiple sequence alignment (MSA) context in protein modeling, we propose CellMSA, a single-cell representation learning framework that introduces an MSA-inspired inductive bias into transcriptomic modeling. For each target cell, CellMSA retrieves relevant cells from different batches and biologically related cell types as context, and summarizes cross-cell patterns into a context-dependent gene-pair representation. This representation is then injected into a pair-aware target-cell encoder for fine-grained representation learning. We pretrain CellMSA on a large-scale human single-cell corpus of approximately 109 million cell observations, including 65.6 million primary observations. Experiments show that our framework consistently outperforms existing methods across multiple benchmarks. Code is available at the following repository: https://github.com/PharMolix/CellMSA.",
+      "authors": [
+        "Suyuan Zhao",
+        "Minghao Liu",
+        "Yizhen Luo",
+        "Zaiqing Nie"
+      ],
+      "primary_category": "q-bio.GN",
+      "categories": [
+        "q-bio.GN",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-09-30 03:55:27+00:00",
+      "link": "https://arxiv.org/pdf/2609.38908v1",
+      "comment": "Accepted by NeurIPS 2026, code released",
+      "journal_ref": "",
+      "doi": "",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "acceptance": {
+        "status": "accepted_claim",
+        "venue_type": "conference",
+        "evidence": "Accepted by NeurIPS 2026, code released",
+        "evidence_source": "comment",
+        "verification": "author_claim_only"
+      },
+      "llm_score": 6.0,
+      "llm_evidence_en": "cell-context modeling to improve single-cell foundation model representations",
+      "llm_evidence_cn": "通过细胞上下文建模提升单细胞基础模型表征",
+      "llm_evidence": "通过细胞上下文建模提升单细胞基础模型表征",
+      "canonical_evidence": "通过细胞上下文建模提升单细胞基础模型表征",
+      "llm_tldr_en": "CellMSA argues single-cell foundation models underuse cross-cell relational information and proposes context modeling over consistency and variation across cells to capture gene-gene dependencies tied to cell state.",
+      "llm_tldr_cn": "现有单细胞基础模型通常独立编码每个细胞或仅在同批次内去噪，未能利用跨批次与跨细胞类型的丰富关系信息。作者提出CellMSA，通过比较细胞间的一致性与差异性进行上下文建模，捕捉与细胞状态相关的细粒度基因依赖。该方法有望提升单细胞表示质量，为下游细胞状态分析提供更充分的上下文信息。",
+      "llm_tldr": "现有单细胞基础模型通常独立编码每个细胞或仅在同批次内去噪，未能利用跨批次与跨细胞类型的丰富关系信息。作者提出CellMSA，通过比较细胞间的一致性与差异性进行上下文建模，捕捉与细胞状态相关的细粒度基因依赖。该方法有望提升单细胞表示质量，为下游细胞状态分析提供更充分的上下文信息。",
+      "llm_tags": [
+        "query:virtual-cell:composite"
+      ],
+      "matched_query_tag": "query:virtual-cell:composite",
+      "matched_query_text": "Papers central to 面向虚拟细胞与单细胞基础模型的论文检索规划，覆盖分布外扰动预测、知识增强、高效建模、因果表示、动态路由与空间上下文增强。, especially work that connects or combines: single-cell foundation models pretrained on transcriptomic data for cellular perturbation prediction; algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations; out-of-distribution generalization of perturbation predictors to unseen genes drugs cell types and combinations; knowledge-enhanced cellular perturbation prediction using biological prior knowledge and relational graphs; parameter-efficient fine-tuning adapters and low-rank adaptation for single-cell foundation models; causal representation learning for reliable cellular perturbation response prediction; single cell foundation models for out of distribution cellular perturbation prediction across unseen genes drugs cell types and their combinations; knowledge enhanced perturbation prediction that incorporates gene regulatory networks protein interaction networks pathways and drug targets; efficient single cell foundation models using parameter efficient fine tuning gene token compression sparse computation distillation and adaptive computation; causal and spatially aware perturbation prediction with counterfactual constraints invariant learning dynamic routing and cell cell interaction context.",
+      "matched_requirement_id": "req-composite-virtual-cell",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

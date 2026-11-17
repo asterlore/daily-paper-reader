@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-10-01 ~ 2026-10-19</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-21 ~ 2026-09-30</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
     <strong class="dpr-home-dashboard-count">共 10 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>10</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>5</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>5</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-11-15 12:04:33 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-11-17 13:45:58 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>2026-10-01至10-19共速读10篇论文，VCLMU、TempoBridge与染色质信息扰动预测这三篇9.0分论文最值得关注。建议普通读者优先看VCLMU的“虚拟细胞世界模型”思路，再关注TempoBridge如何用最优传输刻画单细胞群体转变。</p>
+<p>2026-09-21至09-30共筛出10篇论文（精读5篇、速读5篇），主线聚焦扰动响应预测与虚拟细胞建模。</p>
+<p>最值得先看的是两篇9.0分精读：《Bison》研究面向未见化合物的跨数据集扰动预测，《P2P》用跨视角群体去噪解决无配对单细胞扰动响应预测；速读中的《PRAXIS-VirtualCell》则给出可编程、可信的智能体虚拟细胞实验框架。</p>
+<p>普通读者可先读这两篇9.0分的摘要与主图，再按兴趣在虚拟细胞框架与因果表格预训练之间二选一深入。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -78,12 +80,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">0 篇</strong>
+    <strong class="dpr-home-dashboard-count">5 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="Bison: Cross-Dataset Learning for Unseen-Compound Perturbation Prediction">Bison: Cross-Dataset Learning for Unseen-Compound Perturbation Prediction</span></li><li><span class="dpr-home-dashboard-paper-title" title="P2P: Cross-View Population Denoising for Unpaired Single-Cell Perturbation Response Prediction">P2P: Cross-View Population Denoising for Unpaired Single-Cell Perturbation Response Prediction</span></li><li><span class="dpr-home-dashboard-paper-title" title="DRIFT: Disentangled Responsive-Invariant Flow Transport for Single-Cell Perturbation Prediction">DRIFT: Disentangled Responsive-Invariant Flow Transport for Single-Cell Perturbation Prediction</span></li></ul>
   </div>
-
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">virtual-cell <strong>5</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -91,12 +93,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">10 篇</strong>
+    <strong class="dpr-home-dashboard-count">5 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="VCLMU: Mechanism-Centric Virtual Cell World Modeling for Perturbation Response">VCLMU: Mechanism-Centric Virtual Cell World Modeling for Perturbation Response</span></li><li><span class="dpr-home-dashboard-paper-title" title="TempoBridge: Source-Conditioned Flow Matching with Optimal Transport Couplings for Single-Cell Population Transitions">TempoBridge: Source-Conditioned Flow Matching with Optimal Transport Couplings for Single-Cell Population Transitions</span></li><li><span class="dpr-home-dashboard-paper-title" title="Beyond the Transcriptome: Chromatin-Informed Prediction of Cell-State-Dependent Perturbation Responses">Beyond the Transcriptome: Chromatin-Informed Prediction of Cell-State-Dependent Perturbation Responses</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="PRAXIS-VirtualCell: A Programmable and Trustworthy Framework for Agentic Virtual Cell Experiments">PRAXIS-VirtualCell: A Programmable and Trustworthy Framework for Agentic Virtual Cell Experiments</span></li><li><span class="dpr-home-dashboard-paper-title" title="Learning to Fluctuate: Statistical Foundations for Causal Tabular Pretraining">Learning to Fluctuate: Statistical Foundations for Causal Tabular Pretraining</span></li><li><span class="dpr-home-dashboard-paper-title" title="Discover, Falsify, Revise: Auditing Input-Use Claims from Source Code to Predictive Contribution in Agent-Discovered Cell Models">Discover, Falsify, Revise: Auditing Input-Use Claims from Source Code to Predictive Contribution in Agent-Discovered Cell Models</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">virtual-cell <strong>10</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">virtual-cell <strong>5</strong></span></div>
 </section>
 </div>
 

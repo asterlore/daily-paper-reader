@@ -1,0 +1,169 @@
+{
+  "date": "20260921-20260930",
+  "date_label": "2026-09-21 ~ 2026-09-30",
+  "generated_at": "2026-11-17 13:45:58 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2609.32467v1",
+      "route": "20260921-20260930/2609.32467v1-bison-cross-dataset-learning-for-unseen-compound-perturbation-prediction",
+      "title": "Bison: Cross-Dataset Learning for Unseen-Compound Perturbation Prediction",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向未见化合物的跨数据集转录响应预测基准与模型",
+      "first_seen_at": "2026-11-17 13:45:58 UTC",
+      "updated_at": "2026-11-17 13:45:58 UTC"
+    },
+    {
+      "paper_id": "2609.34391v1",
+      "route": "20260921-20260930/2609.34391v1-p2p-cross-view-population-denoising-for-unpaired-single-cell-perturbation-response-prediction",
+      "title": "P2P: Cross-View Population Denoising for Unpaired Single-Cell Perturbation Response Prediction",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向AI虚拟细胞的非配对单细胞扰动响应预测",
+      "first_seen_at": "2026-11-17 13:45:58 UTC",
+      "updated_at": "2026-11-17 13:45:58 UTC"
+    },
+    {
+      "paper_id": "2609.35106v1",
+      "route": "20260921-20260930/2609.35106v1-drift-disentangled-responsive-invariant-flow-transport-for-single-cell-perturbation-prediction",
+      "title": "DRIFT: Disentangled Responsive-Invariant Flow Transport for Single-Cell Perturbation Prediction",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "通过响应-不变成分解耦流传输预测单细胞扰动响应",
+      "first_seen_at": "2026-11-17 13:45:58 UTC",
+      "updated_at": "2026-11-17 13:45:58 UTC"
+    },
+    {
+      "paper_id": "2610.02232v1",
+      "route": "20260921-20260930/2610.02232v1-generalizable-single-cell-perturbation-response-prediction-using-energy-guided-flow-matching",
+      "title": "Generalizable single-cell perturbation response prediction using energy-guided flow matching",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "能量引导流匹配预测单细胞扰动响应并适应分布偏移与新扰动",
+      "first_seen_at": "2026-11-17 13:45:58 UTC",
+      "updated_at": "2026-11-17 13:45:58 UTC"
+    },
+    {
+      "paper_id": "2609.32527v1",
+      "route": "20260921-20260930/2609.32527v1-ambimodbench-benchmarking-gene-perturbation-prediction-beyond-shared-responses",
+      "title": "AmbiModBench: Benchmarking Gene Perturbation Prediction Beyond Shared Responses",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向基因扰动响应预测的特异性与覆盖度基准",
+      "first_seen_at": "2026-11-17 13:45:58 UTC",
+      "updated_at": "2026-11-17 13:45:58 UTC"
+    },
+    {
+      "paper_id": "2609.29221v1",
+      "route": "20260921-20260930/2609.29221v1-praxis-virtualcell-a-programmable-and-trustworthy-framework-for-agentic-virtual-cell-experiments",
+      "title": "PRAXIS-VirtualCell: A Programmable and Trustworthy Framework for Agentic Virtual Cell Experiments",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "组织虚拟细胞数据、扰动模型、适配器与验证证据的模块化框架",
+      "first_seen_at": "2026-11-17 13:45:58 UTC",
+      "updated_at": "2026-11-17 13:45:58 UTC"
+    },
+    {
+      "paper_id": "2609.26290v2",
+      "route": "20260921-20260930/2609.26290v2-learning-to-fluctuate-statistical-foundations-for-causal-tabular-pretraining",
+      "title": "Learning to Fluctuate: Statistical Foundations for Causal Tabular Pretraining",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向基础模型的因果效应预训练",
+      "first_seen_at": "2026-11-17 13:45:58 UTC",
+      "updated_at": "2026-11-17 13:45:58 UTC"
+    },
+    {
+      "paper_id": "2609.27234v1",
+      "route": "20260921-20260930/2609.27234v1-discover-falsify-revise-auditing-input-use-claims-from-source-code-to-predictive-contribution-in-agent-discovered-cell-models",
+      "title": "Discover, Falsify, Revise: Auditing Input-Use Claims from Source Code to Predictive Contribution in Agent-Discovered Cell Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "审计AI虚拟细胞模型是否真正利用扰动输入进行响应预测",
+      "first_seen_at": "2026-11-17 13:45:58 UTC",
+      "updated_at": "2026-11-17 13:45:58 UTC"
+    },
+    {
+      "paper_id": "2609.37735v1",
+      "route": "20260921-20260930/2609.37735v1-cancerzigzag-iterative-seed-anchored-diffusion-for-generative-modeling-of-single-cell-state-transitions",
+      "title": "CancerZigZag: Iterative Seed-Anchored Diffusion for Generative Modeling of Single-Cell State Transitions",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "通过潜空间扰动生成单细胞状态转变",
+      "first_seen_at": "2026-11-17 13:45:58 UTC",
+      "updated_at": "2026-11-17 13:45:58 UTC"
+    },
+    {
+      "paper_id": "2609.38908v1",
+      "route": "20260921-20260930/2609.38908v1-cellmsa-context-modeling-for-single-cell-representation-learning",
+      "title": "CellMSA: Context Modeling for Single-Cell Representation Learning",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "virtual-cell"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "通过细胞上下文建模提升单细胞基础模型表征",
+      "first_seen_at": "2026-11-17 13:45:58 UTC",
+      "updated_at": "2026-11-17 13:45:58 UTC"
+    }
+  ]
+}
