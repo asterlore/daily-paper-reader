@@ -552,6 +552,12 @@ def main() -> None:
         help="1–30天：auto/standard/skims；31–365天固定使用独立arXiv专题回溯。",
     )
     parser.add_argument(
+        "--acceptance-mode",
+        default=os.getenv("DPR_ACCEPTANCE_MODE", "all"),
+        choices=("accepted_only", "all"),
+        help="arXiv 录用状态筛选：all（默认，保留全部并对作者声明录用且评分≥7额外推荐）或 accepted_only。",
+    )
+    parser.add_argument(
         "--profile-tag",
         default="",
         help="仅运行指定 tag 对应的词条；大小写不敏感，支持空格。",
@@ -576,6 +582,7 @@ def main() -> None:
         help="强制执行 Step 1（全量数据拉取），即使 Supabase 已启用。",
     )
     args = parser.parse_args()
+    os.environ["DPR_ACCEPTANCE_MODE"] = args.acceptance_mode
     if args.fetch_days is not None and not 1 <= args.fetch_days <= 365:
         parser.error('--fetch-days 必须在 1–365 天之间')
 
@@ -734,7 +741,7 @@ def main() -> None:
         print_trace_retrieval("RERANK", rerank_path, trace_ids)
     run_step(
         "Step 4 - LLM refine",
-        [python, os.path.join(SRC_DIR, "4.llm_refine_papers.py")],
+        [python, os.path.join(SRC_DIR, "4.llm_refine_papers.py"), "--acceptance-mode", args.acceptance_mode],
     )
     if trace_ids:
         print_trace_llm("LLM", llm_path, trace_ids)

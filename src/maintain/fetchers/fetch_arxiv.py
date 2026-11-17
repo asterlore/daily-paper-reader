@@ -352,6 +352,10 @@ def fetch_category_in_windows(
                     "categories": r.categories,
                     "published": str(r.published),
                     "link": pdf_link,
+                    # arXiv author-supplied publication/acceptance evidence (no extra API calls).
+                    "comment": str(getattr(r, "comment", None) or "").strip(),
+                    "journal_ref": str(getattr(r, "journal_ref", None) or "").strip(),
+                    "doi": str(getattr(r, "doi", None) or "").strip(),
                 }
                 unique_papers[pid] = paper_dict
                 count += 1

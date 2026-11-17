@@ -871,6 +871,48 @@ def build_carryover_payload(
     }
 
 
+def is_author_declared_accepted_at_least(
+    paper: Dict[str, Any],
+    min_score: float = 7.0,
+) -> bool:
+    """Author-reported arXiv acceptance/publication + a sufficient DPR score.
+
+    This never upgrades or alters the LLM relevance score itself.
+    """
+    declaration = paper.get("acceptance") or {}
+    return (
+        isinstance(declaration, dict)
+        and declaration.get("status") in ("accepted_claim", "published_claim")
+        and parse_score(paper.get("llm_score")) >= min_score
+    )
+
+
+def include_author_accepted_quick(
+    selected_quick: List[Dict[str, Any]],
+    candidates: List[Dict[str, Any]],
+    selected_deep: List[Dict[str, Any]],
+) -> Tuple[List[Dict[str, Any]], int]:
+    """Guarantee author-declared accepted/published papers with DPR >=7 appear.
+
+    Keep the original selection intact. Accepted extra papers are added to quick,
+    without displacing an existing pick or duplicating a deep/quick paper.
+    """
+    selected = list(selected_quick)
+    used = {
+        canonical_paper_id(str(p.get("id") or p.get("paper_id") or ""))
+        for p in list(selected_quick) + list(selected_deep)
+    }
+    added = 0
+    for paper in sort_by_score(candidates):
+        pid = canonical_paper_id(str(paper.get("id") or paper.get("paper_id") or ""))
+        if not pid or pid in used or not is_author_declared_accepted_at_least(paper):
+            continue
+        selected.append(paper)
+        used.add(pid)
+        added += 1
+    return selected, added
+
+
 def process_mode(
     candidates: List[Dict[str, Any]],
     tag_count: int,
@@ -943,6 +985,9 @@ def process_mode(
     quick_target = quick_base + tag_count
     quick_strategy = str(cfg.get("quick_strategy") or "uniform")
     quick_selected = select_quick_skim(quick_candidates, quick_target, quick_strategy)
+    quick_selected, accepted_7plus_added = include_author_accepted_quick(
+        quick_selected, candidates, deep_selected
+    )
 
     stats = {
         "mode": mode,
@@ -953,6 +998,7 @@ def process_mode(
         "quick_candidates": len(quick_candidates),
         "quick_skim_target": quick_target,
         "quick_selected": len(quick_selected),
+        "author_claim_7plus_added": accepted_7plus_added,
     }
 
     return {
@@ -973,7 +1019,8 @@ def process_mode_all_quick_min_score(
     回溯窗口（days）场景：不再做“精读/速览配额分配”，而是将达到阈值的论文全部输出到速览区。
     """
     threshold = float(min_score)
-    picked = [p for p in candidates if float(p.get("llm_score", 0)) >= threshold]
+    original = [p for p in candidates if parse_score(p.get("llm_score")) >= threshold]
+    picked, accepted_7plus_added = include_author_accepted_quick(original, candidates, [])
     picked = sort_by_score(picked)
 
     stats = {
@@ -986,6 +1033,7 @@ def process_mode_all_quick_min_score(
         "quick_candidates": len(picked),
         "quick_skim_target": None,
         "quick_selected": len(picked),
+        "author_claim_7plus_added": accepted_7plus_added,
     }
 
     return {

@@ -23,6 +23,10 @@ on:
         description: "1–30天：auto/standard/skims；31–365天固定为arXiv专题回溯"
         required: false
         default: "auto"
+      acceptance_mode:
+        description: "录用状态检测：all（默认，全部评审；已录用/发表且 DPR≥7 分额外推荐）或 accepted_only（仅评审有作者声明的论文）"
+        required: false
+        default: "all"
       profile_tag:
         description: "仅运行指定词条 tag；留空表示全量运行"
         required: false
@@ -184,6 +188,7 @@ jobs:
           START_DATE="${{ github.event.inputs.start_date }}"
           END_DATE="${{ github.event.inputs.end_date }}"
           FETCH_MODE="${{ github.event.inputs.fetch_mode }}"
+          ACCEPTANCE_MODE="${{ github.event.inputs.acceptance_mode }}"
           PROFILE_TAG="${{ github.event.inputs.profile_tag }}"
           RERANKER_PROFILE_INPUT="${{ github.event.inputs.reranker_profile }}"
           if [ -n "$RERANKER_PROFILE_INPUT" ]; then
@@ -206,6 +211,9 @@ jobs:
           fi
           if [ -n "$FETCH_MODE" ]; then
             ARGS+=(--fetch-mode "$FETCH_MODE")
+          fi
+          if [ -n "$ACCEPTANCE_MODE" ]; then
+            ARGS+=(--acceptance-mode "$ACCEPTANCE_MODE")
           fi
           if [ -n "$PROFILE_TAG" ]; then
             ARGS+=(--profile-tag "$PROFILE_TAG")

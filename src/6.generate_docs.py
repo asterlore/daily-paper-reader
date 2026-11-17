@@ -1410,11 +1410,17 @@ def merge_daily_run_results(
     str,
 ]:
     state_file = daily_state_path(docs_dir, date_str)
-    try:
-        state = load_daily_state(state_file)
-    except (OSError, ValueError):
+    # Accepted-only runs must not resurrect unverified recommendations from
+    # an earlier all-mode run of the exact same historical date window.
+    strict = os.getenv("DPR_ACCEPTANCE_MODE", "").strip() == "accepted_only"
+    if strict:
         state = {}
-    if not state:
+    else:
+        try:
+            state = load_daily_state(state_file)
+        except (OSError, ValueError):
+            state = {}
+    if not state and not strict:
         state = bootstrap_daily_state_from_sidebar(
             sidebar_path=os.path.join(docs_dir, "_sidebar.md"),
             date_str=date_str,
@@ -1654,6 +1660,22 @@ def build_markdown_content(
         lines.append(f"source: {yaml_escape_value(paper_source)}")
     if selection_source:
         lines.append(f"selection_source: {yaml_escape_value(selection_source)}")
+    # Explicitly label author claims; do not present them as publisher-verified.
+    acceptance = paper.get("acceptance") or {}
+    if isinstance(acceptance, dict):
+        status = str(acceptance.get("status") or "").strip()
+        venue = str(acceptance.get("venue_type") or "").strip()
+        evidence = str(acceptance.get("evidence") or "").strip()
+        evidence_source = str(acceptance.get("evidence_source") or "").strip()
+        if status:
+            lines.append(f"acceptance_status: {yaml_escape_value(status)}")
+            lines.append("acceptance_verification: author_claim_only")
+        if venue:
+            lines.append(f"acceptance_venue_type: {yaml_escape_value(venue)}")
+        if evidence:
+            lines.append(f"acceptance_evidence: {yaml_escape_value(evidence)}")
+        if evidence_source:
+            lines.append(f"acceptance_evidence_source: {yaml_escape_value(evidence_source)}")
     if figure_assets:
         lines.append(f"figures_json: {yaml_escape_value(json.dumps(figure_assets, ensure_ascii=False))}")
     if table_assets:
@@ -1671,6 +1693,21 @@ def build_markdown_content(
 
     lines.append("---")
     lines.append("")
+
+    # Display the author declaration on paper pages, not only in JSON metadata.
+    declaration = paper.get("acceptance") or {}
+    if isinstance(declaration, dict) and declaration.get("status") in ("accepted_claim", "published_claim"):
+        kind = "发表" if declaration["status"] == "published_claim" else "录用"
+        venue_type = {
+            "journal": "期刊", "conference": "会议主会/会议",
+            "workshop": "Workshop", "unspecified": "未识别类型",
+        }.get(str(declaration.get("venue_type") or ""), "未识别类型")
+        evidence = str(declaration.get("evidence") or "").strip()
+        lines.append("## 录用/发表状态（arXiv 作者声明，未经独立核实）")
+        lines.append(f"- 声明：{kind}；类型：{venue_type}")
+        if evidence:
+            lines.append(f"- arXiv 原始说明：{evidence}")
+        lines.append("")
 
     # 正文部分：摘要
     if zh_abstract:
@@ -2778,6 +2815,11 @@ def _parse_generated_md_to_meta(
     if not src_value and "selection_source" in fm_meta:
         src_value = str(fm_meta.get("selection_source") or "").strip()
 
+    acceptance_status = str(fm_meta.get("acceptance_status") or "").strip()
+    acceptance_venue_type = str(fm_meta.get("acceptance_venue_type") or "").strip()
+    acceptance_evidence = str(fm_meta.get("acceptance_evidence") or "").strip()
+    acceptance_evidence_source = str(fm_meta.get("acceptance_evidence_source") or "").strip()
+
     # tags：输出为更“短”的一行形式（字符串），避免 JSON pretty-print 时每个 tag 独占一行
     tags_compact: List[str] = []
     for t in tags_typed:
@@ -2801,6 +2843,11 @@ def _parse_generated_md_to_meta(
         "abstract_en": abstract_en,
         "source": paper_source_value,
         "selection_source": src_value,
+        "acceptance_status": acceptance_status,
+        "acceptance_venue_type": acceptance_venue_type,
+        "acceptance_evidence": acceptance_evidence,
+        "acceptance_evidence_source": acceptance_evidence_source,
+        "acceptance_verification": "author_claim_only" if acceptance_status else "",
     }
 
 
@@ -2856,6 +2903,15 @@ def write_day_meta_index_json(
                     )
                     if not item.get("title_en"):
                         item["title_en"] = (title or "").strip()
+                    # Existing Markdown may predate the acceptance metadata;
+                    # use the current source as fallback without extra API calls.
+                    declaration = source.get("acceptance") if isinstance(source.get("acceptance"), dict) else {}
+                    if declaration:
+                        item["acceptance_status"] = str(declaration.get("status") or "")
+                        item["acceptance_venue_type"] = str(declaration.get("venue_type") or "")
+                        item["acceptance_evidence"] = str(declaration.get("evidence") or "")
+                        item["acceptance_evidence_source"] = str(declaration.get("evidence_source") or "")
+                        item["acceptance_verification"] = "author_claim_only"
                     papers.append(item)
                 except Exception as e:
                     errors.append({"paper_id": route, "error": str(e)})
@@ -2873,6 +2929,13 @@ def write_day_meta_index_json(
                         str(paper.get("selection_source") or ""),
                         str(paper.get("abstract") or ""),
                     )
+                    declaration = paper.get("acceptance") if isinstance(paper.get("acceptance"), dict) else {}
+                    if declaration:
+                        item["acceptance_status"] = str(declaration.get("status") or "")
+                        item["acceptance_venue_type"] = str(declaration.get("venue_type") or "")
+                        item["acceptance_evidence"] = str(declaration.get("evidence") or "")
+                        item["acceptance_evidence_source"] = str(declaration.get("evidence_source") or "")
+                        item["acceptance_verification"] = "author_claim_only"
                     papers.append(item)
                 except Exception as e:
                     errors.append(
