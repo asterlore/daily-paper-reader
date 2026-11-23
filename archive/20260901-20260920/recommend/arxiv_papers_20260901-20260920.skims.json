@@ -1,0 +1,266 @@
+{
+  "mode": "skims",
+  "generated_at": "2026-11-23T09:12:31.935490+00:00",
+  "stats": {
+    "mode": "skims",
+    "forced_all_quick": true,
+    "min_score": 8.0,
+    "deep_divecandidates": 5,
+    "deep_cap": null,
+    "deep_selected": 0,
+    "quick_candidates": 5,
+    "quick_skim_target": null,
+    "quick_selected": 5,
+    "author_claim_7plus_added": 0
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2610.13966v1",
+      "source": "arxiv",
+      "title": "MRFlow: Mechanism-Structured Residual Flow Matching for Virtual Cell Perturbation Prediction",
+      "abstract": "Predicting cellular responses to chemical and genetic perturbations is a central test for AI virtual cells, yet many single-cell models reduce each condition to an average expression shift. This target is misaligned with perturbation biology: rare states, resistant subpopulations, and context-dependent effect sizes may coexist under the same intervention. MRFlow treats virtual-cell prediction as conditional transport between empirical single-cell measures. Control and perturbed cells are embedded in a variational latent state space, greedy low-cost supervision is constructed over detached minibatch states, and a conditional flow-matching vector field transports control populations toward perturbed populations. The field decomposes into a mechanism-structured affine dictionary, which recombines shared latent response operators with a low-rank condition-specific correction, and a spectrally controlled residual field for nonlinear cell-level variation. Genetic perturbations are encoded through a regulatory-graph GCN, chemical perturbations through Morgan fingerprints, and both enter the same conditional dynamics interface. Across eight gene and drug perturbation benchmarks, MRFlow attains the highest composite score while preserving competitive raw performance on differential-expression and distributional metrics. The results support latent distribution transport as a principled and empirically effective formulation for perturbation-aware virtual cell modeling.",
+      "authors": [
+        "Haojie Yang",
+        "Ran Su"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "q-bio.QM"
+      ],
+      "published": "2026-09-10 09:55:56+00:00",
+      "link": "https://arxiv.org/pdf/2610.13966v1",
+      "comment": "",
+      "journal_ref": "",
+      "doi": "",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "acceptance": {
+        "status": "not_declared",
+        "venue_type": "unspecified",
+        "evidence": "",
+        "evidence_source": "",
+        "verification": "author_claim_only"
+      },
+      "llm_score": 10.0,
+      "llm_evidence_en": "predicting single-cell transcriptional responses to chemical and genetic perturbations via conditional flow matching",
+      "llm_evidence_cn": "通过条件流匹配预测单细胞对化学与遗传扰动的转录响应",
+      "llm_evidence": "通过条件流匹配预测单细胞对化学与遗传扰动的转录响应",
+      "canonical_evidence": "通过条件流匹配预测单细胞对化学与遗传扰动的转录响应",
+      "llm_tldr_en": "MRFlow treats virtual-cell perturbation prediction as conditional transport between empirical single-cell distributions, using a variational latent space and a mechanism-structured residual flow-matching field instead of average expression shifts.",
+      "llm_tldr_cn": "现有单细胞扰动模型常把每个扰动条件简化为平均表达偏移，与扰动生物学中稀有状态、耐药亚群和情境依赖效应并存的事实不符。作者提出MRFlow，将虚拟细胞预测建模为经验单细胞分布之间的条件传输：把对照与扰动细胞嵌入变分隐状态空间，在去耦的小批次状态上构造低代价监督，并用条件流匹配向量场把对照群体输运至扰动群体。该机制结构化的分解使模型能够刻画异质性响应，为AI虚拟细胞提供了分布级、可分解的预测范式。",
+      "llm_tldr": "现有单细胞扰动模型常把每个扰动条件简化为平均表达偏移，与扰动生物学中稀有状态、耐药亚群和情境依赖效应并存的事实不符。作者提出MRFlow，将虚拟细胞预测建模为经验单细胞分布之间的条件传输：把对照与扰动细胞嵌入变分隐状态空间，在去耦的小批次状态上构造低代价监督，并用条件流匹配向量场把对照群体输运至扰动群体。该机制结构化的分解使模型能够刻画异质性响应，为AI虚拟细胞提供了分布级、可分解的预测范式。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.01357v1",
+      "source": "arxiv",
+      "title": "PopPert: Population-level Joint-Distribution Modeling for Single-Cell Perturbation Prediction",
+      "abstract": "Predicting transcriptional responses to specific perturbations is critical for understanding cellular regulatory mechanisms and accelerating drug discovery. Single-cell RNA sequencing destroys each measured cell, yielding only unpaired populations of control and perturbed cells. However, existing methods typically model perturbation prediction at the single-cell level and assume cell-to-cell correspondence, which conflicts with the unpaired nature of the observed data. To address this challenge, we propose PopPert, a framework that explicitly parameterizes population-level joint gene expression distributions for collective transcriptional state modeling. Given a control population distribution and a perturbation condition, PopPert predicts perturbation-induced changes in distribution parameters, eliminating the need for cell-level correspondence and reducing sensitivity to single-cell noise. To effectively capture gene co-expression patterns, PopPert leverages a low-rank Gaussian Copula to model cross-gene statistical dependencies and construct the joint gene expression distribution, additionally allowing sampling of synthetic perturbed single-cell profiles. Across multiple single-cell benchmarks spanning both genetic and chemical perturbations, PopPert achieves superior overall performance in differential expression recovery, perturbation effect estimation, and population-level distribution matching. These results establish population-level joint distribution learning as an effective paradigm for predicting transcriptional responses from unpaired single-cell populations. Code for PopPert is publicly available at https://github.com/whd1125/PopPert.",
+      "authors": [
+        "Handong Wang",
+        "Jiaxin Qi",
+        "Haochen Feng",
+        "Baisheng Lai"
+      ],
+      "primary_category": "q-bio.GN",
+      "categories": [
+        "q-bio.GN",
+        "cs.AI"
+      ],
+      "published": "2026-09-01 14:59:03+00:00",
+      "link": "https://arxiv.org/pdf/2609.01357v1",
+      "comment": "15pages, 4 figures",
+      "journal_ref": "",
+      "doi": "",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "acceptance": {
+        "status": "not_declared",
+        "venue_type": "unspecified",
+        "evidence": "",
+        "evidence_source": "",
+        "verification": "author_claim_only"
+      },
+      "llm_score": 9.0,
+      "llm_evidence_en": "population-level joint-distribution modeling for single-cell perturbation transcriptional response prediction",
+      "llm_evidence_cn": "面向单细胞扰动转录响应的群体级联合分布建模",
+      "llm_evidence": "面向单细胞扰动转录响应的群体级联合分布建模",
+      "canonical_evidence": "面向单细胞扰动转录响应的群体级联合分布建模",
+      "llm_tldr_en": "PopPert explicitly parameterizes population-level joint gene expression distributions to predict single-cell transcriptional responses to perturbations, avoiding the invalid single-cell pairing assumption.",
+      "llm_tldr_cn": "单细胞RNA测序会破坏被测细胞，扰动数据只有非配对的对照与扰动细胞群，而现有方法多在单细胞层面建模并假设细胞间一一对应，与数据本质相冲突。该文提出PopPert，显式参数化群体级联合基因表达分布，以集合式转录状态建模，在给定对照群体分布与扰动条件下预测扰动后分布。该框架更契合非配对观测数据，为遗传与药物扰动下的转录响应预测提供更合理的建模范式。",
+      "llm_tldr": "单细胞RNA测序会破坏被测细胞，扰动数据只有非配对的对照与扰动细胞群，而现有方法多在单细胞层面建模并假设细胞间一一对应，与数据本质相冲突。该文提出PopPert，显式参数化群体级联合基因表达分布，以集合式转录状态建模，在给定对照群体分布与扰动条件下预测扰动后分布。该框架更契合非配对观测数据，为遗传与药物扰动下的转录响应预测提供更合理的建模范式。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.19970v1",
+      "source": "arxiv",
+      "title": "CellRFT: Reinforcement Fine-Tuning for Single-Cell Perturbation Modeling",
+      "abstract": "Predicting cellular responses to perturbations supports the study of gene function, disease mechanisms, and therapeutic strategies. Despite advances in single-cell perturbation modeling, existing models typically optimize surrogate losses that do not directly reflect the biological criteria used for evaluation, so better data fitting need not yield better biological predictions. To address this mismatch, we introduce \\textbf{CellRFT}, a reinforcement fine-tuning framework that uses biological evaluation as direct training feedback. CellRFT uses policy-gradient optimization to learn from non-differentiable evaluations of generated cell populations and integrates multiple biological rewards through hierarchical reward aggregation. Comprehensive experiments demonstrate CellRFT's applicability across different pretrained models and effectiveness in improving perturbation prediction, reveal that optimizing one biological criterion can help or hinder others, and show that complementary rewards can improve criteria beyond those directly optimized, offering a way to probe how biological metrics shape model behavior, with the potential to inform evaluation design. Code will be made available.",
+      "authors": [
+        "Jie Yan",
+        "Li Liu",
+        "Hanze Guo",
+        "Jiaxin Hu",
+        "Houxin He",
+        "Xiaoning Qi",
+        "Haoran Wang",
+        "Cong Li",
+        "Zhong-Yuan Zhang",
+        "Yong Wang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-09-17 09:43:12+00:00",
+      "link": "https://arxiv.org/pdf/2609.19970v1",
+      "comment": "",
+      "journal_ref": "",
+      "doi": "",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "acceptance": {
+        "status": "not_declared",
+        "venue_type": "unspecified",
+        "evidence": "",
+        "evidence_source": "",
+        "verification": "author_claim_only"
+      },
+      "llm_score": 9.0,
+      "llm_evidence_en": "reinforcement fine-tuning of single-cell perturbation models using biological evaluation as direct training feedback",
+      "llm_evidence_cn": "以生物学评价为直接训练反馈的单细胞扰动模型强化微调",
+      "llm_evidence": "以生物学评价为直接训练反馈的单细胞扰动模型强化微调",
+      "canonical_evidence": "以生物学评价为直接训练反馈的单细胞扰动模型强化微调",
+      "llm_tldr_en": "CellRFT addresses the mismatch between surrogate training losses and biological evaluation criteria in single-cell perturbation modeling by using policy-gradient reinforcement fine-tuning with hierarchical aggregation of multiple biological rewards.",
+      "llm_tldr_cn": "现有单细胞扰动预测模型多优化替代损失，与真实生物学评价标准不一致，数据拟合更好未必带来更准确的生物预测。作者提出CellRFT强化微调框架，将生成细胞群体的不可微生物学评价作为直接训练信号，用策略梯度优化并分层聚合多种生物奖励。综合实验表明该方法在扰动响应预测基准上改善了生物学层面的准确性。该工作为以评价指标为导向的扰动建模提供了新范式。",
+      "llm_tldr": "现有单细胞扰动预测模型多优化替代损失，与真实生物学评价标准不一致，数据拟合更好未必带来更准确的生物预测。作者提出CellRFT强化微调框架，将生成细胞群体的不可微生物学评价作为直接训练信号，用策略梯度优化并分层聚合多种生物奖励。综合实验表明该方法在扰动响应预测基准上改善了生物学层面的准确性。该工作为以评价指标为导向的扰动建模提供了新范式。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.10831v1",
+      "source": "arxiv",
+      "title": "scDEFT: A deep learning framework for drug-effect prediction and counterfactual reasoning",
+      "abstract": "Longitudinal single cell atlases now capture matched pre treatment and post treatment states from responders and non responders, presenting an opportunity to mechanistically explain why two patients on the same drug diverge. We introduce scDEFT (single cell Drug EFfect Transducer), which treats a drug as a conditioning operator on cell representations, enabling prediction and explanation. In scDEFT, feature wise linear modulation produces drug conditioned cell latents, learned under abundant per cell supervision and then frozen. Two independent heads aggregate those latents over shared transcriptional neighborhoods to predict drug induced state change and responder status. A backward stage ranks the latent dimensions by how strongly they separate responders from non responders and maps them to genes under a cell composition control. On a harmonized inflammatory bowel disease atlas of 1.16 million cells, three cohorts and two drug classes, scDEFT predicts state change at 45% of the baseline to reproducibility ceiling headroom and stratifies responders before treatment at AUROC 0.70, where standard predictors remain at chance. These predictions and the drivers behind them support target and co target nomination, patient stratification, and counterfactual prediction of unseen drug cohort effects.",
+      "authors": [
+        "Murthy Devarakonda"
+      ],
+      "primary_category": "q-bio.QM",
+      "categories": [
+        "q-bio.QM",
+        "cs.LG"
+      ],
+      "published": "2026-09-09 21:02:21+00:00",
+      "link": "https://arxiv.org/pdf/2609.10831v1",
+      "comment": "21 Pages, 5 Figures, 3 Tables, and a Supplementary Notes section for overflow material. Approximately 3000 words (excluding Figures, Tables, and Captions)",
+      "journal_ref": "",
+      "doi": "",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "acceptance": {
+        "status": "not_declared",
+        "venue_type": "unspecified",
+        "evidence": "",
+        "evidence_source": "",
+        "verification": "author_claim_only"
+      },
+      "llm_score": 8.0,
+      "llm_evidence_en": "single-cell drug-effect prediction with counterfactual reasoning",
+      "llm_evidence_cn": "单细胞药物效应预测与反事实推理",
+      "llm_evidence": "单细胞药物效应预测与反事实推理",
+      "canonical_evidence": "单细胞药物效应预测与反事实推理",
+      "llm_tldr_en": "scDEFT treats a drug as a conditioning operator on cell representations, using feature-wise linear modulation to produce drug-conditioned latents and two heads to predict drug-induced state change and responder status with counterfactual explanation.",
+      "llm_tldr_cn": "针对同一药物下患者响应分歧难以机理解释的问题，作者提出scDEFT，将药物视为作用于细胞表征的条件算子，通过特征级线性调制生成药物条件化细胞潜变量，并用两个独立头预测药物诱导状态变化与响应者身份，反向阶段对潜维度排序以提供解释。该框架在纵向单细胞图谱上实现药物效应预测与反事实推理，为理解治疗响应差异提供可解释工具。",
+      "llm_tldr": "针对同一药物下患者响应分歧难以机理解释的问题，作者提出scDEFT，将药物视为作用于细胞表征的条件算子，通过特征级线性调制生成药物条件化细胞潜变量，并用两个独立头预测药物诱导状态变化与响应者身份，反向阶段对潜维度排序以提供解释。该框架在纵向单细胞图谱上实现药物效应预测与反事实推理，为理解治疗响应差异提供可解释工具。",
+      "llm_tags": [
+        "query:virtual-cell"
+      ],
+      "matched_query_tag": "query:virtual-cell",
+      "matched_query_text": "algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2609.14970v1",
+      "source": "arxiv",
+      "title": "Towards a knowledge-enhanced single-cell foundation model",
+      "abstract": "Single-cell foundation models (scFMs) increasingly rely on large-scale transcriptomic pretraining, yet expanding pretraining data can yield diminishing gains while substantially increasing computational cost. Our data scaling analyses showed that incorporating biological knowledge, including cell-level text annotation and gene-level regulatory information, provided additional scaling dimension than simply increasing data size. Motivated by this observation, we present scKITE, a simple yet effective scFM that integrates cell-annotation and gene-regulatory supervision into a shared transcriptomic Transformer encoder through lightweight auxiliary decoders. These decoders are used only during pretraining and subsequently discarded, yielding a general-purpose encoder enriched with biological knowledge for downstream applications. With only 179,067 pretraining samples, i.e., less than 0.5\\% of those used by previous strong scFMs, scKITE outperformed these models across diverse downstream tasks, highlighting knowledge-enhanced pretraining as a promising paradigm for biologically grounded scFMs.",
+      "authors": [
+        "Hanqing Zhang",
+        "Jie Bao",
+        "Mei Ma",
+        "Shuai Liu",
+        "Jiaying Ma",
+        "Jiaguan Liu",
+        "Jiaxiao Li",
+        "Zhenbo Li",
+        "Wenwen Gong",
+        "Zhijun Ca"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "q-bio.GN"
+      ],
+      "published": "2026-09-14 03:23:55+00:00",
+      "link": "https://arxiv.org/pdf/2609.14970v1",
+      "comment": "",
+      "journal_ref": "",
+      "doi": "",
+      "tags": [
+        "keyword:virtual-cell",
+        "query:virtual-cell"
+      ],
+      "acceptance": {
+        "status": "not_declared",
+        "venue_type": "unspecified",
+        "evidence": "",
+        "evidence_source": "",
+        "verification": "author_claim_only"
+      },
+      "llm_score": 8.0,
+      "llm_evidence_en": "knowledge-enhanced single-cell foundation model injecting gene-regulatory and cell-annotation supervision",
+      "llm_evidence_cn": "注入基因调控与细胞注释监督的知识增强单细胞基础模型",
+      "llm_evidence": "注入基因调控与细胞注释监督的知识增强单细胞基础模型",
+      "canonical_evidence": "注入基因调控与细胞注释监督的知识增强单细胞基础模型",
+      "llm_tldr_en": "scKITE is a single-cell foundation model that adds cell-annotation and gene-regulatory supervision through lightweight pretraining-only decoders, arguing biological knowledge is a better scaling axis than more transcriptomic data.",
+      "llm_tldr_cn": "单细胞基础模型依赖大规模转录组预训练，但继续扩大数据带来的收益递减且算力开销剧增。作者通过数据规模化分析发现，引入细胞级文本注释与基因级调控信息可提供新的扩展维度，据此提出scKITE：在共享的转录组Transformer编码器上接入轻量辅助解码器，注入细胞注释与基因调控监督，解码器仅在预训练阶段使用并在下游丢弃。该设计在有限数据规模下获得更强的通用编码器，为知识增强的单细胞基础模型提供了简洁可行的路线。",
+      "llm_tldr": "单细胞基础模型依赖大规模转录组预训练，但继续扩大数据带来的收益递减且算力开销剧增。作者通过数据规模化分析发现，引入细胞级文本注释与基因级调控信息可提供新的扩展维度，据此提出scKITE：在共享的转录组Transformer编码器上接入轻量辅助解码器，注入细胞注释与基因调控监督，解码器仅在预训练阶段使用并在下游丢弃。该设计在有限数据规模下获得更强的通用编码器，为知识增强的单细胞基础模型提供了简洁可行的路线。",
+      "llm_tags": [
+        "query:virtual-cell:composite"
+      ],
+      "matched_query_tag": "query:virtual-cell:composite",
+      "matched_query_text": "Papers central to 面向虚拟细胞与单细胞基础模型的论文检索规划，覆盖分布外扰动预测、知识增强、高效建模、因果表示、动态路由与空间上下文增强。, especially work that connects or combines: single-cell foundation models pretrained on transcriptomic data for cellular perturbation prediction; algorithms for predicting single-cell transcriptional responses to genetic drug and environmental perturbations; out-of-distribution generalization of perturbation predictors to unseen genes drugs cell types and combinations; knowledge-enhanced cellular perturbation prediction using biological prior knowledge and relational graphs; parameter-efficient fine-tuning adapters and low-rank adaptation for single-cell foundation models; causal representation learning for reliable cellular perturbation response prediction; single cell foundation models for out of distribution cellular perturbation prediction across unseen genes drugs cell types and their combinations; knowledge enhanced perturbation prediction that incorporates gene regulatory networks protein interaction networks pathways and drug targets; efficient single cell foundation models using parameter efficient fine tuning gene token compression sparse computation distillation and adaptive computation; causal and spatially aware perturbation prediction with counterfactual constraints invariant learning dynamic routing and cell cell interaction context.",
+      "matched_requirement_id": "req-composite-virtual-cell",
+      "selection_source": "fresh_fetch"
+    }
+  ]
+}

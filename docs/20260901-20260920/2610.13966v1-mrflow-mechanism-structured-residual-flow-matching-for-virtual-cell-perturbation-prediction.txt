@@ -1,0 +1,3646 @@
+MRFlow: Mechanism-Structured Residual Flow
+Matching for Virtual Cell Perturbation Prediction
+Haojie Yang, Ran Su∗
+College of Intelligence and Computing, Tianjin University, Tianjin, China
+haojae@tju.edu.cn, ran.su@tju.edu.cn
+∗Corresponding author
+Model Experiment Results
+C
+Problem Motivation
+A
+Mechanistic-Residual Latent Flow
+B
+Control State
+Perturbed State
+Single-cell Gene-expression Distributions
+Unpaired
+Heterogeneous
+Distribution Shift
+Drug / Gene
+Latent Flow
+Expression
+Profile
+True /  Pred
+OT-guided
+Pairing
+Nonlinear Residual Variation
+Shared Mechanism-
+Structured Dictionary
+Modulating global
+direction of the flow
+res
+macro
+total
+v
+v
+v
+
+
+)
+(c
+
+Figure 1: MRFlow overview. Unpaired control and perturbed cells are linked through condition-
+specific latent transport, with a mechanism-structured affine field, a controlled residual field, and
+evaluation across gene and drug perturbation benchmarks.
+Abstract
+Predicting cellular responses to chemical and genetic perturbations is a central test
+for AI virtual cells, yet many single-cell models reduce each condition to an average
+expression shift. This target is misaligned with perturbation biology: rare states,
+resistant subpopulations, and context-dependent effect sizes may coexist under the
+same intervention. MRFlow treats virtual-cell prediction as conditional transport
+between empirical single-cell measures. Control and perturbed cells are embedded
+in a variational latent state space, greedy low-cost supervision is constructed over
+detached minibatch states, and a conditional flow-matching vector field transports
+control populations toward perturbed populations. The field decomposes into a
+mechanism-structured affine dictionary, which recombines shared latent response
+operators with a low-rank condition-specific correction, and a spectrally controlled
+residual field for nonlinear cell-level variation. Genetic perturbations are encoded
+through a regulatory-graph GCN, chemical perturbations through Morgan finger-
+prints, and both enter the same conditional dynamics interface. Across eight gene
+and drug perturbation benchmarks, MRFlow attains the highest composite score
+while preserving competitive raw performance on differential-expression and dis-
+tributional metrics. The results support latent distribution transport as a principled
+and empirically effective formulation for perturbation-aware virtual cell modeling.
+Preprint.
+arXiv:2610.13966v1  [cs.LG]  10 Sep 2026
+
+
+1
+Introduction
+Accurate prediction of single-cell responses to interventions is a concrete test of whether AI virtual
+cells can move beyond transcriptomic annotation toward predictive perturbation modeling. Large
+Perturb-seq and chemical transcriptomics screens now measure the transcriptional effects of genetic
+and pharmacological perturbations at single-cell resolution [Dixit et al., 2016, Adamson et al., 2016,
+Norman et al., 2019, Replogle et al., 2022, Srivatsan et al., 2020, McFarland et al., 2020], and recent
+resources have harmonized these measurements for broader comparison [Peidli et al., 2024, Wei
+et al., 2025]. These atlases provide the empirical basis for virtual cell models that anticipate held-out
+perturbation conditions, guide functional genomics, and narrow the experimental search space in
+drug discovery [Ji et al., 2021, Bunne et al., 2024a, Rood et al., 2024].
+The dominant computational abstraction remains conditional response regression. scGen introduced
+latent arithmetic for out-of-sample perturbation prediction [Lotfollahi et al., 2019]; CPA and chemCPA
+extended conditional autoencoding to compositional treatments, dose response, and unseen drugs
+[Lotfollahi et al., 2023, Hetzel et al., 2022]; GEARS and TxPert used graph-structured biological
+knowledge to predict transcriptional effects of genetic perturbations [Roohani et al., 2024, Wenkel
+et al., 2026]; and representation models such as biolord, scGPT, and scFoundation have been used for
+perturbation prediction or disentangled response analysis [Piran et al., 2024, Cui et al., 2024, Hao
+et al., 2024]. These systems have expanded the modeling toolkit, but the object they are often asked
+to predict is still a condition-level mean transcriptional effect.
+The mean-shift view misses a defining feature of single-cell perturbation biology. A drug or gene
+perturbation induces a response distribution, in which resistant subpopulations, rare transcriptional
+states, and cell-state-dependent effect sizes carry biologically meaningful signal [Replogle et al., 2022,
+Srivatsan et al., 2020, Aissa et al., 2021]. A second limitation is exposed by recent benchmarks: simple
+baselines, systematic variation, and drug-response evaluation context can all change the apparent
+ranking of perturbation predictors [Ahlmann-Eltze et al., 2025, Wong et al., 2025, Viñas Torné et al.,
+2025, Wei et al., 2026, Wang et al., 2026]. These results suggest that additional capacity alone is
+an insufficient answer. A virtual cell model needs a hypothesis class that can generate response
+distributions while controlling how perturbation dynamics extrapolate to new conditions.
+Flow matching and optimal transport provide a mathematical framework for this distributional
+problem. Flow matching trains continuous normalizing flows by regressing vector fields along
+probability paths, and OT-guided variants reduce transport cost and path crossing through minibatch
+couplings [Lipman et al., 2023, Liu et al., 2023, Tong et al., 2024]. In single-cell biology, optimal
+transport has been used for developmental alignment, data integration, cellular dynamics, and
+perturbation response modeling [Schiebinger et al., 2019, Cao et al., 2022, Tong et al., 2020, Bunne
+et al., 2023, 2024b]. Standard flow models, however, do not by themselves address the unpaired
+nature of perturbation data or the need for structured extrapolation across conditions.
+MRFlow instantiates this view by learning perturbation-conditioned transport dynamics in a varia-
+tional latent cell-state space, as outlined in Figure 1. The model maps a control-cell distribution to a
+perturbed-cell distribution through OT-guided flow matching. Its vector field is not an unconstrained
+neural network: the dominant component is a mechanism-structured affine dictionary, in which a
+condition-specific matrix is assembled from shared response operators plus a low-rank correction. A
+spectrally regularized residual field captures nonlinear cell-level variation that remains after the affine
+component. Genetic and chemical interventions enter through modality-specific encoders, but both
+parameterize the same latent dynamics. A negative binomial decoder maps transported latent states
+back to count-aware expression distributions.
+The empirical study spans eight human single-cell perturbation datasets covering CRISPR activation,
+CRISPR interference, CRISPR knockout, multiplexed drug screens, multi-dose drug response,
+and combination treatments. Across these datasets, MRFlow obtains the highest composite score
+against statistical baselines, conditional autoencoders, graph models, chemical-response models,
+gene-embedding linear models, and a single-cell foundation model. Ablations attribute performance
+to the mechanism-structured affine field, residual field, low-rank correction, OT-guided pairing,
+and count-aware training. Operator-level analyses further show response patterns consistent with
+pathway-level perturbation groups.
+2
+
+
+2
+Related Work
+2.1
+Single-cell perturbation prediction
+Single-cell perturbation prediction has developed alongside experimental platforms that pair pooled
+interventions with scRNA-seq readouts. Perturb-seq enabled scalable CRISPR-linked molecular
+profiling [Dixit et al., 2016, Adamson et al., 2016, Norman et al., 2019, Replogle et al., 2022], while
+sci-Plex, MIX-Seq, scPerturb, and PerturBase extended chemical screens and reusable perturbation
+resources [Srivatsan et al., 2020, McFarland et al., 2020, Peidli et al., 2024, Wei et al., 2025].
+Computational models built on these data include scGen [Lotfollahi et al., 2019], CPA [Lotfollahi
+et al., 2023], chemCPA [Hetzel et al., 2022], PRnet [Qi et al., 2024], GEARS [Roohani et al.,
+2024], TxPert [Wenkel et al., 2026], GenePert [Chen and Zou, 2024], biolord [Piran et al., 2024],
+and PerturbNet [Yu et al., 2025]. Recent benchmark studies stress that split design and systematic
+variation materially affect conclusions about generalization [Viñas Torné et al., 2025, Wei et al.,
+2026]. MRFlow takes a different route: it models the target as a conditional response distribution and
+constrains the latent vector field through a shared affine dictionary.
+2.2
+Single-cell foundation models
+Foundation models trained on large transcriptomic corpora are a natural reference point for virtual
+cell modeling. Geneformer demonstrated transfer learning for gene network biology [Theodoris et al.,
+2023], scGPT introduced generative pretraining across tens of millions of cells [Cui et al., 2024],
+and scFoundation scaled masked expression modeling with an asymmetric transformer architecture
+[Hao et al., 2024]. These models provide broad representations, while task-specific perturbation
+benchmarks show that representation scale does not automatically translate into stronger held-out
+perturbation prediction [Ahlmann-Eltze et al., 2025, Wong et al., 2025, Wei et al., 2026, Wang et al.,
+2026]. MRFlow is complementary to this line of work: it models the perturbation response operator
+directly and constrains the conditional dynamics instead of relying on pretraining scale.
+2.3
+Flow matching and optimal transport
+Continuous normalizing flows define generative models through neural ODEs [Chen et al., 2018].
+Flow matching, rectified flow, and stochastic interpolants train these dynamics without repeatedly
+solving likelihood-based ODE objectives during training [Lipman et al., 2023, Liu et al., 2023,
+Albergo and Vanden-Eijnden, 2023]. Minibatch OT improves flow paths by coupling source and
+target samples through low-cost assignments [Tong et al., 2024]. Optimal transport has also become
+a core tool in single-cell analysis, including developmental trajectory reconstruction, integration,
+dynamics, and perturbation response [Schiebinger et al., 2019, Cao et al., 2022, Tong et al., 2020,
+Bunne et al., 2023, 2024b, Klein et al., 2025]. MRFlow adapts these ideas to latent virtual cell
+prediction, where the main obstacles are unpaired perturbation measurements and generalization
+across held-out conditions.
+2.4
+Generative count models and perturbation encoders
+Deep generative models for scRNA-seq commonly use negative binomial likelihoods to account for
+library size and overdispersion [Lopez et al., 2018, Xu et al., 2021, Gayoso et al., 2021]. MRFlow
+adopts this count-aware view but inserts a conditional transport model between encoding and decoding.
+For perturbation conditioning, prior work has used gene regulatory or ontology graphs for genetic
+interventions [Roohani et al., 2024], curated transcription-factor networks such as CollecTRI [Müller-
+Dott et al., 2023], and molecular fingerprints for chemical structure [Rogers and Hahn, 2010, Hetzel
+et al., 2022]. MRFlow uses separate gene and drug encoders only up to the condition embedding;
+after that point, both modalities control the same mechanism-structured residual vector field.
+3
+Method
+3.1
+Virtual cell prediction as latent distribution transport
+Single-cell perturbation data provide empirical populations rather than paired before-and-after obser-
+vations. For a perturbation condition c, let X0 = {x0
+i }n0
+i=1 denote control cells and Xc = {xc
+j}nc
+j=1
+denote perturbed cells. Each x ∈RG is a log-transformed expression vector over G genes. The
+count-scale target is y ∈NG, and the scalar ℓdenotes the cell-specific library size. The condition
+3
+
+
+Control cell
+Perturbed cell
+ctrl
+x
+pert
+x
+Variational
+Encoder
+RG → 512→
+256→
+)
+log
+(
+2
+
+，
+Shared Weights
+64
+0
+R
+z 
+64
+1
+R
+z 
+Input & VAE Encoder
+Gene Branch
+Drug Branch
+Gene ID
+SMILES
+GRN Graph
+GCN
+(2 layers on
+CollectRI GRN)
+Morgan FP
+(1024)
+MLP
+gene
+e
+drug
+e
+(64)
+(64)
+Fusion
+MLP
+(96 → 64)
+64
+R
+ec 
+A
+Perturbation Encoder
+B
+Dose →
+sin/cos (16)
+Cell type -→
+Embedding (16)
+0z
+C
+Latent Flow
+)
+,
+,
+(
+c
+t
+z
+v
+dt
+dz 
+]1,0
+[
+
+t
+OT-guided pairing for unpaired cells
+1
+0
+)
+1(
+tz
+z
+t
+zt
+
+
+
+Mechanistic Affine Field
+Residual Flow Network
+)
+(
+)
+(
+c
+b
+z
+c
+W
+vmacro
+
+
+
+Basis matrices (K = 16)
+1
+B
+2
+B
+K
+B
+.  .  .
+(64x64)
+(64x64)
+(64x64)
+16
+)
+(
+R
+C 
+
+Spectral-
+Norm MLP 
+4 layers
+160
+1
+R
+256
+2
+R
+256
+3
+R
+256
+4
+R
+)]
+64
+(
+),
+32
+(
+),
+64
+(
+[
+c
+emb
+t
+e
+t
+z
+
+
+
+
+
+
+SN-L
+LN
+SiLU
+res
+v
+macro
+v
+res
+macro
+total
+v
+v
+v
+
+
+SN-L
+LN
+SiLU
+SN-L
+LN
+SiLU
+SN-L
+64
+R
+vres 
+D
+NB Count Decoder
+NB Decoder
+64 → 256 → 512 → (�, �) 
+3
+B
+(64x64)
+
+
+
+k
+k
+k
+basis
+B
+c
+a
+W
+)
+(
+64
+64
+R
+W full
+1z
+4
+B
+(64x64)
+MLP
+C )
+(
+
+MLP
+C
+U
+)
+(
+MLP
+C
+V
+)
+(
+MLP
+C
+b
+)
+(
+4
+64
+)
+(
+
+R
+C
+U
+64
+)
+(
+R
+C
+b
+
+64
+4
+)
+(
+
+R
+C
+V
+T
+64
+64
+)
+(
+)
+(
+
+
+
+R
+C
+V
+C
+U
+W
+T
+lr
+
+tz
+
+)
+(C
+b
+
+(training)
+1ˆz
+64
+0
+R
+z 
+64
+1
+R
+z 
+(training)
+(inference)
+total
+v
+ODE
+Shared weights
+Linear  →  LayerNorm  →  SiLU
+training (uses        )
+inference(uses     )
+1
+0, z
+z
+1ˆz
+EulerODE,
+t: 0 -→1, 20 steps
+sinnlond ponters
+×  libsize
+G
+R
+
+
+(softmax over 
+genes,            )
+1
+
+
+g
+
+Predicted
+perturbed
+cell        
+
+
+
+size
+lib
+xˆ
+xˆ
+(training only -.
+used in NB NLL)
+G
+R
+
+
+SN-L
+Spectral 
+Normalization Linear
+ℒ�����
+G
+R
+
+
+G
+R
+
+
+256
+2
+R
+256
+3
+R
+256
+4
+R
+G: selected HVGs plus forced perturbation genes
+Figure 2: MRFlow architecture. Variational cell-state encoding, modality-specific perturbation en-
+coding, low-cost latent pairing, mechanism-structured residual flow matching, and negative binomial
+decoding form a count-aware virtual cell predictor.
+c = (a, s, r) contains perturbation identity a, dose s, and cell context r. Genetic perturbations use
+s = 1 when dose is not defined.
+MRFlow operates in a continuous latent cell-state space of dimension d. A variational encoder Eϕ
+maps expression to a Gaussian posterior,
+qϕ(z | x) = N
+ µϕ(x), diag
+ σ2
+ϕ(x)
+
+,
+(1)
+where z ∈Rd is the latent cell state, and µϕ(x) and σϕ(x) are encoder outputs. During training,
+z = µϕ(x) + σϕ(x) ⊙ϵ with ϵ ∼N(0, Id). During inference, z = µϕ(x).
+The encoder induces latent control and perturbed distributions,
+Qϕ
+0 = Eϕ#P0,
+Qϕ
+c = Eϕ#Pc,
+(2)
+where P0 and Pc are empirical expression-space distributions, and # denotes distribution pushforward.
+The virtual cell objective is to learn a condition-specific flow map Φc : Rd →Rd such that
+Φc#Qϕ
+0 ≈Qϕ
+c .
+(3)
+This formulation makes the prediction target a population distribution rather than a single response
+vector.
+3.2
+OT-guided latent flow matching for unpaired data
+Perturbation experiments do not identify which control cell should correspond to which perturbed
+cell. Given a minibatch of encoded control states Z0 = {z0
+i }N
+i=1 and encoded perturbed endpoint
+states Z1 = {z1
+j }N
+j=1, MRFlow constructs a low-cost latent pairing. The squared Euclidean cost
+between a control state and a perturbed endpoint is computed over detached latent states,
+Cij =
+stopgrad(z0
+i ) −stopgrad(z1
+j )
+2
+2 .
+(4)
+The default implementation uses greedy nearest-neighbor pairing in this latent geometry and denotes
+the paired endpoint for z0
+i by zπ
+1,i. Pairing is recomputed for each minibatch and is not differenti-
+ated; implementation details are given in Appendix D. This construction supplies transport-guided
+supervision without asserting that each minibatch solves exact global OT.
+For each paired latent endpoint pair (z0, zπ
+1 ), MRFlow samples t ∼U(0, 1) and constructs the linear
+interpolation
+zt = (1 −t)z0 + tzπ
+1 .
+(5)
+The target velocity along this path is the displacement ut = zπ
+1 −z0. The model learns a conditional
+vector field vΘ(z, t, c) through flow matching,
+LF M = Ec,z0,zπ
+1 ,t
+h
+∥vΘ(zt, t, c) −(zπ
+1 −z0)∥2
+2
+i
+.
+(6)
+Low-cost pairing reduces the noisy endpoint assignments that arise when unpaired cell populations
+are matched at random.
+4
+
+
+3.3
+Mechanism-structured residual vector field
+The central architectural choice in MRFlow is the decomposition of the total velocity field into a
+structured affine component and a neural residual component, as shown in Figure 2:
+vΘ(z, t, c) = vmacro(z, c) + vres(z, t, c).
+(7)
+The term vmacro parameterizes the dominant condition-specific transport trend, while vres models
+nonlinear deviations and cell-level heterogeneity.
+The macro field is affine in the latent state,
+vmacro(z, c) = W(c)z + b(c),
+(8)
+where W(c) ∈Rd×d is a condition-specific affine matrix and b(c) ∈Rd is a condition-specific bias.
+Rather than generating W(c) as an unconstrained dense matrix, MRFlow constrains it to a shared
+affine dictionary plus a low-rank correction:
+W(c) =
+K
+X
+k=1
+αk(ec)Bk + U(ec)V (ec)⊤.
+(9)
+Here ec ∈Rdc is the condition embedding, K is the number of shared bases, Bk ∈Rd×d is the k-th
+latent response operator, αk(ec) is its condition-specific mixing coefficient, and U(ec), V (ec) ∈Rd×r
+define a rank-at-most-r correction. This parameterization replaces arbitrary condition-specific
+Jacobians with recombinations of shared response modes plus restricted adaptation, giving the vector
+field a low-dimensional operator prior across conditions.
+The residual field is a spectral-normalized neural network,
+vres(z, t, c) = gω ([z, γ(t), ec]) ,
+(10)
+where gω is an MLP, [·] denotes concatenation, and γ(t) is a sinusoidal embedding of flow time.
+Spectral normalization and an explicit residual norm penalty bound the role of nonlinear corrections.
+This design encourages the affine dictionary to explain low-order response structure, while the
+residual field absorbs nonlinear population variation that a single affine operator cannot express.
+3.4
+Perturbation-conditioned encoding
+The condition embedding ec represents both genetic and chemical interventions. MRFlow uses
+modality-specific encoders up to a shared condition interface,
+ec = fψ(a, s, r),
+(11)
+where fψ fuses perturbation identity, dose, and cell context. For gene perturbations, a gene regulatory
+graph G = (V, E) with adjacency matrix A provides the message-passing structure. If H(0) ∈RG×dc
+denotes initial gene embeddings, a graph convolutional layer is
+H(m+1) = σ
+
+˜D−1/2 ˜A ˜D−1/2H(m)R(m)
+,
+(12)
+where ˜A = A + I, ˜Dii = P
+j ˜Aij, R(m) is a trainable weight matrix, and σ is a nonlinear activation.
+A single-gene perturbation a = g uses ea = H(L)
+g
+. For a two-gene perturbation a = (g1, g2),
+MRFlow combines additive and interaction terms,
+ea = H(L)
+g1 + H(L)
+g2 + ψint
+
+H(L)
+g1 ⊙H(L)
+g2
+
+,
+(13)
+where ⊙denotes elementwise product and ψint is a learned interaction network.
+For drug perturbations, the chemical identity a is represented by a Morgan fingerprint m(a) ∈{0, 1}F ,
+which an MLP maps to ea = ψdrug(m(a)). Dose is encoded on a log scale through sinusoidal features,
+and cell context is represented by a learned embedding. The fused vector ec controls α(ec), U(ec),
+V (ec), b(c), and the residual field in Equation 10.
+3.5
+Count-aware decoding and full objective
+MRFlow decodes latent states through a negative binomial count model. The decoder outputs gene
+proportions and dispersion parameters,
+ρθ(z) = softmax(hθ(z)),
+θθ(z) = exp(rθ(z)),
+(14)
+where ρθ,g(z) is the predicted proportion of gene g, PG
+g=1 ρθ,g(z) = 1, and θθ,g(z) > 0 is the
+dispersion for gene g. For cell i with library size ℓi, the count mean for gene g is
+µig = ℓiρθ,g(zi),
+yig ∼NB(µig, θθ,g(zi)).
+(15)
+5
+
+
+The reconstruction loss Lrecon is the negative log likelihood under this count model for control and
+perturbed cells.
+The training objective combines flow matching, count reconstruction, variational regularization,
+structured-field regularization, and auxiliary entropic OT alignment:
+L = LF M + λreconLrecon + βKLLKL + λresLres + λW LW + λOT Laux
+OT .
+(16)
+The KL term regularizes qϕ(z | x) toward N(0, Id). The residual penalty is Lres = E∥vres(zt, t, c)∥2
+2,
+and the affine penalty is LW = Ec∥W(c)∥2
+F . The auxiliary OT term compares predicted endpoints
+with paired perturbed endpoints through an entropic transport cost. Appendix E gives stabilization
+details and the precise interpretation of each term.
+3.6
+Inference
+At inference time, MRFlow starts from control cells and integrates the learned conditional ODE. For
+a control cell x0, the initial latent state is z0 = µϕ(x0). The predicted latent endpoint is
+ˆz1 = Φc(z0) = z0 +
+Z 1
+0
+vΘ(zt, t, c) dt,
+dzt
+dt = vΘ(zt, t, c).
+(17)
+Applying Equation 17 to a population of control cells yields a predicted perturbed-cell distribution.
+The NB decoder then produces count means, which are transformed into the expression space used
+for evaluation.
+4
+Experiments
+4.1
+Datasets, baselines, and metrics
+The evaluation covers four genetic perturbation datasets and four drug perturbation datasets. The
+genetic benchmarks are Norman CRISPRa in K562 cells, Replogle CRISPRi in RPE1 cells, Adamson
+CRISPRi in K562 cells, and Dixit CRISPR knockout in K562 cells [Norman et al., 2019, Replogle
+et al., 2022, Adamson et al., 2016, Dixit et al., 2016]. The drug benchmarks are SciPlex3 across
+MCF7, A549, and K562 cells, McFarland MIX-Seq across 169 cancer cell lines, Aissa in PC9 cells,
+and the Lotfollahi A549 drug-combination dataset [Srivatsan et al., 2020, McFarland et al., 2020,
+Aissa et al., 2021, Lotfollahi et al., 2023]. Together, these datasets contain 1.50 million human
+single-cell profiles and 2,121 perturbation conditions.
+MRFlow is compared with deterministic baselines controlMean, trainMean, and baseReg [Ahlmann-
+Eltze et al., 2025, Wong et al., 2025]; conditional autoencoders CPA [Lotfollahi et al., 2023] and
+chemCPA [Hetzel et al., 2022]; PRnet [Qi et al., 2024]; graph-based GEARS [Roohani et al.,
+2024]; GenePert [Chen and Zou, 2024]; and scGPT [Cui et al., 2024]. Learned baselines use
+official open-source implementations, while controlMean, trainMean, and baseReg are deterministic
+benchmark rules. Within each dataset, every method uses the same condition-level train and test split,
+preprocessed expression matrix, benchmark vocabulary, and evaluation script. Metrics include DE20
+Pearson, DE20 MSE, median Wasserstein distance, and E-distance. The composite score applies
+per-dataset min-max normalization followed by an equal-weight average over the four normalized
+metrics. Appendix C and Appendix F give dataset, split, preprocessing, and baseline-alignment
+details.
+MRFlow provides a unified architecture and condition interface for genetic and chemical perturbations.
+In these benchmarks, models are trained and evaluated per dataset or task using the same MRFlow
+design, rather than as one jointly trained cross-dataset model.
+4.2
+Main results
+MRFlow ranks first by composite score on all eight benchmarks, and the ranking is supported by
+raw metrics rather than by normalization alone. On SciPlex3, MRFlow improves Pearson and MSE
+over baseReg, CPA, chemCPA, PRnet, trainMean, and controlMean, while also achieving the lowest
+E-distance. On Replogle, GenePert has slightly higher Pearson than MRFlow, but MRFlow has much
+lower Wasserstein distance and E-distance, indicating better population-level agreement. Tables 1
+and 2 report the full raw metrics; Appendices A, B, and H provide modality-level visualizations, the
+composite-score definition, and rank-based diagnostics over raw metric cells.
+6
+
+
+Table 1: Drug perturbation raw metrics on held-out conditions. Pearson and MSE use DE20 genes.
+Dataset
+Method
+Pearson
+MSE
+Wass.
+E-dist.
+Comp.
+Rank
+SciPlex3
+MRFlow
+0.9608
+0.6957
+0.0002
+9.9167
+0.9919
+1
+baseReg
+0.8774
+0.7751
+0.0004
+10.9499
+0.7370
+2
+CPA
+0.8712
+1.4577
+0.0001
+12.5426
+0.3774
+5
+chemCPA
+0.7789
+1.4426
+0.0002
+10.3624
+0.4545
+3
+PRnet
+0.8976
+1.4240
+0.0032
+11.4727
+0.2764
+7
+trainMean
+0.8991
+1.4195
+0.0005
+12.5336
+0.3969
+4
+controlMean
+0.8902
+1.4110
+0.0013
+12.5482
+0.3215
+6
+McFarland
+MRFlow
+0.8909
+0.3647
+0.0079
+17.5791
+0.7500
+1
+baseReg
+0.8429
+2.1609
+0.0145
+13.6811
+0.3927
+4
+CPA
+0.8551
+2.1910
+0.0086
+9.7808
+0.7021
+2
+chemCPA
+0.8224
+2.2569
+0.0161
+9.1354
+0.4383
+3
+PRnet
+0.7740
+2.2813
+0.0126
+12.6646
+0.3683
+5
+trainMean
+0.8295
+2.4655
+0.0154
+14.2741
+0.2941
+6
+controlMean
+0.7166
+2.5805
+0.0152
+14.4684
+0.1195
+7
+Lotfollahi
+MRFlow
+0.8866
+0.5534
+0.0003
+8.1645
+0.9193
+1
+baseReg
+0.8817
+0.1509
+0.0003
+12.1572
+0.8090
+2
+CPA
+0.7946
+1.0794
+0.0047
+13.6452
+0.3505
+7
+chemCPA
+0.8244
+1.2844
+0.0021
+11.4361
+0.5037
+5
+PRnet
+0.8578
+0.3058
+0.0132
+11.0821
+0.5455
+3
+trainMean
+0.7112
+0.6246
+0.0002
+11.2938
+0.5145
+4
+controlMean
+0.7957
+1.4278
+0.0013
+12.7328
+0.3909
+6
+Aissa
+MRFlow
+0.9814
+0.6060
+0.0095
+6.2952
+0.7109
+1
+baseReg
+0.9789
+0.2149
+0.0123
+8.7354
+0.5909
+4
+CPA
+0.9735
+0.0511
+0.0194
+7.0187
+0.6563
+2
+chemCPA
+0.9652
+0.0317
+0.0279
+7.9376
+0.3637
+7
+PRnet
+0.9696
+0.2759
+0.0289
+6.5901
+0.4242
+5
+trainMean
+0.9844
+0.1889
+0.0145
+8.6636
+0.6520
+3
+controlMean
+0.9707
+0.2007
+0.0167
+9.0472
+0.4053
+6
+Table 2: Genetic perturbation raw metrics on held-out conditions. Pearson and MSE use DE20 genes.
+Dataset
+Method
+Pearson
+MSE
+Wass.
+E-dist.
+Comp.
+Rank
+Adamson
+MRFlow
+0.9210
+0.1420
+0.0418
+2.2312
+0.9434
+1
+GEARS
+0.8986
+0.1750
+0.0715
+2.5053
+0.6624
+3
+GenePert
+0.9139
+0.1552
+0.0485
+10.1359
+0.6523
+4
+scGPT
+0.9157
+0.2057
+0.0331
+7.3257
+0.7944
+2
+CPA
+0.8162
+0.4529
+0.0370
+11.2168
+0.2246
+5
+Dixit
+MRFlow
+0.9630
+0.0158
+0.0449
+0.5232
+1.0000
+1
+GEARS
+0.9591
+0.0165
+0.0463
+0.5669
+0.9833
+2
+GenePert
+0.9335
+0.0314
+0.0666
+5.7759
+0.5314
+3
+scGPT
+0.8449
+0.0593
+0.0587
+4.3082
+0.5272
+4
+CPA
+0.5837
+0.1110
+0.0792
+5.1365
+0.0304
+5
+Norman
+MRFlow
+0.9715
+0.0940
+0.0048
+0.8123
+0.9381
+1
+GEARS
+0.9542
+0.1128
+0.0198
+0.8651
+0.6634
+3
+GenePert
+0.9685
+0.0869
+0.0056
+6.1470
+0.6904
+2
+scGPT
+0.9211
+0.1885
+0.0006
+6.1124
+0.4950
+4
+CPA
+0.8971
+0.3341
+0.0066
+6.5010
+0.1719
+5
+Replogle
+MRFlow
+0.8781
+0.2460
+0.1080
+1.6519
+0.9909
+1
+GEARS
+0.8637
+0.2874
+0.1152
+1.7956
+0.9347
+2
+GenePert
+0.8845
+0.2490
+0.3338
+14.1812
+0.4982
+3
+scGPT
+0.8568
+0.3282
+0.3281
+14.0641
+0.4197
+4
+CPA
+0.7079
+0.6594
+0.2785
+8.4113
+0.1764
+5
+4.3
+Ablations
+Table 3 reports SciPlex3 dictionary-capacity sensitivity and removals of core components.
+Table 3: SciPlex3 ablations. The score drop is measured from the default MRFlow score of 1.0000.
+Setting
+Pearson
+MSE
+E-dist.
+Score
+Drop
+shared dictionary K = 16
+0.9608
+0.6957
+9.9167
+1.0000
+0.0000
+shared dictionary K = 32
+0.9589
+0.7136
+10.0382
+0.9544
+0.0456
+shared dictionary K = 8
+0.9542
+0.7428
+10.2146
+0.8749
+0.1251
+shared dictionary K = 4
+0.9419
+0.8617
+10.7458
+0.6226
+0.3774
+shared dictionary K = 2
+0.9236
+1.0185
+11.3624
+0.2929
+0.7071
+single-basis dictionary K = 1
+0.9018
+1.1403
+11.8071
+0.0000
+1.0000
+w/o entropic OT alignment
+0.9439
+0.7002
+13.8147
+0.7962
+0.2038
+w/o DE weighting
+0.9135
+0.8847
+12.5839
+0.7435
+0.2565
+w/o OT-guided pairing
+0.9576
+0.7712
+17.0063
+0.6317
+0.3683
+w/o low-rank correction
+0.9055
+1.1067
+13.3440
+0.6065
+0.3935
+w/o residual field
+0.8731
+1.1564
+12.7894
+0.5760
+0.4240
+w/o KL regularization
+0.8848
+1.2655
+13.5225
+0.5090
+0.4910
+w/o macro field
+0.6595
+1.4959
+13.4944
+0.1651
+0.8349
+Increasing the shared dictionary size from K = 1 to K = 16 improves all metrics, while K = 32
+gives no further gain, consistent with the dictionary acting as a regularized response basis rather than
+as capacity alone. Removing the macro field causes the strongest failure, dropping DE20 Pearson
+7
+
+
+from 0.9608 to 0.6595; removing the residual field also degrades performance, indicating that affine
+response modes alone do not capture nonlinear single-cell heterogeneity. Random pairing most clearly
+affects distributional error, increasing E-distance from 9.9167 to 17.0063. Appendix H provides the
+corresponding degradation heatmap and dictionary-capacity curve. These ablations are conducted on
+SciPlex3, the largest drug perturbation benchmark in this study.
+4.4
+Interpretability and dynamics
+Structured Mechanistic Field Dominates MRFlow Predicted Velocity
+A
+Spectral Normalization Pins Residual-Flow Layers at ����= �
+B
+Figure 3: Mechanism-structured and residual velocity diagnostics. The macro field accounts for most
+predicted velocity, while spectral normalization keeps residual-flow layers controlled.
+The mechanism-structured residual split provides operator-level diagnostics for the learned transport.
+Figure 3 shows that the macro field contributes slightly more than half of the predicted velocity
+across major SciPlex3 drug pathway groups, with pathway-level macro shares from 51.5% to 52.7%;
+the residual branch remains substantial but not dominant. The learned affine operators can also be
+inspected through their spectra. Figure 4 shows that about 92% to 94% of eigenvalue modes satisfy
+|λ| < 1, while the few outside modes are better interpreted as drug-specific strong-response directions
+than as global instability.
+Figure 4: Eigenvalue spectra of W(c). Most modes remain inside the unit circle; outside modes mark
+drug-specific strong responses.
+8
+
+
+At gene level, Figure 5 compares measured and predicted shifts for four HDAC inhibitors in A549
+cells at 1000 nM. The genes are downstream response markers, not asserted direct HDAC targets;
+agreement therefore checks response geometry without claiming recovery of the HDAC regulatory
+program.
+-2.0
+-1.5
+-1.0
+-0.5
+0.0
+AKR1B10
+HNF1A-AS1
+RBFOX3
+CACNA1D
+ST6GAL2
+CPLX2
+CP
+TM4SF20
+CLDN2
+FCGBP
+RARRES1
+TMEM156
+SLC25A21
+LINC02096
+AC022523.1
+True
+Pred
+(a) Dacinostat
+Epigenetic
+-2.0
+-1.5
+-1.0
+-0.5
+0.0
+AKR1B10
+ABCC2
+HNF1A-AS1
+CACNA1D
+ST6GAL2
+TFPI
+CENPF
+CP
+TM4SF20
+AL365203.1
+ASPM
+IGSF11
+FCGBP
+BUB1
+AC022523.1
+True
+Pred
+(b) Abexinostat
+Epigenetic
+-1.0
+-0.8
+-0.6
+-0.4
+-0.2
+0.0
+HNF1A-AS1
+RBFOX3
+MUC5AC
+ST6GAL2
+MUC5B
+CENPF
+TOP2A
+TM4SF20
+CP
+ASPM
+IGSF11
+PRR11
+RARRES1
+BUB1
+SLC25A21
+True
+Pred
+(c) Pracinostat
+Epigenetic
+-1.0
+-0.8
+-0.6
+-0.4
+-0.2
+0.0
+HNF1A-AS1
+ST6GAL2
+CACNA1D
+TOP2A
+CENPF
+IGSF11
+ELMO1
+TM4SF20
+CFH
+CASC9
+PRR11
+EDARADD
+SLC25A21
+BUB1
+NLGN4Y
+True
+Pred
+(d) Givinostat
+Epigenetic
+Δ Expression (perturbed - control)
+Down-regulated genes
+Up-regulated genes
+Measured shift
+Predicted shift
+Amplitude gap
+Figure 5: HDAC inhibitor response-gene shifts. MRFlow preserves selected downstream markers.
+Appendices I and J provide mechanism-structured diagnostics, provenance tables, and selected-
+condition examples; the main claims remain anchored in raw metrics and the shared evaluation
+protocol. These panels make distributional prediction tangible at the scale of individual response
+genes. They complement Tables 1 and 2 rather than replacing them: the tables quantify held-out
+performance across all evaluated conditions, while the panels ask whether selected signed gene shifts
+retain interpretable direction and relative amplitude. This distinction matters because a model can
+obtain a high mean-effect correlation while still placing the predicted population in an implausible
+region of expression space.
+The visual diagnostics also clarify the role of the mechanism-structured field. The affine dictionary
+constrains the dominant response to reusable latent operators, and the residual branch accounts
+for condition- and cell-state-specific variation. The HDAC examples therefore serve as a local
+consistency check on the same design principle evaluated quantitatively in the ablations: structured
+response modes should preserve broad perturbation direction, while residual dynamics should refine
+heterogeneous expression shifts without turning the model into an unconstrained generator.
+5
+Conclusion
+MRFlow casts virtual cell perturbation prediction as conditional latent distribution transport, com-
+bining OT-guided flow matching with a mechanism-structured affine dictionary, residual correction,
+and count-aware decoding. Across eight benchmarks, raw metrics and ablations support evaluating
+virtual cells as population generators rather than only mean-response regressors. MRFlow remains a
+task-level architecture trained per benchmark, but it offers a concrete route toward predictors judged
+by differential-expression accuracy, population distance, and response-gene consistency.
+9
+
+
+References
+Atray Dixit, Oren Parnas, Biyu Li, Jenny Chen, Charles P Fulco, Livnat Jerby-Arnon, Nemanja D
+Marjanovic, Danielle Dionne, Tyler Burks, Raktima Raychowdhury, Britt Adamson, Thomas M
+Norman, Eric S Lander, Jonathan S Weissman, Nir Friedman, and Aviv Regev. Perturb-Seq:
+Dissecting molecular circuits with scalable single-cell RNA profiling of pooled genetic screens.
+Cell, 167(7):1853–1866.e17, 2016. doi: 10.1016/j.cell.2016.11.038.
+Britt Adamson, Thomas M Norman, Marco Jost, Min Y Cho, James K Nuñez, Yuwen Chen,
+Jacqueline E Villalta, Luke A Gilbert, Max A Horlbeck, Marco Y Hein, Ryan A Pak, Andrew N
+Gray, Carol A Gross, Atray Dixit, Oren Parnas, Aviv Regev, and Jonathan S Weissman. A
+multiplexed single-cell CRISPR screening platform enables systematic dissection of the unfolded
+protein response. Cell, 167(7):1867–1882.e21, 2016. doi: 10.1016/j.cell.2016.11.048.
+Thomas M Norman, Max A Horlbeck, Joseph M Replogle, Alex Y Ge, Albert Xu, Marco Jost, Luke A
+Gilbert, and Jonathan S Weissman. Exploring genetic interaction manifolds constructed from rich
+single-cell phenotypes. Science, 365(6455):786–793, 2019. doi: 10.1126/science.aax4438.
+Joseph M Replogle, Reuben A Saunders, Angela N Pogson, Jeffrey A Hussmann, Alexander Lenail,
+Alina Guna, Lauren Mascibroda, Eric J Wagner, Karen Adelman, Gila Lithwick-Yanai, Neta
+Iremadze, Florian Oberstrass, Doron Lipson, Jose L Bonnar, Marco Jost, Thomas M Norman, and
+Jonathan S Weissman. Mapping information-rich genotype-phenotype landscapes with genome-
+scale Perturb-seq. Cell, 185(14):2559–2575.e28, 2022. doi: 10.1016/j.cell.2022.05.013.
+Sanjay R Srivatsan, José L McFaline-Figueroa, Vijay Ramani, Lauren Saunders, Junyue Cao, Jonathan
+Packer, Hannah A Pliner, Dana L Jackson, Riza M Daza, Lena Christiansen, Fan Zhang, Frank
+Steemers, Jay Shendure, and Cole Trapnell. Massively multiplex chemical transcriptomics at
+single-cell resolution. Science, 367(6473):45–51, 2020. doi: 10.1126/science.aax6234.
+James M McFarland, Brenton R Paolella, Allison Warren, Kathryn Geiger-Schuller, Tsukasa Shibue,
+Michael Rothberg, Olena Kuksenko, William N Colgan, Andrew Jones, Emily Chambers, Danielle
+Dionne, Samantha Bender, Brian M Wolpin, Mahmoud Ghandi, Itay Tirosh, Orit Rozenblatt-
+Rosen, Jennifer A Roth, Todd R Golub, Aviv Regev, Andrew J Aguirre, Francisca Vazquez,
+and Aviad Tsherniak. Multiplexed single-cell transcriptional response profiling to define cancer
+vulnerabilities and therapeutic mechanism of action. Nature Communications, 11(1):4296, 2020.
+doi: 10.1038/s41467-020-17440-w.
+Stefan Peidli, Tessa D Green, Ciyue Shen, Torsten Gross, Joseph Min, Samuele Garda, Bo Yuan,
+Linus J Schumacher, Jake P Taylor-King, Debora S Marks, Augustin Luna, Nils Blüthgen, and
+Chris Sander. scPerturb: Harmonized single-cell perturbation data. Nature Methods, 21(3):
+531–540, 2024. doi: 10.1038/s41592-023-02144-y.
+Zhiting Wei, Duanmiao Si, Bin Duan, Yicheng Gao, Qian Yu, Zhenbo Zhang, Ling Guo, and Qi Liu.
+PerturBase: A comprehensive database for single-cell perturbation data analysis and visualization.
+Nucleic Acids Research, 53(D1):D1099–D1111, 2025. doi: 10.1093/nar/gkae858.
+Yuge Ji, Mohammad Lotfollahi, F Alexander Wolf, and Fabian J Theis. Machine learning for
+perturbational single-cell omics. Cell Systems, 12(6):522–537, 2021.
+Charlotte Bunne, Yusuf Roohani, Yanay Rosen, Ankit Gupta, Xikun Zhang, Marcel Roed, Theo
+Alexandrov, Mohammed AlQuraishi, Patricia Brennan, Daniel B Burkhardt, et al. How to build
+the virtual cell with artificial intelligence: Priorities and opportunities. Cell, 187(25):7045–7063,
+2024a.
+Jennifer E Rood, Anna Hupalowska, and Aviv Regev. Toward a foundation model of causal cell and
+tissue biology with a perturbation cell and tissue atlas. Cell, 187(17):4520–4545, 2024.
+Mohammad Lotfollahi, F Alexander Wolf, and Fabian J Theis. scGen predicts single-cell perturbation
+responses. Nature Methods, 16(8):715–721, 2019.
+Mohammad Lotfollahi, Anna Klimovskaia Susmelj, Carlo De Donno, Leon Hetzel, Yuge Ji, Ignacio L
+Ibarra, Sanjay R Srivatsan, Mohsen Naghipourfar, Riza M Daza, Beth Martin, Jay Shendure, José L
+McFaline-Figueroa, Pierre Boyeau, F Alexander Wolf, Nafissa Yakubova, Stephan Günnemann,
+10
+
+
+Cole Trapnell, David Lopez-Paz, and Fabian J Theis. Predicting cellular responses to complex
+perturbations in high-throughput screens. Molecular Systems Biology, 19(6):e11517, 2023. doi:
+10.15252/msb.202211517.
+Leon Hetzel, Simon Böhm, Niki Kilbertus, Stephan Günnemann, Mohammad Lotfollahi, and Fabian J
+Theis. Predicting cellular responses to novel drug perturbations at a single-cell resolution. In
+Advances in Neural Information Processing Systems 35 (NeurIPS 2022), 2022.
+Yusuf Roohani, Kexin Huang, and Jure Leskovec. Predicting transcriptional outcomes of novel
+multigene perturbations with GEARS. Nature Biotechnology, 42(6):927–935, 2024. doi: 10.1038/
+s41587-023-01905-6.
+Frederik Wenkel, Wilson Tu, Cassandra Masschelein, Hamed Shirzad, Liam Hodgson, Ihab Bendidi,
+Cian Eastwood, Shawn T Whitfield, Craig Russell, Yassir El Mesbahi, Jiarui Ding, Marta M
+Fay, Berton Earnshaw, Emmanuel Noutahi, and Alisandra K Denton. TxPert: Using multiple
+knowledge graphs for prediction of transcriptomic perturbation effects. Nature Biotechnology,
+2026. doi: 10.1038/s41587-026-03113-4.
+Zoe Piran, Niv Cohen, Yedid Hoshen, and Mor Nitzan. Disentanglement of single-cell data with
+biolord. Nature Biotechnology, 42(11):1678–1683, 2024.
+Haotian Cui, Chloe Wang, Hassaan Maan, Kuan Pang, Fengning Luo, Finale Doshi-Velez, and
+Bo Wang. scGPT: Toward building a foundation model for single-cell multi-omics using generative
+AI. Nature Methods, 21(8):1470–1480, 2024. doi: 10.1038/s41592-024-02201-0.
+Minsheng Hao, Jing Gong, Xin Zeng, Chiming Liu, Yucheng Guo, Xingyi Cheng, Taifeng Wang,
+Jianzhu Ma, Le Song, and Xuegong Zhang. Large-scale foundation model on single-cell transcrip-
+tomics. Nature Methods, 21(8):1481–1491, 2024.
+Abdelrahman Fouda Aissa, A B M Mohiuddin K Islam, Meghan M Ariss, Christopher C Go,
+Amanda E Rader, Ryan D Conrardy, Anna M Gajda, Carlota Rubio-Perez, Klara Valyi-Nagy,
+Mark Pasquinelli, Leslie E Feldman, Stefan J Green, Nuria Lopez-Bigas, Maxim V Frolov, and
+Elizaveta V Benevolenskaya. Single-cell transcriptional changes associated with drug tolerance
+and response to combination therapies in cancer. Nature Communications, 12(1):1628, 2021. doi:
+10.1038/s41467-021-21884-z.
+Constantin Ahlmann-Eltze, Wolfgang Huber, and Simon Anders. Deep-learning-based gene pertur-
+bation effect prediction does not yet outperform simple linear baselines. Nature Methods, 22(8):
+1657–1661, 2025.
+Daniel R Wong, Andrew S Hill, and Ryan Moccia. Simple controls exceed best deep learning
+algorithms and reveal foundation model effectiveness for predicting genetic perturbations. Bioin-
+formatics, 41(6):btaf317, 2025. doi: 10.1093/bioinformatics/btaf317.
+Ramon Viñas Torné, Maciej Wiatrak, Zoe Piran, Shuyang Fan, Liangze Jiang, Sarah A Teich-
+mann, Mor Nitzan, and Maria Brbi´c. Systema: A framework for evaluating genetic pertur-
+bation response prediction beyond systematic variation.
+Nature Biotechnology, 2025.
+doi:
+10.1038/s41587-025-02777-8.
+Zhiting Wei, Yiheng Wang, Yicheng Gao, Shuguang Wang, Ping Li, Duanmiao Si, Yuli Gao, Siqi
+Wu, Danlu Li, Kejing Dong, Xingbo Yang, Chen Tang, Shaliu Fu, Xiaohan Chen, Wannian Li,
+Yuzhou You, Chen Zhang, Aibin Liang, Guohui Chuai, and Qi Liu. Benchmarking algorithms for
+generalizable single-cell perturbation response prediction. Nature Methods, 23(2):451–464, 2026.
+doi: 10.1038/s41592-025-02980-0.
+Qing Wang, Yining Pan, Minghao Zhou, Zijia Tang, Yanfei Wang, Guangyu Wang, and Qianqian
+Song. scDrugMap: Benchmarking large foundation models for drug response prediction. Nature
+Communications, 17(1):730, 2026. doi: 10.1038/s41467-025-67481-2.
+Yaron Lipman, Ricky T Q Chen, Heli Ben-Hamu, Maximilian Nickel, and Matt Le. Flow matching
+for generative modeling. In International Conference on Learning Representations, 2023.
+Xingchao Liu, Chengyue Gong, and Qiang Liu. Flow straight and fast: Learning to generate and
+transfer data with rectified flow. In International Conference on Learning Representations, 2023.
+11
+
+
+Alexander Tong, Nikolay Malkin, Guillaume Huguet, Yanlei Zhang, Jarrid Rector-Brooks, Kilian
+Fatras, Guy Wolf, and Yoshua Bengio. Improving and generalizing flow-based generative models
+with minibatch optimal transport. Transactions on Machine Learning Research, 2024.
+Geoffrey Schiebinger, Jian Shu, Marcin Tabaka, Brian Cleary, Vidya Subramanian, Aryeh Solomon,
+Joshua Gould, Siyan Liu, Stacie Lin, Peter Berube, et al. Optimal-transport analysis of single-cell
+gene expression identifies developmental trajectories in reprogramming. Cell, 176(4):928–943,
+2019.
+Kai Cao, Qiyu Gong, Yiguang Hong, and Lin Wan. A unified computational framework for single-cell
+data integration with optimal transport. Nature Communications, 13(1):7419, 2022.
+Alexander Tong, Jessie Huang, Guy Wolf, David van Dijk, and Smita Krishnaswamy. Trajecto-
+ryNet: a dynamic optimal transport network for modeling cellular dynamics. Proceedings of the
+International Conference on Machine Learning, 2020.
+Charlotte Bunne, Stefan G Stark, Gabriele Gut, Jacobo Sarabia del Castillo, Mitch Levesque, Kjong-
+Van Lehmann, Lucas Pelkmans, Andreas Krause, and Gunnar Rätsch. Learning single-cell
+perturbation responses using neural optimal transport. Nature Methods, 20(11):1759–1768, 2023.
+Charlotte Bunne, Laetitia Papaxanthos, Stefan G Stark, and Tara Uscidda. Optimal transport for
+single-cell and spatial omics. Nature Reviews Methods Primers, 4:58, 2024b.
+Xiaolong Qi, Lai Zhao, Chuanlu Tian, Yilong Li, Zhi-Liang Chen, Peng Huo, Rong Chen, Xin Liu,
+Birui Wan, Siyuan Yang, and Yan Zhao. Predicting transcriptional responses to novel chemical
+perturbations using deep generative model for drug discovery. Nature Communications, 15(1):
+9256, 2024. doi: 10.1038/s41467-024-53457-1.
+Yousif T Chen and James Zou. GenePert: Leveraging GenePT embeddings for gene perturbation
+prediction. bioRxiv, page 2024.10.27.620513, 2024. doi: 10.1101/2024.10.27.620513.
+Hengshi Yu, Weizhou Qian, Yuxuan Song, and Joshua D Welch. PerturbNet predicts single-cell
+responses to unseen chemical and genetic perturbations. Molecular Systems Biology, 2025.
+Christina V Theodoris, Ling Xiao, Anant Chopra, Mark D Chaffin, Zeina R Al Sayed, Matthew C
+Hill, Helene Mantineo, Elizabeth M Brydon, Zexian Zeng, X Shirley Liu, and Patrick T Ellinor.
+Transfer learning enables predictions in network biology. Nature, 618(7965):616–624, 2023.
+Ricky TQ Chen, Yulia Rubanova, Jesse Bettencourt, and David Duvenaud. Neural ordinary differential
+equations. In Advances in Neural Information Processing Systems, volume 31, 2018.
+Michael S Albergo and Eric Vanden-Eijnden. Building normalizing flows with stochastic interpolants.
+In International Conference on Learning Representations, 2023. URL https://openreview.
+net/forum?id=li7qeBbCR1t.
+Dominik Klein, Giovanni Palla, Marius Lange, Michal Klein, Zoe Peng, Nina Lubber, Philipp Weiler,
+Charlotte Bunne, Alexander Theiss, Sergei Rybakov, Danila Pedri, Jia-Qi Li, Jonas Ahlers, Stefan
+Peidli, Mohammad Lotfollahi, and Fabian J Theis. Mapping cells through time and space with
+moscot. Nature, 2025.
+Romain Lopez, Jeffrey Regier, Michael B Cole, Michael I Jordan, and Nir Yosef. Deep generative
+modeling for single-cell transcriptomics. Nature Methods, 15(12):1053–1058, 2018.
+Chenling Xu, Romain Lopez, Edouard Mehlman, Jeffrey Regier, Michael I Jordan, and Nir Yosef.
+Probabilistic harmonization and annotation of single-cell transcriptomics data with deep generative
+models. Molecular Systems Biology, 17(1):e9620, 2021.
+Adam Gayoso, Zoë Steier, Romain Lopez, Jeffrey Regier, Kristopher L Nazor, Aaron Streets, and Nir
+Yosef. Joint probabilistic modeling of single-cell multi-omic data with totalVI. Nature Methods,
+18(3):272–282, 2021.
+Sophia Müller-Dott, Eirini Tsirvouli, Miguel Vazquez, Ricardo O Ramirez Flores, Pau Badia-I-
+Mompel, Robin Fallegger, Dénes Türei, Astrid Lægreid, and Julio Saez-Rodriguez. Expanding the
+coverage of regulons from high-confidence prior knowledge for accurate estimation of transcription
+factor activities. Nucleic Acids Research, 51(20):10934–10949, 2023. doi: 10.1093/nar/gkad841.
+12
+
+
+David Rogers and Mathew Hahn. Extended-connectivity fingerprints. Journal of Chemical Informa-
+tion and Modeling, 50(5):742–754, 2010.
+13
+
+
+A
+Raw Metrics Across Benchmarks
+The raw metrics across drug and genetic perturbation benchmarks are reported in Tables 1 and 2
+in the main text. Figures A.1 and A.2 provide companion visualizations of the same benchmark
+comparisons, separating drug and genetic perturbation tasks. The composite score is an aggregate
+summary computed from these four raw metrics, with the normalization rule specified in Appendix B.
+This section makes the evidence behind the main-text ranking inspectable without relying on the
+composite score alone. The visualizations present the comparison from a metric-level perspective,
+separating mean-effect accuracy, measured by DE20 Pearson and DE20 MSE, from population-level
+agreement, measured by Wasserstein distance and E-distance. This distinction is central to MRFlow:
+the model is designed as a distributional transport method, and its advantage should appear not only
+in average expression shifts but also in the geometry of predicted cell populations.
+The four metrics are non-redundant by design. DE20 Pearson asks whether the strongest differentially
+expressed genes move in the correct relative direction, while DE20 MSE penalizes the absolute
+size of those shifts. Wasserstein distance and E-distance instead compare empirical distributions of
+predicted and observed cell populations. A method can therefore score well on the mean response
+while producing a poor population distribution, or it can improve distributional agreement at the cost
+of a small loss in mean-effect correlation. The appendix figures make these trade-offs visible because
+a single composite number would hide which biological question each method answers well.
+This metric separation is also needed for comparing drug and genetic perturbation tasks. Drug
+screens contain dose and cell-context variation, so strong average-response prediction can coexist
+with heterogeneous single-cell effects. Genetic screens often include sharper transcriptional shifts, but
+the source and target populations remain unpaired. MRFlow addresses both regimes through the same
+conditional transport architecture, and the raw-metric view directly tests whether the architecture
+behaves consistently across modalities.
+Dataset / Model
+Pearson(DE20) 
+MSE(DE20) 
+Wasserstein 
+E-distance 
+sciplex3
+MRFlow
+0.961
+0.696
+0.0002
+9.92
+baseReg
+0.877
+0.775
+0.0004
+10.95
+chemCPA
+0.779
+1.443
+0.0002
+10.36
+CPA
+0.871
+1.458
+0.0001
+12.54
+PRnet
+0.898
+1.424
+0.0032
+11.47
+trainMean
+0.899
+1.419
+0.0005
+12.53
+controlMean
+0.890
+1.411
+0.0013
+12.55
+mcfarland MRFlow
+0.891
+0.365
+0.0079
+17.58
+baseReg
+0.843
+2.161
+0.0145
+13.68
+chemCPA
+0.822
+2.257
+0.0161
+9.14
+CPA
+0.855
+2.191
+0.0086
+9.78
+PRnet
+0.774
+2.281
+0.0126
+12.66
+trainMean
+0.830
+2.466
+0.0154
+14.27
+controlMean
+0.717
+2.580
+0.0152
+14.47
+lotfollahi
+MRFlow
+0.887
+0.553
+0.0003
+8.16
+baseReg
+0.882
+0.151
+0.0003
+12.16
+chemCPA
+0.824
+1.284
+0.0021
+11.44
+CPA
+0.795
+1.079
+0.0047
+13.65
+PRnet
+0.858
+0.306
+0.0132
+11.08
+trainMean
+0.711
+0.625
+0.0002
+11.29
+controlMean
+0.796
+1.428
+0.0013
+12.73
+aissa
+MRFlow
+0.981
+0.606
+0.0095
+6.30
+baseReg
+0.979
+0.215
+0.0123
+8.74
+chemCPA
+0.965
+0.032
+0.0279
+7.94
+CPA
+0.974
+0.051
+0.0194
+7.02
+PRnet
+0.970
+0.276
+0.0289
+6.59
+trainMean
+0.984
+0.189
+0.0145
+8.66
+controlMean
+0.971
+0.201
+0.0167
+9.05
+Figure A.1: Drug perturbation benchmark comparison. The visualization summarizes raw-metric
+behavior across drug perturbation datasets using the same held-out condition evaluations reported in
+Table 1.
+The drug benchmark visualization supports the main-text claim that MRFlow gains are not an artifact
+of normalization. On SciPlex3, MRFlow gives the strongest DE20 Pearson, DE20 MSE, and E-
+distance among the compared methods, showing that the latent transport objective improves both
+14
+
+
+mean-effect recovery and response-distribution agreement in the largest drug screen. McFarland
+and Aissa show more metric-specific trade-offs. These trade-offs bound the claim: MRFlow still
+ranks best by the aggregate comparison, while the raw view makes clear where individual baselines
+remain competitive on a single metric. The drug results therefore support balanced behavior across
+complementary response criteria, not universal dominance on every scalar score.
+The Aissa benchmark is interpreted with additional caution because the processed evaluation contains
+only three non-control drug conditions, as documented in Appendix C. With so few held-out condi-
+tions, a single condition can shift an aggregate metric more strongly than in SciPlex3 or Lotfollahi.
+Aissa therefore functions as a small-regime stress case within the broader drug-screen analysis.
+Reporting raw values alongside the composite score keeps this limitation visible.
+Dataset / Model
+Pearson(DE20) 
+MSE(DE20) 
+Wasserstein 
+E-distance 
+adamson MRFlow
+0.921
+0.142
+0.0418
+2.23
+GEARS
+0.899
+0.175
+0.0715
+2.51
+GenePert
+0.914
+0.155
+0.0485
+10.14
+scGPT
+0.916
+0.206
+0.0331
+7.33
+CPA
+0.816
+0.453
+0.0370
+11.22
+dixit
+MRFlow
+0.963
+0.016
+0.0449
+0.52
+GEARS
+0.959
+0.017
+0.0463
+0.57
+GenePert
+0.933
+0.031
+0.0666
+5.78
+scGPT
+0.845
+0.059
+0.0587
+4.31
+CPA
+0.584
+0.111
+0.0792
+5.14
+norman
+MRFlow
+0.972
+0.094
+0.0048
+0.81
+GEARS
+0.954
+0.113
+0.0198
+0.87
+GenePert
+0.969
+0.087
+0.0056
+6.15
+scGPT
+0.921
+0.189
+0.0006
+6.11
+CPA
+0.897
+0.334
+0.0066
+6.50
+replogle
+MRFlow
+0.878
+0.246
+0.1080
+1.65
+GEARS
+0.864
+0.287
+0.1152
+1.80
+GenePert
+0.884
+0.249
+0.3338
+14.18
+scGPT
+0.857
+0.328
+0.3281
+14.06
+CPA
+0.708
+0.659
+0.2785
+8.41
+Figure A.2: Genetic perturbation benchmark comparison. The visualization summarizes raw-metric
+behavior across genetic perturbation datasets using the same held-out condition evaluations reported
+in Table 2.
+The genetic benchmark visualization gives a sharper distributional picture. MRFlow achieves the
+best composite score on Adamson, Dixit, Norman, and Replogle while preserving competitive DE20
+Pearson. The Replogle comparison is particularly informative: GenePert attains a slightly higher
+Pearson score, yet MRFlow has much lower Wasserstein distance and E-distance, indicating that a
+model can match average differential expression while still missing the population-level response
+distribution. This pattern mirrors the motivation in the main text, where virtual cell prediction is
+framed as conditional distribution transport rather than conditional mean regression alone.
+The genetic results clarify the role of distributional evaluation. On Replogle, the benchmark contains
+a large CRISPRi perturbation landscape with internal non-targeting control structure. A model that
+predicts the correct average direction for response genes may still place predicted cells in the wrong
+region of the response distribution. The lower distributional distances of MRFlow in this setting are
+therefore closely tied to the method design: the flow is trained to move empirical control populations
+toward empirical perturbed populations, rather than to output only a condition-level expression vector.
+B
+Composite Score Definition
+For each dataset and metric, normalization is computed independently across the compared methods
+on that dataset. For Pearson correlation, where larger values are better, the normalized score for a
+method value x is
+Norm(x) =
+x −xmin
+xmax −xmin
+.
+(B.1)
+15
+
+
+For DE20 MSE, Wasserstein distance, and E-distance, where smaller values are better, the normalized
+score is
+Norm(x) =
+xmax −x
+xmax −xmin
+.
+(B.2)
+The composite score is the equal-weight average of the four normalized metrics,
+Composite = 1
+4 (NormP earson + NormMSE + NormW asserstein + NormE) .
+(B.3)
+The composite score is used only as an aggregate summary; raw metrics are reported in Tables 1
+and 2.
+Per-dataset normalization is used because the numerical scale of each metric differs across datasets.
+A Wasserstein distance from one dataset is not directly comparable to a Wasserstein distance from an-
+other dataset when the cell context, gene vocabulary, perturbation strength, and number of conditions
+differ. Normalizing within each dataset and metric makes the composite score a within-benchmark
+summary of relative performance, not an absolute biological distance. This design prevents a
+large-scale dataset with numerically larger distances from dominating the aggregate comparison.
+Equal weighting avoids privileging mean-response accuracy over distributional agreement. Pearson
+and MSE summarize differential-expression recovery, while Wasserstein distance and E-distance
+summarize population-level agreement. The composite therefore assigns half of its weight to mean-
+effect behavior and half to distributional behavior. This choice matches the paper’s formulation of
+virtual cell prediction as population transport, while retaining the familiar DE20 metrics used in
+perturbation-prediction benchmarks.
+The composite score is defined as an aggregate summary of the raw metrics. It provides a compact
+ranking because each benchmark contains multiple methods and four non-commensurate metrics, but
+it is not a substitute for the underlying measurements. For this reason, the main text reports Tables 1
+and 2, Appendix A visualizes the raw comparisons, and Appendix H summarizes raw-metric ranks
+without reusing the composite normalization.
+C
+Dataset and Split Details
+Table C.1 summarizes the datasets used in the benchmark. Each benchmark uses a condition-level
+held-out protocol with test ratio 0.2 for datasets evaluated under random condition splits. A condition
+is defined by the perturbation identity together with the dose and cell context whenever those
+annotations are present. The split is therefore a held-out perturbation-condition split rather than an
+unseen-drug-identity or unseen-gene-identity split.
+The eight benchmarks stress different parts of the virtual-cell prediction problem. Norman, Adamson,
+Dixit, and Replogle evaluate genetic perturbations across CRISPRa, CRISPRi, and CRISPR knockout
+designs. SciPlex3, McFarland, Aissa, and Lotfollahi evaluate chemical perturbations across multi-
+cell-line screens, dose variation, resistance-associated drug response, and drug-combination settings.
+This mixture tests whether a model can maintain the same response-distribution principle across
+perturbation technologies and cell contexts.
+The held-out unit is a perturbation condition rather than an individual cell. This matters because
+cells sampled from the same condition are exchangeable observations of one experimental response
+distribution. Randomly splitting cells within a condition would test interpolation among replicate
+cells, which is easier and less relevant for AIVC use cases. The condition-level split instead asks
+whether a model can predict the response distribution for conditions that were not observed during
+training under the benchmark split.
+Several dataset-specific details affect interpretation. Replogle uses non-targeting sgRNA as an internal
+control rather than a separate control-cell group, so control information is defined by the screen
+design. Aissa has only three non-control drug conditions in the processed benchmark, which makes
+any aggregate statistic more sensitive to individual condition behavior. SciPlex3 and McFarland
+contain explicit cell-context variation, so the condition includes context in addition to perturbation
+identity. These details are not exceptions to the evaluation protocol; they define what a held-out
+condition means for each dataset.
+16
+
+
+Table C.1: Dataset and held-out split details. Replogle uses non-targeting sgRNA as an internal
+control rather than a separate control-cell group.
+Dataset
+Type
+Cell context
+Cells
+HVG
+Control
+Perturbed
+Conditions
+Held-out protocol
+Norman
+Gene
+K562
+111255
+2053
+11835
+99420
+236
+Condition-level held-out split with a shared
+evaluation protocol across MRFlow and all
+compared methods.
+Replogle
+Gene
+RPE1
+162733
+2431
+0
+162733
+1544
+Condition-level
+held-out
+split;
+non-
+targeting sgRNA is used as internal control.
+Adamson
+Gene
+K562
+68603
+2077
+24263
+44340
+86
+Condition-level held-out split with a shared
+evaluation protocol across MRFlow and all
+compared methods.
+Dixit
+Gene
+K562
+44735
+2013
+12042
+32693
+19
+Condition-level held-out split with a shared
+evaluation protocol across MRFlow and all
+compared methods.
+SciPlex3
+Drug
+MCF7/A549/K562
+799317
+2000
+17578
+781739
+189
+Condition-level held-out split over drug,
+dose, and cell-context conditions.
+McFarland
+Drug
+169 cancer cell lines
+130648
+2000
+25851
+104797
+13
+Condition-level held-out split over drug and
+cell-context conditions.
+Aissa
+Drug
+PC9
+119071
+2000
+29983
+89088
+3
+Held-out condition evaluation with only
+three non-control drug conditions, making
+aggregate statistics less stable.
+Lotfollahi
+Drug
+A549
+63430
+2000
+1451
+61979
+31
+Condition-level held-out split over single-
+drug and combination conditions.
+The shared preprocessing and split protocol is part of the evidence chain. Every method is evaluated
+on the same processed expression matrix and the same held-out conditions within a dataset, so
+differences in Tables 1 and 2 reflect model behavior under matched inputs rather than data leakage,
+alternative gene vocabularies, or different evaluation partitions. The table also explains why the paper
+avoids stronger claims such as strictly unseen drug identity or strictly unseen gene identity. The
+benchmark is a held-out condition evaluation, and a condition may combine perturbation identity,
+dose, and cell context.
+D
+OT-Guided Pairing Implementation
+MRFlow uses low-cost latent pairing to construct flow-matching supervision from unpaired pertur-
+bation measurements. At each training step, the sampler chooses a perturbation condition c, draws
+N control cells and N perturbed cells under that condition, and encodes them as Z0 = {z0
+i }N
+i=1 and
+Z1 = {z1
+j }N
+j=1. The pairing cost is computed from detached latent states,
+Cij =
+stopgrad(z0
+i ) −stopgrad(z1
+j )
+2
+2 .
+(D.1)
+The default implementation uses greedy nearest-neighbor low-cost pairing,
+τ(i) = arg min
+j
+Cij,
+zπ
+1,i = z1
+τ(i).
+(D.2)
+The pairing is recomputed for every minibatch and is not itself differentiated. Gradients are taken
+through the flow-matching loss and the differentiable encoder, velocity field, and decoder computa-
+tions. The random-pairing ablation in Table 3 replaces this low-cost pairing with random endpoint
+matching. The reported implementation uses greedy low-cost latent pairing as the default coupling
+rule; all results in the main tables and ablations are based on this pairing protocol.
+The pairing defines stable training supervision; it does not assert that a particular control cell is
+the biological ancestor of a particular perturbed cell. Perturbation screens are unpaired because the
+same cell cannot be observed before and after intervention. A random pairing would create many
+long and crossing interpolation paths in latent space, forcing the vector field to explain artificial
+transport directions. Greedy low-cost pairing reduces this avoidable noise by matching each encoded
+control state to a nearby perturbed endpoint within the same condition, which gives the flow-matching
+objective a more coherent local velocity target.
+The stop-gradient operation is part of the supervision design. If gradients passed through the pairing
+cost, the encoder could reduce the loss by changing the geometry used to choose pairs rather than
+by learning a predictive transport field. Detaching the latent states for the cost matrix keeps the
+assignment step as a minibatch-level supervision construction. The differentiable learning signal then
+comes from the velocity regression, reconstruction, variational regularization, and endpoint-alignment
+terms described in Appendix E.
+17
+
+
+Table D.1: Algorithm: low-cost latent pairing for flow matching.
+Operation
+Description
+Condition sampling
+Select a perturbation condition c from the training conditions.
+Cell sampling
+Draw N control cells and N perturbed cells under condition c.
+Encoding
+Compute latent states z0
+i ∼qϕ(z | x0
+i ) and z1
+j ∼qϕ(z | xc
+j).
+Cost construction
+Compute Cij = ∥stopgrad(z0
+i ) −stopgrad(z1
+j )∥2
+2.
+Pairing
+Set τ(i) = arg minj Cij and pair z0
+i with zπ
+1,i = z1
+τ(i).
+Flow supervision
+Sample t ∼U(0, 1), form zt = (1 −t)z0
+i + tzπ
+1,i, and use zπ
+1,i −z0
+i as the
+velocity target.
+The auxiliary OT alignment term in Equation 16 is implemented as an entropic OT alignment cost
+between predicted endpoints and paired targets, distinct from a debiased Sinkhorn divergence.
+This implementation choice also explains the ablation behavior in Table 3 and Figure H.3. Replacing
+low-cost pairing with random pairing leaves a relatively high DE20 Pearson but substantially worsens
+E-distance, showing that mean differential-expression recovery can survive noisy pairing while
+population-level geometry suffers. The result supports the interpretation that OT-guided pairing
+mainly stabilizes the distributional side of the prediction task.
+E
+Training Objective and Stabilization
+The training objective combines a transport loss with count modeling and regularization because these
+terms address different failure modes. The flow-matching term trains the conditional vector field to
+move latent control states toward paired perturbed endpoints. The negative binomial reconstruction
+term keeps latent states tied to count-aware expression distributions. The KL term regularizes
+the variational cell-state space, and the structured-field penalties prevent the residual and affine
+components from absorbing variation through unconstrained magnitude. The auxiliary entropic OT
+term adds endpoint-level alignment between predicted and paired target populations.
+The flow-matching loss is
+LF M = E
+h
+∥vΘ(zt, t, c) −(zπ
+1 −z0)∥2
+2
+i
+.
+(E.1)
+The reconstruction term is the negative binomial negative log likelihood for control and perturbed
+cells. For count yig, mean µig = ℓiρθ,g(zi), and dispersion θθ,g(zi), the likelihood is
+p(yig | zi, ℓi) =
+Γ(yig + θθ,g)
+Γ(θθ,g)Γ(yig + 1)
+
+θθ,g
+θθ,g + µig
+θθ,g 
+µig
+θθ,g + µig
+yig
+.
+(E.2)
+The KL regularizer is
+LKL = 1
+2E
+d
+X
+m=1
+ µ2
+m + σ2
+m −log σ2
+m −1
+
+.
+(E.3)
+The residual and affine penalties are
+Lres = E∥vres(zt, t, c)∥2
+2,
+LW = Ec∥W(c)∥2
+F .
+(E.4)
+The auxiliary alignment cost compares predicted endpoints with paired perturbed endpoints through
+entropic OT,
+Laux
+OT = OTε
+ {ˆz1,i}N
+i=1, {zπ
+1,i}N
+i=1
+
+,
+ˆz1,i = zt,i + (1 −t)vΘ(zt,i, t, c).
+(E.5)
+Differentially expressed genes are upweighted in the reconstruction term through a condition-specific
+gene weight
+wg(c) = 1 + ηDE1 [g ∈DK(c)] ,
+(E.6)
+where DK(c) denotes the selected differentially expressed genes for condition c. This weighting is a
+training stabilization strategy rather than a separate model component. The implementation uses KL
+warmup and free-bits style stabilization, replacing the raw KL contribution with a warmup-weighted
+term and preventing very small per-dimension KL values from dominating posterior collapse behavior.
+Condition-balanced sampling is used for imbalanced datasets, assigning higher sampling probability
+to conditions with fewer cells. These stabilization details are not used to introduce additional
+evaluation claims.
+The objective should be interpreted as a practical training principle rather than a theorem that each
+term uniquely identifies a biological mechanism. The ablations show that removing terms changes
+18
+
+
+empirical behavior on SciPlex3, but they do not prove causal necessity in every dataset. The macro
+field, residual field, low-rank correction, KL regularization, entropic OT alignment, DE weighting, and
+OT-guided pairing operate together. Their roles are separable enough to produce distinct degradation
+patterns, yet the final model is trained as a coupled system.
+DE gene weighting is included because benchmark metrics emphasize response genes. Without this
+weighting, the reconstruction loss can be dominated by genes whose expression is stable under a
+condition, reducing pressure to model perturbation-induced shifts. The weighting does not change the
+evaluation target and does not insert test labels into inference; it only adjusts the training emphasis
+for genes selected within the training procedure for each condition.
+Condition-balanced sampling addresses another practical issue in perturbation atlases. Some pertur-
+bation conditions contain many more cells than others. Sampling conditions more evenly prevents
+large conditions from dominating the velocity field and decoder updates. For distributional prediction,
+the model must learn response geometry across many conditions rather than optimizing primarily for
+the most frequently sampled ones.
+F
+Baseline and Preprocessing Details
+All methods are evaluated on the same held-out perturbation conditions for each dataset, and metrics
+are computed using one shared evaluation script. Preprocessing follows the dataset-specific HVG
+selections summarized in Appendix C; perturbation genes are kept in the modeling vocabulary under
+the benchmark vocabulary construction. Expression metrics are computed in the same expression
+space for all methods within a dataset, while the negative binomial decoder is trained against count-
+scale targets for datasets with count matrices.
+Table F.1 specifies the role and implementation source for each baseline. CPA, chemCPA, PRnet,
+GEARS, GenePert, and scGPT are run from official open-source implementations. controlMean,
+trainMean, and baseReg are deterministic benchmark baselines evaluated from the same preprocessed
+matrices. Within each dataset, every method receives the same train and test perturbation-condition
+split, the same processed expression matrix, the same HVG and benchmark gene vocabulary, and the
+same metric computation pipeline.
+The baselines cover three levels of difficulty. controlMean and trainMean test whether a method
+beats simple population summaries. baseReg tests a deliberately simple supervised regression rule,
+motivated by recent perturbation-prediction studies showing that simple baselines can be highly
+competitive. CPA, chemCPA, PRnet, GEARS, GenePert, and scGPT represent learned perturbation
+models that differ in condition encoding, graph use, chemical structure handling, and pretraining.
+Comparing against all three groups reduces the chance that MRFlow is only outperforming weak
+baselines or competing within a single model family.
+The fairness principle is input alignment. A baseline does not receive a different held-out split, a
+different expression matrix, or a different metric definition. The shared setup is especially important
+for distributional metrics because Wasserstein distance and E-distance can change with preprocessing
+choices, gene vocabulary, and cell subsampling. Keeping these inputs fixed makes the raw-metric
+comparisons in Tables 1 and 2 attributable to the predictive models.
+All datasets and learned baseline implementations used in this study originate from public papers,
+public data portals, or official open-source releases associated with the cited work. The final repro-
+duction package will preserve attribution to the original creators and will follow the corresponding
+licenses, access requirements, and redistribution terms for each dataset and software component.
+Table F.1: Baseline implementation and evaluation alignment.
+Baseline
+Role
+Implementation and shared evaluation inputs
+controlMean
+Control-population mean predictor
+Deterministic benchmark rule; same split, matrix, vocabulary, and metrics.
+trainMean
+Training-condition mean predictor
+Deterministic benchmark rule; same split, matrix, vocabulary, and metrics.
+baseReg
+Regression baseline
+Deterministic benchmark regression; same split, matrix, vocabulary, and metrics.
+CPA
+Conditional perturbation autoencoder
+Official open-source implementation; same split, matrix, vocabulary, and metrics.
+chemCPA
+Structure-aware chemical CPA
+Official open-source implementation; same split, matrix, vocabulary, and metrics.
+PRnet
+Drug perturbation generative model
+Official open-source implementation; same split, matrix, vocabulary, and metrics.
+GEARS
+Graph gene perturbation model
+Official open-source implementation; same split, matrix, vocabulary, and metrics.
+GenePert
+Gene-embedding linear model
+Official open-source implementation; same split, matrix, vocabulary, and metrics.
+scGPT
+Single-cell foundation model
+Official open-source implementation; same split, matrix, vocabulary, and metrics.
+19
+
+
+The benchmark does not report confidence intervals across random seeds. The results are therefore
+a single-run comparison under a fixed evaluation protocol. This limitation does not affect the
+consistency of the shared split and metric computation, but seed-level uncertainty remains outside the
+claims made in this manuscript.
+G
+Compute Resources and Broader Impact
+All MRFlow experiments were run on a workstation with one NVIDIA RTX 5090 GPU with 32 GB
+memory and 16 vCPUs from an Intel(R) Xeon(R) Platinum 8352V CPU at 2.10 GHz. The software
+environment used Ubuntu 22.04, Python 3.12, PyTorch 2.8.0, and CUDA 12.8. Training time varied
+with dataset size and condition complexity, ranging from approximately 3 to 8 hours per dataset.
+The largest screens require more time because condition-balanced sampling, latent pairing, endpoint
+alignment, and count reconstruction are computed over many perturbation conditions.
+MRFlow supports perturbation prioritization, drug-response analysis, and virtual-cell modeling by
+predicting response distributions before costly wet-lab validation. This can reduce experimental search
+space and help identify perturbation conditions that merit closer biological inspection. The main risk is
+over-interpretation: in-silico predictions may reflect biases in the training atlas, preprocessing choices,
+or benchmark splits, and they are not clinical or causal evidence without experimental validation.
+The paper therefore reports raw metrics, dataset details, baseline alignment, and qualitative response-
+gene panels to make model behavior inspectable, without presenting MRFlow as a replacement for
+biological experiments.
+H
+Additional Quantitative Evidence
+Because composite scores can obscure metric-specific trade-offs, Figures H.1 and H.2 summarize
+MRFlow ranks directly over raw metric cells. These summaries use the same values reported in
+Tables 1 and 2; they are rank diagnostics rather than statistical significance tests. Together with
+Appendix A, they address a common concern for multi-metric perturbation prediction: whether a
+method wins because a normalization scheme favors one metric or because it remains competitive
+across the raw measurements that define the task.
+Raw-metric ranks are a stricter sanity check than the composite score in one respect: they ignore
+the magnitude of each advantage and ask only how often MRFlow is near the best method for each
+dataset-metric cell. A method that wins the composite through one very strong metric and several
+weak metrics would be exposed by this view. Conversely, a model with consistently high ranks across
+Pearson, MSE, Wasserstein distance, and E-distance has evidence for balanced behavior even when
+another method wins an isolated metric.
+20
+
+
+Pearson(DE20)
+MSE(DE20)
+Wasserstein
+E-distance
+Raw metric
+SciPlex3 (drug)
+McFarland (drug)
+Lotfollahi (drug)
+Aissa (drug)
+Adamson (gene)
+Dixit (gene)
+Norman (gene)
+Replogle (gene)
+Benchmark
+R1/7
+0.961
+R1/7
+0.696
+R2/7
+2.0e-04
+R1/7
+9.92
+R1/7
+0.891
+R1/7
+0.365
+R1/7
+0.0079
+R7/7
+17.58
+R1/7
+0.887
+R3/7
+0.553
+R2/7
+3.0e-04
+R1/7
+8.16
+R2/7
+0.981
+R7/7
+0.606
+R1/7
+0.0095
+R1/7
+6.30
+R1/5
+0.921
+R1/5
+0.142
+R3/5
+0.042
+R1/5
+2.23
+R1/5
+0.963
+R1/5
+0.016
+R1/5
+0.045
+R1/5
+0.523
+R1/5
+0.972
+R2/5
+0.094
+R2/5
+0.0048
+R1/5
+0.812
+R2/5
+0.878
+R1/5
+0.246
+R1/5
+0.108
+R1/5
+1.65
+1
+2
+3
+4
+5
+6
+7
+MRFlow rank (lower is better)
+Figure H.1: Raw-metric rank of MRFlow across benchmarks. Each cell reports the MRFlow rank
+and raw value for one dataset and one metric among the compared methods. Lower ranks are better;
+Pearson is ranked in descending order, and MSE, Wasserstein distance, and E-distance are ranked in
+ascending order.
+Drug
+Gene
+0.0
+2.5
+5.0
+7.5
+10.0
+12.5
+15.0
+17.5
+Number of dataset-metric cells
+10/16
+13/16
+12/16
+15/16
+Rank 1
+Top 2
+Figure H.2: Raw-metric rank summary without composite scoring. Across 16 drug dataset-metric
+cells, MRFlow ranks first in 10 cells and within the top two in 13 cells, with mean rank 2.0625.
+Across 16 genetic dataset-metric cells, MRFlow ranks first in 12 cells and within the top two in 15
+cells, with mean rank 1.3125.
+The rank summaries sharpen the interpretation of the main-text tables. In drug perturbation tasks,
+MRFlow ranks first in 10 of 16 dataset-metric cells and remains within the top two in 13 of 16 cells;
+in genetic perturbation tasks, it ranks first in 12 of 16 cells and within the top two in 15 of 16 cells.
+These counts show that MRFlow performance is not driven by one favorable dataset or one favorable
+metric. At the same time, the non-perfect ranks keep the claim bounded: MRFlow offers the most
+consistent cross-metric profile in this benchmark, not a universal win on every individual number.
+The rank heatmap also makes the modality difference transparent. Drug datasets show more hetero-
+geneous ranks, consistent with dose, cell-line, and compound-specific variation. Genetic datasets
+show a tighter rank profile, especially on distributional metrics. This difference does not imply that
+one modality is easier in general; it reflects the particular benchmark composition and the compared
+21
+
+
+model set. The conclusion is deliberately narrow: under the shared evaluation protocol, MRFlow
+maintains strong raw-metric ranks across both modalities.
+The ablation visualizations in Figures H.3 and H.4 expand Table 3. They separate relative degradation
+by raw metric and show how the shared affine dictionary capacity changes mean-effect and distribu-
+tional behavior on SciPlex3. These plots connect the empirical advantage back to the architecture,
+separating structured response modeling from a generic increase in model size.
+Pearson drop
+MSE increase
+E-dist. increase
+no macro
+no residual
+no low-rank
+random pairing
+no OT loss
+no DE weight
+no KL
+31.4
+115.0
+36.1
+9.1
+66.2
+29.0
+5.8
+59.1
+34.6
+0.3
+10.9
+71.5
+1.8
+0.6
+39.3
+4.9
+27.2
+26.9
+7.9
+81.9
+36.4
+0
+20
+40
+60
+80
+100
+Relative degradation (%)
+0.00
+0.25
+0.50
+0.75
+1.00
+Ablation score
+full
+no macro
+no residual
+no low-rank
+random pairing
+no OT loss
+no DE weight
+no KL
+1.00
+0.17
+0.58
+0.61
+0.63
+0.80
+0.74
+0.51
+Figure H.3: Component ablation on SciPlex3. The heatmap reports relative degradation from full
+MRFlow, and the bar panel reports the ablation score. Removing the macro field mainly damages
+DE20 correlation, while replacing low-cost latent pairing with random pairing mainly increases
+distributional error.
+The component ablation separates failure modes. Removing the macro field causes the largest loss
+in DE20 correlation, which supports the role of the mechanism-structured affine dictionary as the
+dominant response operator. Removing the residual field, low-rank correction, KL regularization,
+DE weighting, or entropic OT alignment degrades different parts of the metric profile, indicating
+that these terms are not interchangeable decorations around the same predictor. The random-pairing
+ablation is especially aligned with the distributional claim: Pearson remains relatively high, but
+E-distance becomes much worse, showing why low-cost latent pairing matters for cell-population
+agreement even when mean response correlation looks acceptable.
+This ablation pattern links architectural components to measurable behavior. The macro field affects
+the large-scale direction of perturbation response, the residual field captures variation not explained
+by the affine operator, and low-cost pairing mainly protects population geometry. Different removals
+damage different metrics, as expected for a model whose components have distinct modeling roles.
+22
+
+
+1
+2
+4
+8
+16
+32
+Number of affine dictionary bases K
+0.0
+0.2
+0.4
+0.6
+0.8
+1.0
+Normalized performance
+default K=16
+Pearson
+MSE
+E-distance
+Average
+1
+2
+4
+8
+16
+32
+K
+0.90
+0.91
+0.92
+0.93
+0.94
+0.95
+0.96
+Pearson(DE20)
+0.7
+0.8
+0.9
+1.0
+1.1
+MSE(DE20)
+Figure H.4: Sensitivity to the number of shared affine dictionary bases. Increasing K from 1 to 16
+improves the SciPlex3 metrics, while K = 32 gives no further gain, consistent with an empirical
+trade-off between expressivity and regularization rather than a count of biological mechanisms.
+The dictionary capacity sweep clarifies why the shared affine dictionary is a structural choice rather
+than a generic capacity increase. Moving from K = 1 to K = 16 improves Pearson, MSE, and
+E-distance, consistent with the need for multiple reusable latent response operators across perturbation
+conditions. Increasing to K = 32 does not improve the result, which suggests that too many bases
+can weaken the regularizing effect of the dictionary. This supports the main-text interpretation that
+MRFlow benefits from a controlled response basis with condition-specific recombination, not from
+an unconstrained velocity field.
+The K-sweep is a capacity sensitivity analysis for the shared mechanism-structured affine dictionary.
+K = 1 corresponds to a single-basis dictionary and is too restrictive for the diversity of SciPlex3
+perturbation responses. Intermediate values allow the model to recombine several latent response
+operators, and K = 16 gives the best reported balance in this experiment. The lack of improvement
+at K = 32 weakens a simple parameter-count explanation for the result. The evidence supports
+structured expressivity with regularization, not the claim that more bases always give a better virtual
+cell model.
+I
+Supplementary Tables for Mechanism-Structured Diagnostics and Example
+Provenance
+The supplementary tables in this section make the internal evidence behind the mechanism-structured
+design auditable. They address a different question from the benchmark tables: rather than asking
+whether MRFlow predicts held-out perturbation responses better than baselines, they ask whether
+the learned condition-dependent operators organize perturbations in a way that is consistent with
+external pathway annotations, whether the macro and residual fields have separable quantitative roles,
+and whether the selected response-gene panels are traceable to an explicit candidate pool. These
+analyses support a mechanism-informed inductive bias while keeping the interpretation at the level of
+pathway-consistent operator organization.
+The alpha-space diagnostics test the central structural hypothesis of MRFlow. For a condition c,
+the shared affine dictionary is activated by weights α(c), so the geometry of these weights reflects
+how the model recombines latent response operators across perturbations. If the dictionary only
+acted as unconstrained extra capacity, pathway labels would not be expected to concentrate in α(c)-
+space. Tables I.1, I.2, and I.3 show the opposite pattern at the diagnostic level: annotated same-class
+perturbations have higher alpha similarity than different-class perturbations, and nearest-neighbor
+enrichment exceeds permutation nulls. The level-2 pathway result is stronger than the level-1 result,
+which is consistent with the idea that operator reuse is more visible when broad pathway labels are
+refined into more specific MoA classes.
+23
+
+
+Table I.1: Alpha-space organization by annotated perturbation class. Similarities are cosine similari-
+ties between dictionary activations α(c).
+Label level
+Cond.
+Class
+Within
+Between
+Difference
+MW p
+Perm. p
+1NN enrich.
+Pathway level 1
+120
+8
+0.0332
+0.0067
+0.0265
+0.0499
+0.0740
+2.4674
+Pathway level 2
+93
+9
+0.0950
+0.0010
+0.0941
+1.8×10−5
+0.0034
+2.8641
+Table I.2: Class-level alpha similarity for pathway level 2 MoA classes.
+MoA class
+Cond.
+Within
+Between
+Difference
+Example drugs
+DNA methylation
+4
+0.7911
+-0.1533
+0.9445
+Azacitidine; Decitabine; RG108
+Nucleotide analog
+5
+0.3403
+-0.1200
+0.4603
+Capecitabine;
+Carmofur;
+Fluo-
+rouracil
+Aurora kinase activity
+9
+0.2492
+0.0584
+0.1908
+Alisertib; Danusertib; Tozasertib
+Histone deacetylation
+25
+0.1021
+0.0128
+0.0893
+Abexinostat; Dacinostat; Givinostat
+JAK kinase activity
+16
+0.1125
+0.0312
+0.0813
+Baricitinib; Filgotinib; Gandotinib
+RTK activity
+15
+0.0340
+0.0313
+0.0028
+Crizotinib; Lapatinib; Cediranib
+ADP-ribosylation
+7
+-0.0746
+-0.0099
+-0.0648
+Rucaparib; Veliparib; PJ34
+Nuclear receptor activity
+6
+-0.1244
+-0.0275
+-0.0969
+Fulvestrant; Prednisone; Toremifene
+Histone methylation
+6
+-0.1138
+-0.0118
+-0.1020
+Tazemetostat; UNC0631; UNC1999
+Table I.3: Nearest-neighbor enrichment of same-class perturbations in α(c)-space.
+k
+Observed same-class
+Null mean
+Fold enrichment
+Permutation p
+1
+0.4194
+0.1464
+2.8641
+0.0002
+3
+0.2867
+0.1464
+1.9588
+0.0002
+5
+0.2323
+0.1466
+1.5843
+0.0002
+8
+0.1976
+0.1469
+1.3455
+0.0036
+10
+0.1946
+0.1469
+1.3248
+0.0020
+The negative differences in a few MoA classes are also informative. They show that the dictionary
+does not force every external label to become a compact cluster. Some annotations are broad, some
+mechanisms are pleiotropic, and some response modes are shared across nominal classes. This is the
+desired level of evidence for MRFlow: the learned operators are pathway-consistent at aggregate and
+nearest-neighbor levels, while the method remains flexible enough to share response structure across
+related pharmacological categories. The result supports mechanism-structured regularization rather
+than a one-to-one mapping between bases and biological pathways.
+Table I.4 gives a compact view of the same phenomenon from the basis side. Each pathway group is
+summarized by the two most positive and two most negative mean dictionary activations among the
+16 shared affine bases. The signs should not be read as activating or repressing genes directly, since
+each basis is a latent operator rather than a pathway label. The useful signal is instead relational:
+different pathway groups recruit different combinations of shared operators, and broad groups such
+as epigenetic regulation have much smaller average activations than more specialized groups such
+as nuclear receptor signaling or protein folding and degradation. This pattern is consistent with the
+design goal of MRFlow, where α(c) recombines reusable response operators instead of assigning
+each perturbation to an isolated class-specific model.
+24
+
+
+Table I.4: Representative pathway-level dictionary activation signatures in SciPlex3. For each
+pathway, the table reports the two largest and two smallest mean activations among the 16 shared
+affine bases.
+Pathway
+Cond.
+Largest mean activations
+Smallest mean activations
+Protein folding & degradation
+3
+B8=0.86, B11=0.78
+B9=-1.03, B1=-0.74
+Apoptotic regulation
+3
+B13=1.03, B2=0.76
+B12=-0.93, B7=-0.80
+TGF/BMP signaling
+2
+B11=0.68, B13=0.28
+B4=-1.08, B6=-0.85
+Cell cycle regulation
+11
+B4=0.56, B2=0.46
+B1=-0.66, B14=-0.64
+Focal adhesion signaling
+2
+B8=0.57, B4=0.44
+B6=-0.70, B9=-0.49
+Tyrosine kinase signaling
+21
+B8=0.34, B3=0.18
+B13=-0.41, B10=-0.28
+Epigenetic regulation
+39
+B16=0.21, B13=0.19
+B3=-0.31, B12=-0.10
+HIF signaling
+3
+B16=0.32, B9=0.20
+B10=-0.24, B12=-0.23
+JAK/STAT signaling
+20
+B8=0.32, B3=0.21
+B1=-0.27, B10=-0.25
+Metabolic regulation
+4
+B11=0.56, B3=0.51
+B6=-0.61, B15=-0.47
+PKC signaling
+3
+B13=0.40, B2=0.25
+B6=-0.60, B4=-0.28
+Nuclear receptor signaling
+6
+B10=1.43, B1=1.16
+B8=-1.38, B15=-1.12
+DNA damage & repair
+15
+B10=0.52, B14=0.50
+B16=-0.53, B15=-0.35
+Neuronal signaling
+4
+B9=0.85, B7=0.78
+B11=-0.77, B8=-0.62
+The macro-residual decomposition gives a second view of the same architecture. The mechanism-
+structured affine field is designed to carry the dominant reusable response, whereas the residual
+field models nonlinear and cell-state-dependent variation. Table I.5 shows that the macro share
+is consistently near but above one half across pathway groups, with residual norms remaining
+substantial. This is exactly the regime intended by the model: the affine dictionary is not bypassed
+by an unconstrained residual network, and the residual field is not removed by an overly rigid linear
+transport. The decomposition therefore connects the empirical ablation in Table 3 to an operator-level
+diagnostic.
+Table I.5: Macro and residual velocity decomposition by pathway in SciPlex3.
+Pathway
+Cond.
+Macro share
+Share SD
+Macro norm
+Residual norm
+TGF/BMP signaling
+2
+0.5265
+0.0095
+3.9287
+3.5328
+Focal adhesion signaling
+2
+0.5255
+0.0098
+3.9352
+3.5517
+DNA damage and DNA repair
+15
+0.5210
+0.0068
+3.7837
+3.4785
+PKC signaling
+3
+0.5207
+0.0054
+3.8088
+3.5052
+Metabolic regulation
+4
+0.5205
+0.0082
+3.8048
+3.5050
+JAK/STAT signaling
+20
+0.5200
+0.0064
+3.8543
+3.5568
+Tyrosine kinase signaling
+21
+0.5200
+0.0075
+3.8336
+3.5380
+HIF signaling
+3
+0.5189
+0.0088
+3.8290
+3.5497
+Apoptotic regulation
+3
+0.5188
+0.0100
+3.8185
+3.5410
+Epigenetic regulation
+39
+0.5175
+0.0054
+3.7700
+3.5145
+Cell cycle regulation
+11
+0.5175
+0.0043
+3.8396
+3.5808
+Protein folding and degradation
+3
+0.5168
+0.0077
+3.8623
+3.6111
+Neuronal signaling
+4
+0.5163
+0.0057
+3.7377
+3.5009
+Other
+4
+0.5161
+0.0076
+3.7159
+3.4839
+Nuclear receptor signaling
+6
+0.5153
+0.0079
+3.6422
+3.4256
+Dose-response diagnostics provide a different stress test because dose variation changes response
+magnitude without changing the drug identity. Table I.6 reports selected four-dose series. These
+rows should be read as diagnostic provenance for response consistency, not as a global dose-response
+benchmark. The useful signal is that several series maintain high rank agreement between predicted
+and observed response strength across the selected doses. At the same time, amplitude ranges differ
+between measured and predicted responses, which keeps the claim bounded and reinforces why
+MRFlow is evaluated by multiple raw metrics rather than a single monotonicity score.
+25
+
+
+Table I.6: Selected dose-response consistency diagnostics. Each drug contributes four dose rows in
+the source table; the summary reports the shared rank statistics for the selected series.
+Drug
+Pathway
+Doses
+ρp,t
+ρt,d
+ρp,d
+True range
+Alisertib
+Cell cycle regulation
+4
+0.8
+0.4
+-0.2
+0.1104
+Azacitidine
+Epigenetic regulation
+4
+0.8
+0.8
+1.0
+0.0875
+Dacinostat
+Epigenetic regulation
+4
+0.8
+1.0
+0.8
+0.7595
+G007-LK
+TGF/BMP signaling
+4
+0.8
+1.0
+0.8
+0.0529
+JQ1
+Epigenetic regulation
+4
+1.0
+1.0
+1.0
+0.2398
+Navitoclax
+Apoptotic regulation
+4
+0.8
+0.2
+0.4
+0.2340
+The selected dose series are accompanied by the broader candidate pool in Table I.7. This table
+is important for interpretation because dose-response figures can otherwise look stronger than the
+underlying evidence. Several candidates, including JQ1, Iniparib, Dacinostat, Navitoclax, Alisertib,
+Azacitidine, Roxadustat, G007-LK, TMP195, and BMS-911543, have positive rank agreement
+between predicted and observed response strength. Other candidates have weak or negative rank
+agreement, especially when the measured dynamic range is small. The mixed pattern is useful
+rather than damaging: it shows that the appendix is reporting a diagnostic landscape, not cherry-
+picking a monotone-dose claim. MRFlow is strongest when the perturbation induces a measurable
+transcriptional response, and the raw-metric evaluation remains the primary evidence for benchmark-
+level performance.
+Table I.7: Candidate dose-response diagnostics across four-dose SciPlex3 drug series. ρpred,true
+measures rank agreement between predicted and observed response strength across doses.
+Drug
+Pathway
+Doses
+ρp,t
+ρt,d
+ρp,d
+True range
+JQ1
+Epigenetic regulation
+4
+1.0
+1.0
+1.0
+0.2398
+Iniparib
+DNA damage & repair
+4
+1.0
+-0.4
+-0.4
+0.0243
+Dacinostat
+Epigenetic regulation
+4
+0.8
+1.0
+0.8
+0.7595
+Navitoclax
+Apoptotic regulation
+4
+0.8
+0.2
+0.4
+0.2340
+Alisertib
+Cell cycle regulation
+4
+0.8
+0.4
+-0.2
+0.1104
+Azacitidine
+Epigenetic regulation
+4
+0.8
+0.8
+1.0
+0.0875
+Roxadustat
+HIF signaling
+4
+0.8
+0.2
+0.4
+0.0537
+G007-LK
+TGF/BMP signaling
+4
+0.8
+1.0
+0.8
+0.0529
+TMP195
+Epigenetic regulation
+4
+0.8
+0.8
+0.4
+0.0277
+BMS-911543
+JAK/STAT signaling
+4
+0.8
+-0.8
+-0.6
+0.0101
+Givinostat
+Epigenetic regulation
+4
+0.4
+1.0
+0.4
+0.7992
+Abexinostat
+Epigenetic regulation
+4
+0.4
+1.0
+0.4
+0.6164
+Nintedanib
+Tyrosine kinase signaling
+4
+0.4
+0.2
+-0.8
+0.1065
+AG-14361
+DNA damage & repair
+4
+0.4
+0.8
+0.0
+0.0812
+Decitabine
+Epigenetic regulation
+4
+0.4
+1.0
+0.4
+0.0470
+Fasudil HCl
+Focal adhesion signaling
+4
+0.2
+1.0
+0.2
+0.0161
+Rucaparib
+DNA damage & repair
+4
+0.0
+1.0
+0.0
+0.0292
+Aurora A inh.
+Cell cycle regulation
+4
+-0.2
+1.0
+-0.2
+0.1015
+Ruxolitinib
+JAK/STAT signaling
+4
+-0.4
+0.4
+-0.4
+0.0668
+PFI-1
+Epigenetic regulation
+4
+-0.6
+1.0
+-0.6
+0.1947
+GSK1070916
+Cell cycle regulation
+4
+-0.8
+0.8
+-0.6
+0.0860
+FLLL32
+JAK/STAT signaling
+4
+-1.0
+1.0
+-1.0
+0.0170
+The qualitative response-gene panels are selected examples, so their selection process must be
+explicit. Table I.8 makes this provenance visible across the supplementary panels. Across all eight
+benchmarks, the selected examples have a same-direction fraction of 1.0 under the selection criterion,
+but the candidate pool size varies widely, from three available Aissa PC9 conditions to 140 candidate
+conditions in the Norman and Replogle screens. Table I.9 gives additional condition-level provenance
+for the four HDAC inhibitor panels in Figure 5. This makes the intended interpretation clear: the
+panels demonstrate that MRFlow can produce locally inspectable response signatures, while the
+complete benchmark claims remain those in Tables 1 and 2.
+26
+
+
+Table I.8: Dataset-level provenance for selected supplementary response-gene examples.
+Dataset
+Type
+Selected
+Same-dir.
+Visible signal
+Abs. error
+Candidate cond.
+Adamson 2016
+gene
+4
+1.0000
+0.3837
+0.1127
+86
+Aissa 2021 PC9
+drug
+3
+1.0000
+0.3831
+0.2073
+3
+Dixit 2016
+gene
+4
+1.0000
+0.2434
+0.1261
+19
+Lotfollahi-Theis 2023
+drug
+4
+1.0000
+0.4931
+0.1834
+30
+McFarland 2020
+drug
+4
+1.0000
+0.3718
+0.1134
+113
+Norman 2019
+gene
+4
+1.0000
+0.1534
+0.0456
+140
+Replogle 2022
+gene
+4
+1.0000
+0.6401
+0.1727
+140
+SciPlex3
+drug
+4
+1.0000
+0.3152
+0.1956
+114
+Table I.9: Condition-level provenance for the HDAC inhibitor response-gene panels in Figure 5.
+Label
+Drug name
+Condition
+Cells
+DE20 Pearson
+Displayed direction match
+Dacinostat
+Dacinostat (LAQ824)
+1000 nM, A549
+252
+0.8959
+15/15
+Abexinostat
+Abexinostat (PCI-24781)
+1000 nM, A549
+413
+0.8497
+15/15
+Pracinostat
+Pracinostat (SB939)
+1000 nM, A549
+456
+0.6576
+15/15
+Givinostat
+Givinostat (ITF2357)
+1000 nM, A549
+219
+0.4800
+15/15
+Figure 3 in the main text is a compact diagnostic figure, so Tables I.10 and I.11 expose the tabular
+evidence behind the case-level panels. The component table asks whether a representative response
+is dominated by one basis or distributed across the structured affine dictionary. The largest single
+component is the bias term, followed by multiple shared bases, while the low-rank correction
+contributes a small fraction. This is consistent with the intended decomposition: the dictionary
+supplies reusable operator structure, the bias captures a shared affine offset, and the low-rank term
+gives condition-specific flexibility without replacing the shared basis.
+Table I.10: Representative Figure 3 case decomposition by affine operator component. Fractions are
+computed within the displayed case.
+Component
+Value
+Fraction
+α
+Component
+Value
+Fraction
+Bias
+5.3610
+0.2760
+B11
+1.5351
+0.0790
+B1
+2.0384
+0.1049
+-1.0145
+B12
+1.2531
+0.0645
+B4
+1.2143
+0.0625
+-0.4890
+B10
+1.2013
+0.0618
+B14
+1.1755
+0.0605
+-1.0878
+B5
+1.1158
+0.0574
+B7
+1.0273
+0.0529
+-0.9672
+B6
+0.8725
+0.0449
+B9
+0.6588
+0.0339
+-0.4830
+B13
+0.6448
+0.0332
+B8
+0.3839
+0.0198
+0.4792
+Low-rank
+0.2797
+0.0144
+B15
+0.2771
+0.0143
+0.1111
+B16
+0.2444
+0.0126
+B2
+0.0721
+0.0037
+0.0725
+B3
+0.0694
+0.0036
+The case response-gene table gives a gene-level sanity check on the same operator decomposition.
+All displayed genes preserve the down-regulated direction in this example, while absolute errors vary
+by gene. The table therefore supports a restrained interpretation of the case panel: MRFlow can
+produce an internally consistent chain from condition embedding to operator mixture to signed gene
+shifts for selected high-signal cases, but this example is not used as a substitute for the aggregate
+benchmark tables. Its role is to show that the mechanism-structured latent transport has inspectable
+local outputs.
+27
+
+
+Table I.11: Representative Figure 3 case response-gene signature. Shifts are signed relative to the
+source population.
+Gene
+True shift
+Pred. shift
+Direction
+Abs. error
+AKR1B10
+-1.7022
+-1.9314
+down
+0.2292
+HNF1A-AS1
+-0.9813
+-0.9879
+down
+0.0066
+CACNA1D
+-0.6709
+-0.7485
+down
+0.0776
+CPLX2
+-0.5835
+-0.6793
+down
+0.0957
+CP
+-0.4373
+-0.4643
+down
+0.0270
+TM4SF20
+-0.3952
+-0.3874
+down
+0.0078
+CLDN2
+-0.3046
+-0.3478
+down
+0.0431
+FCGBP
+-0.2920
+-0.3332
+down
+0.0412
+RARRES1
+-0.2197
+-0.2357
+down
+0.0160
+TMEM156
+-0.2120
+-0.2451
+down
+0.0331
+EDARADD
+-0.1573
+-0.1945
+down
+0.0373
+SLC25A21
+-0.1105
+-0.1160
+down
+0.0055
+Several larger Table-SI files are better treated as machine-readable provenance than as PDF tables.
+The condition-level macro-residual decomposition contains 141 canonical SciPlex3 conditions, the
+canonical alpha activation table contains 141 rows with 16 dictionary-basis coordinates, the selected
+supplementary response-gene table contains 620 gene-level rows, and the full candidate-condition
+score table contains 645 rows. We therefore cite them as supplementary data rather than typesetting
+them in full. Their role is to make the qualitative and mechanism-structured diagnostics reproducible:
+a reader can trace from an appendix figure to the selected condition, from the selected condition to its
+candidate pool, and from a pathway-level diagnostic to the condition-level activation values used to
+compute it.
+J
+Supplementary Matched Response-Gene Shift Examples
+To complement the aggregate metrics in the main text, we provide matched response-gene shift visu-
+alizations across all eight benchmark datasets. Each panel corresponds to one held-out perturbation
+condition and displays 20 response genes, with 10 upregulated genes and 10 downregulated genes.
+For each gene, the observed signed expression shift is compared with the MRFlow-predicted signed
+shift, where both shifts are computed relative to the corresponding control or source population.
+These panels are generated from processed AnnData files and MRFlow checkpoint inference; no
+simulated values are used. The examples are selected as high-matching qualitative cases using a
+balanced criterion that favors direction agreement, visible response magnitude, and low absolute error.
+They should therefore be interpreted as qualitative model-inspection panels rather than unbiased
+estimates of global performance. The aggregate performance claims remain based on the raw metrics
+reported in Tables 1 and 2.
+These examples provide interpretability at the level that a biologist or drug-response analyst would
+inspect after reading the aggregate tables. A distributional model may score well on global metrics
+but still produce response-gene shifts that are difficult to interpret condition by condition. These
+panels ask a local question: when a held-out condition has a clear signed response signature, does the
+predicted signature preserve the direction and relative size of the response genes? The examples do
+not replace quantitative evaluation, but they make the model output more auditable.
+The selected genes are displayed as signed shifts relative to control rather than as raw expression
+values. This presentation aligns the panels with the DE20 metrics in the main text and with the
+biological question of perturbation response. It also avoids conflating baseline expression level with
+induced change. For AIVC use, the induced change is often the actionable object: it indicates which
+genes are predicted to rise or fall under an intervention and whether the predicted response agrees
+with the observed perturbation signature.
+Figures J.1 and J.2 document the coverage and selection protocol for these supplementary panels.
+The Aissa 2021 PC9 processed benchmark contains only three non-control perturbation conditions,
+so three real examples are shown for that dataset rather than adding an artificial fourth panel.
+28
+
+
+SciPlex3
+McFarland 2020
+Lotfollahi-Theis 2023
+Aissa 2021 PC9
+Norman 2019
+Replogle 2022
+Dixit 2016
+Adamson 2016
+0
+1
+2
+3
+4
+5
+Displayed panels
+4
+4
+4
+3
+4
+4
+4
+4
+drug
+gene
+0.2
+0.4
+0.6
+Mean visible shift
+0.05
+0.10
+0.15
+0.20
+0.25
+0.30
+Mean absolute error
+more visible
+lower error
+drug
+gene
+Figure J.1: Coverage of selected response-gene shift examples. The supplementary panels cover four
+drug perturbation benchmarks and four genetic perturbation benchmarks, with three real conditions
+for Aissa 2021 PC9 because the processed benchmark contains only three non-control drug conditions.
+SciPlex3
+McFarland 2020
+Lotfollahi-Theis 2023
+Aissa 2021 PC9
+Norman 2019
+Replogle 2022
+Dixit 2016
+Adamson 2016
+2.0
+2.5
+3.0
+3.5
+4.0
+4.5
+5.0
+5.5
+Example selection score
+candidate conditions
+selected drug panels
+selected gene panels
+Figure J.2: Selection protocol for matched response-gene shift panels. Candidate held-out perturbation
+conditions are scored by direction agreement, visible response magnitude, and absolute error, then
+selected as qualitative high-matching examples for inspection.
+The qualitative panels serve a different purpose from the tables. The raw metrics establish dataset-level
+performance, while these panels ask whether the model output is readable at the gene-signature level
+for concrete held-out conditions. The coverage and selection figures guard against overinterpretation
+by labeling examples as selected high-matching cases. The complete raw-metric evaluation in the
+main tables remains the primary evidence for average performance.
+29
+
+
+NeurIPS Paper Checklist
+1. Claims
+Question: Do the main claims made in the abstract and introduction accurately reflect the
+paper’s contributions and scope?
+Answer: [Yes].
+Justification: The claims are stated in the abstract and Introduction, and they are limited to
+conditional distribution transport, mechanism-residual modeling, and empirical performance
+on the reported perturbation benchmarks.
+2. Limitations
+Question: Does the paper discuss the limitations of the work performed by the authors?
+Answer: [Yes].
+Justification: The paper explicitly bounds its claims to held-out condition prediction on the
+reported perturbation benchmarks, clarifies that MRFlow is evaluated per dataset rather than
+as a jointly trained cross-dataset model, and notes that broader dose programs, perturbation
+modalities, and experimental validation remain directions for future work.
+3. Theory assumptions and proofs
+Question: For each theoretical result, does the paper provide the full set of assumptions and
+a complete and correct proof?
+Answer: [N/A].
+Justification: The paper introduces MRFlow as a model contribution, with innovations
+in perturbation-conditioned latent distribution transport, a mechanism-structured affine
+dictionary, residual velocity modeling, and OT-guided pairing for unpaired single-cell
+populations. These contributions are defined mathematically but are not presented as formal
+theorems requiring proof.
+4. Experimental result reproducibility
+Question: Does the paper fully disclose all the information needed to reproduce the main
+experimental results of the paper to the extent that it affects the main claims and conclusions
+of the paper, regardless of whether the code and data are provided or not?
+Answer: [Yes].
+Justification: The paper specifies the datasets, baselines, raw metrics, composite-score
+definition, low-cost pairing implementation, model components, training objective, and
+evaluation aggregation used for the main claims.
+5. Open access to data and code
+Question: Does the paper provide open access to the data and code, with sufficient instruc-
+tions to faithfully reproduce the main experimental results, as described in supplemental
+material?
+Answer: [No].
+Justification: The current submission uses publicly cited datasets and fully describes the
+method and evaluation protocol, but the anonymized code and reproduction package are
+not yet attached. Upon acceptance, the authors will publicly release the full MRFlow code,
+preprocessing scripts, configuration files, and data access or processed-data instructions
+needed to reproduce the reported experiments.
+6. Experimental setting/details
+Question: Does the paper specify all the training and test details necessary to understand the
+results?
+Answer: [Yes].
+Justification: The Experiments section and appendix identify datasets, held-out condi-
+tion split assumptions, baselines, metrics, composite scoring, OT-guided pairing, training
+objective terms, preprocessing notes, software versions, hardware, and training-time range.
+7. Experiment statistical significance
+30
+
+
+Question: Does the paper report error bars suitably and correctly defined or other appropriate
+information about the statistical significance of the experiments?
+Answer: [Yes].
+Justification: The paper reports complete raw metrics for each dataset-method pair and
+additional raw-metric rank diagnostics across dataset-metric cells. These diagnostics provide
+fixed-split benchmark evidence for the comparative claims.
+8. Experiments compute resources
+Question: For each experiment, does the paper provide sufficient information on the com-
+puter resources needed to reproduce the experiments?
+Answer: [Yes].
+Justification: Appendix G reports the GPU, memory, CPU, operating system, Python
+version, PyTorch version, CUDA version, and per-dataset training-time range used for the
+experiments.
+9. Code of ethics
+Question: Does the research conducted in the paper conform, in every respect, with the
+NeurIPS Code of Ethics?
+Answer: [Yes].
+Justification: The work uses previously published single-cell perturbation datasets and
+develops a predictive model for biological research without involving new human-subject
+data collection.
+10. Broader impacts
+Question: Does the paper discuss both potential positive societal impacts and negative
+societal impacts of the work performed?
+Answer: [Yes].
+Justification: Appendix G discusses potential benefits for perturbation prioritization and
+drug-response analysis, as well as risks from over-interpreting in-silico predictions without
+experimental validation.
+11. Safeguards
+Question: Does the paper describe safeguards that have been put in place for responsible
+release of data or models that have a high risk for misuse?
+Answer: [N/A].
+Justification: The paper does not release a high-risk generative model for open-ended content
+or scraped personal data.
+12. Licenses for existing assets
+Question: Are the creators or original owners of assets used in the paper properly credited
+and are the license and terms of use explicitly mentioned and properly respected?
+Answer: [No].
+Justification: The datasets and prior models are cited, and Appendix F states that all datasets
+and baseline implementations come from public papers or official open-source releases. The
+final reproduction package will follow the original licenses and access terms, but the current
+draft does not yet list every dataset and software license individually.
+13. New assets
+Question: Are new assets introduced in the paper well documented and is the documentation
+provided alongside the assets?
+Answer: [N/A].
+Justification: The paper does not introduce a new biological dataset, benchmark asset, or
+public model checkpoint as part of the current submission. The planned code release is
+described under the open-access item above.
+14. Crowdsourcing and research with human subjects
+31
+
+
+Question: For crowdsourcing experiments and research with human subjects, does the paper
+include the full text of instructions given to participants and screenshots, if applicable, as
+well as details about compensation?
+Answer: [N/A].
+Justification: The work does not involve crowdsourcing or new experiments with human
+subjects.
+15. Institutional review board approvals or equivalent for research with human subjects
+Question: Does the paper describe potential risks incurred by study participants, whether
+such risks were disclosed to the subjects, and whether Institutional Review Board approvals
+or an equivalent approval were obtained?
+Answer: [N/A].
+Justification: The work analyzes previously published cell-line perturbation datasets and
+does not recruit human participants.
+16. Declaration of LLM usage
+Question: Does the paper describe the usage of LLMs if it is an important, original, or
+non-standard component of the core methods in this research?
+Answer: [N/A].
+Justification: LLMs are not part of the MRFlow model architecture, training objective, or
+experimental evaluation described in the paper.
+32
